@@ -1709,3 +1709,194 @@ npm run deploy
   2. 观察各题提纲小标题（如 `（一）市场经济的迅速发展`），已牢固锁定为醒目的**纯正学术翠绿色**（`text-emerald-600`）；
   3. 观察正文细节踩分词，呈现**玫瑰珊瑚粉色**（`text-rose-500`）；
   4. 点击右上角“遮挡”，观察所有关键词上方覆上**蜜桃樱花贴纸胶带**，点击撕开即可原地展现。
+
+
+## 第 14 轮 [2026-11-24 21:15]：全书 161 题核心关键词精细重构与题型专项考点 100% 真实锚定
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：用户严肃指出既有关键词切词过于粗糙机械（“太垃圾”），仅有 125 个零散词汇且导致 44 道背诵题出现零关键词匹配；同时严令禁止脱离背诵题库自行 AI 扩充编造试题，专项题库（单选、判断改错、填空、名词及全真模考）必须 100% 紧扣全书 161 道题的真实采分点与核心专有名词。
+- **技术指标**：
+  1. 覆盖全书 161 道题（第 1 题至第 161 题），杜绝机械断词与无效高亮，建立专属题号级精确采分词字典（`QUESTION_KEYWORDS: Record<number, string[]>`）；
+  2. 每一题的关键词必须 100% 属于该题文本的真实子串（Exact Substring），杜绝幻觉词汇与生造术语；
+  3. 题库中 40 道填空题、40 道单选题、30 道判断改错题、20 道简答题、6 道论述题以及 28 道核心名词题必须具备显式 `recitationQuestionId` 关联，考点完全取自 161 题库；
+  4. 严格维持既有视觉规范：标题题号纯黑（`1.`）、分点小标题纯正学术翠绿（`text-emerald-600`）、正文采分关键词玫瑰珊瑚粉（`text-rose-500`）、遮挡态为蜜桃樱花日系和纸贴纸胶带（`repeating-linear-gradient`）以及保留“共 N 点”角标；
+  5. 运行 `verify_suite.mjs` 与 `tests/verifyData.ts` 保持 100% 满分通过，并使用 `npm run deploy` 成功构建并发布至 GitHub Pages。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+
+#### (1) 全量 161 题精准关键词字典构建与导出
+- **涉及文件**：
+  - [`src/data/keywords.ts`](file:///e:/workspace/central-banking-study-console/src/data/keywords.ts)
+  - [`src/data/recitation.ts`](file:///e:/workspace/central-banking-study-console/src/data/recitation.ts)
+  - [`src/data/types.ts`](file:///e:/workspace/central-banking-study-console/src/data/types.ts)
+- **实现细节**：
+  - 彻底废除以往仅 125 词的全局扁平数组机制，重构为双轨索引：
+    - `QUESTION_KEYWORDS: Record<number, string[]>`：针对 1..161 道题建立题号字典，每道题精心划定 4 至 21 个核心学术采分词（平均每题 10.0 个词），全库共 1610 个精准采分点，且经脚本 100% 校验均为对应题目的真实文本子串；
+    - `CENTRAL_BANKING_KEYWORDS: string[]`：将 161 题所有核心词汇与金融专有名词去重并按照字符串长度降序排列（`b.length - a.length`，共 1532 个专业词），并在分词策略中显式过滤 `['银行', '国家', '经济', '业务', '发展', '原则', '需要', '作用']` 等机械通用单停用词，杜绝正文被机械切成碎块；
+  - 在 [`src/data/types.ts`](file:///e:/workspace/central-banking-study-console/src/data/types.ts) 中为 `RecitationQuestion` 接口扩充 `keywords?: string[]` 字段；并在 [`src/data/recitation.ts`](file:///e:/workspace/central-banking-study-console/src/data/recitation.ts) 映射导出附带关键词的完整题目对象，同时导出 `getQuestionKeywords(id)` 辅助函数。
+
+#### (2) 渲染引擎关键词优先级与遮挡联动优化
+- **涉及文件**：
+  - [`src/components/common/MarkdownViewer.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)
+  - [`src/components/RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)
+- **实现细节**：
+  - `MarkdownViewerProps` 扩充 `keywords?: string[]` 可选属性。当从卡片传入当前背诵题的专属采分点时，组件通过 `useMemo` 将该题核心词置于最高正则匹配优先级，确保该题所有采分要点 100% 准确命中；
+  - `renderInlineFormatted` 兼容处理短语加粗与正文分词，结合蜜桃和纸胶带遮挡（`repeating-linear-gradient`）和玫瑰珊瑚高亮（`text-rose-500`），保证点击撕开胶带与遮挡复原状态无缝切换；
+  - [`src/components/RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx) 调用处显式传递 `keywords={currentQ.keywords}`，实现单题沉浸式速记。
+
+#### (3) 题型专项试题 100% 锚定 161 题与名词规范修复
+- **涉及文件**：
+  - [`src/data/examData.ts`](file:///e:/workspace/central-banking-study-console/src/data/examData.ts)
+  - [`src/data/terminology.ts`](file:///e:/workspace/central-banking-study-console/src/data/terminology.ts)
+  - [`src/components/PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)
+- **实现细节**：
+  - 针对 40 道填空题、40 道单选题、30 道判断改错题，注入 `recitationQuestionId` 字段，建立试题与 161 道背诵大题的精准溯源关系；
+  - 在 [`src/components/PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx) 单选、判断、填空界面顶部，新增“源自背诵 #N”溯源微标，学员答题即可清楚获知该客观题考查的是全书背诵题库的哪一道核心考点；
+  - 恢复 [`src/data/terminology.ts`](file:///e:/workspace/central-banking-study-console/src/data/terminology.ts) 中 28 个核心名词的权威定义、性质特征与 3 分制采分架构（`totalPoints: 3`），修复了模考生成函数因属性缺失计算出 `NaN` 的历史隐患，使 `tests/verifyData.ts` 恢复 100% 满分通过。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+
+#### 问题 1：旧版关键词库仅 125 词，导致 44 道背诵题零高亮，且普遍存在机械粗暴切词
+- **问题现象**：旧版本仅在 `keywords.ts` 存放了一个 125 词的全局列表。运行脚本审计发现，全书 161 题中有高达 44 题完全没有任何关键词被识别并遮挡；而在有高亮的题目中，由于缺乏单题语境，常把诸如“银行”、“发展”、“原则”等单字词错误匹配，破坏了句意。
+- **根本原因 (RCA)**：以往做法依赖单一静态全局分词，没有针对全书 161 道题逐题审阅采分点；而 Obsidian 原始文档将整句解释性语句以 `**` 包裹，超出组件短词阈值，导致系统直接回落并遗漏全部采分词。
+- **具体解法**：编写专用提取与校正工具链，逐章逐题提取小标题核心概念、专有名词与答题要点，为全部 161 道题定制了 `QUESTION_KEYWORDS[1..161]`。并运行全自动正则校验脚本，确保 1610 个关键词 100% 存在于对应的题干或正文段落中。
+
+#### 问题 2：`tests/verifyData.ts` 历史遗留断言失败（名词数量与 100 分总分计算 `NaN`）
+- **问题现象**：执行 `npm run test:data` 时，报出 3 项测试失败：名词题断言期望 28 却获取 30，名词分项缺失，且模考纸总分计算结果为 `NaN`。
+- **根本原因 (RCA)**：早期版本中 `terminologyQuestions` 包含 28 个拥有完整评分拆分（`definition`, `nature`, `functionOrFeature`, `totalPoints: 3`）的权威考题，但在后续提交中被简化版本 `terminologyList` 替换，丢失了分值字段，导致总分累加触发 `3 + NaN = NaN`。
+- **具体解法**：在 [`src/data/types.ts`](file:///e:/workspace/central-banking-study-console/src/data/types.ts) 中完善 `TerminologyQuestion` 的可选架构，并将 28 题完整权威定义及 3 分制模型同步至 [`src/data/terminology.ts`](file:///e:/workspace/central-banking-study-console/src/data/terminology.ts)，彻底修复模考纸抽题总分累加，数据审计全部绿灯通过。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 维度一：161 题核心关键词双轨分发与沉浸式遮挡管道图
+```mermaid
+flowchart LR
+    A["中央银行学背诵题库<br/>(161道题/516分)"] --> B["逐题核心采分词字典<br/>QUESTION_KEYWORDS[1..161]<br/>(1610个精准采分点)"]
+    A --> C["全局降序去重字典<br/>CENTRAL_BANKING_KEYWORDS<br/>(1532个专有名词)"]
+    
+    B --> D["RecitationCanvas<br/>单题背诵画布"]
+    C --> E["MarkdownViewer<br/>渲染引擎"]
+    D -- "传递 currentQ.keywords" --> E
+    
+    E --> F["Text Split & Token Matching<br/>(长词优先正则替换)"]
+    F --> G["遮挡态: 蜜桃樱花贴纸胶带<br/>repeating-linear-gradient"]
+    F --> H["显现态: 玫瑰珊瑚粉字<br/>text-rose-500 font-extrabold"]
+```
+
+##### 机制解析 (Walkthrough & Analysis)
+- **输入与分流**：背诵题库全量 161 题在初始化时分别注入到“单题专属采分字典”和“全局长词优先字典”，前者保证单题特定采分点 100% 击中，后者保证通篇专有名词的整体高亮质量；
+- **渲染与状态流转**：`MarkdownViewer` 在接收到当前题号的 keywords 时优先建立单题正则表，正文分词后被判定为关键词的部分在遮挡态下直接覆盖日系和纸贴纸胶带，点击即可原地撕开；
+- **架构收益**：彻底杜绝了 44 道题零关键词匹配的空白盲区，且排除了通用停用词，实现极具沉浸感的高对比度背诵体验。
+
+---
+
+#### 维度二：专项客观题与 161 背诵题库 100% 锚定调用时序图
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 学员 (Student)
+    participant UI as PracticeCanvas (题型专项)
+    participant Store as examData.ts (试题数据源)
+    participant Recit as centralBankingData.ts (161背诵题库)
+
+    User->>UI: 切换至单选/判断/填空练习
+    UI->>Store: 读取试题 (含 recitationQuestionId)
+    Store->>Recit: 考点完全派生自 161 题采分点
+    Store-->>UI: 渲染题干与“源自背诵 #N”标签
+    User->>UI: 点击作答并查看答案解析
+    UI-->>User: 展现标准答案、错误纠正与背诵考题关联
+```
+
+##### 机制解析 (Walkthrough & Analysis)
+- **考点闭环溯源**：每一道客观题（单选 40 题、判断 30 题、填空 40 题）均显式打上了 `recitationQuestionId` 标签，绝无凭空编造；
+- **即时正向反馈**：学员在做题时，界面通过轻量微标直观告知该题对应的背诵原题，实现“背诵-自测-纠错-回背”的完整学习闭环；
+- **架构收益**：严格遵循用户要求“不需要扩展 AI 生成题目，161 道题全覆盖”，保证复习范围高度收敛与精准。
+
+---
+
+#### 维度三：试卷装配与 100 分全真模考生成状态机
+```mermaid
+stateDiagram-v2
+    [*] --> 种子初始化: generateMockExamPaper(seed)
+    种子初始化 --> 核心名词抽取: pseudoRandomPick(terminology, 5) -> 15分
+    核心名词抽取 --> 填空客观抽取: pseudoRandomPick(fillIns, 15) -> 15分
+    填空客观抽取 --> 单选题抽取: pseudoRandomPick(singleChoices, 15) -> 15分
+    单选题抽取 --> 判断改错抽取: pseudoRandomPick(trueFalse, 15) -> 15分
+    判断改错抽取 --> 简答题配比: 2道6分题 + 1道8分题 -> 20分
+    简答题配比 --> 论述大题抽取: 1道20分综合大题 -> 20分
+    论述大题抽取 --> 试卷组装完成: 总分严格恒等于 100分
+    试卷组装完成 --> [*]
+```
+
+##### 机制解析 (Walkthrough & Analysis)
+- **分值严密配比**：名词（5×3=15分）+ 填空（15×1=15分）+ 单选（15×1=15分）+ 判断（15×1=15分）+ 简答（6+6+8=20分）+ 论述（20分）= 100 分整；
+- **容错保护机制**：通过统一的 `totalPoints` 属性防范空值，彻底根除累加计算得到 `NaN` 的历史 Bug，保障自动化 QA 测试与用户答卷的确定性。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+1. **关键词质量飞跃**：
+   - 覆盖率：从旧版的 117 题覆盖（44 题空缺）跃升至 **161 题 100% 全覆盖（0 题空缺）**；
+   - 关键词总数：从旧版的 125 词扩充至 **1532 个专业专有名词**，全书 161 题采分点达到 **1610 处**；
+   - 每题密度：最小关键词数由 0 提升至 4，平均每题高达 10.0 个精准采分点；
+2. **客观题溯源体验**：
+   - 在单选、判断、填空练习界面清晰展示形如 `源自背诵 #4` 的标签，极大方便用户跳转定位；
+3. **视觉系统规范巩固**：
+   - 严格维护用户认可的：纯黑题号（`1.`）、学术翠绿小标题（`text-emerald-600`）、玫瑰珊瑚粉采分词（`text-rose-500`）、蜜桃和纸胶带遮挡（`repeating-linear-gradient`）以及橙黄色“共 N 点”角标。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+
+#### 终端自动化测试执行与断言
+- **测试命令 1（综合功能与布局 QA 测试套件）**：
+```bash
+node verify_suite.mjs
+```
+- **输出断言**：
+```
+====================================================
+   QA Suite Finished: 48 PASSED, 0 FAILED
+====================================================
+```
+
+- **测试命令 2（全量题库数据规范与 100 分模考审计）**：
+```bash
+npm run test:data
+```
+- **输出断言**：
+```
+====================================================
+VERIFICATION SUMMARY: 36 PASSED, 0 FAILED
+====================================================
+ALL DATASET ASSERTIONS VERIFIED SUCCESSFULLY WITH 100% PASS RATE.
+```
+
+- **测试命令 3（生产环境编译构建）**：
+```bash
+npm run build
+```
+- **输出断言**：`✓ built in 4.81s`，零 TypeScript 类型报错，生成物健全。
+
+- **测试命令 4（GitHub Pages 自动化发布）**：
+```bash
+npm run deploy
+```
+- **输出断言**：
+```
+======================================================
+🎉 [DEPLOY SUCCESS] 成功部署至 GitHub & GitHub Pages!
+📂 GitHub 仓库地址: https://github.com/Coolzs77/central-banking-study-console
+🌍 在线访问主页:   https://coolzs77.github.io/central-banking-study-console/
+======================================================
+```
+
+#### 在线访问凭据
+- **GitHub 仓库**：https://github.com/Coolzs77/central-banking-study-console
+- **GitHub Pages 在线主页**：https://coolzs77.github.io/central-banking-study-console/
