@@ -1,0 +1,358 @@
+// tests/verifyData.ts
+// Comprehensive Data Validation & Assertions for Central Banking Study Console
+
+import {
+  chaptersMeta,
+  recitationQuestions,
+  TOTAL_RECITATION_QUESTIONS,
+  TOTAL_RECITATION_POINTS,
+  homeworkQuestions,
+  TOTAL_HOMEWORK_QUESTIONS,
+  terminologyQuestions,
+  fillInQuestions,
+  singleChoiceQuestions,
+  trueFalseQuestions,
+  shortAnswerQuestions,
+  essayQuestions,
+  generateMockExamPaper
+} from '../src/data/index';
+
+console.log('====================================================');
+console.log('   CENTRAL BANKING STUDY CONSOLE - DATA AUDIT       ');
+console.log('====================================================\n');
+
+let passCount = 0;
+let failCount = 0;
+
+function assert(condition: boolean, testName: string, details?: string) {
+  if (condition) {
+    console.log(`[PASS] ${testName}`);
+    passCount++;
+  } else {
+    console.error(`[FAIL] ${testName}`);
+    if (details) console.error(`       Details: ${details}`);
+    failCount++;
+  }
+}
+
+// -----------------------------------------------------------------
+// 1. Recitation Manual Assertions (161 Qs, 516 Pts across 11 Chapters)
+// -----------------------------------------------------------------
+console.log('--- 1. Recitation Data Verification ---');
+
+assert(
+  recitationQuestions.length === 161,
+  'Recitation question count is exactly 161',
+  `Expected 161, got ${recitationQuestions.length}`
+);
+
+assert(
+  TOTAL_RECITATION_QUESTIONS === 161,
+  'TOTAL_RECITATION_QUESTIONS constant is 161',
+  `Got ${TOTAL_RECITATION_QUESTIONS}`
+);
+
+const totalRecitationPoints = recitationQuestions.reduce((sum, q) => sum + q.points, 0);
+assert(
+  totalRecitationPoints === 516,
+  'Total recitation points sum strictly equals 516',
+  `Expected 516, got ${totalRecitationPoints}`
+);
+
+assert(
+  TOTAL_RECITATION_POINTS === 516,
+  'TOTAL_RECITATION_POINTS constant is 516',
+  `Got ${TOTAL_RECITATION_POINTS}`
+);
+
+const continuousIds = recitationQuestions.every((q, idx) => q.id === idx + 1);
+assert(
+  continuousIds,
+  'Recitation question IDs are strictly continuous from 1 to 161',
+  'Found discontinuity in question IDs'
+);
+
+assert(
+  chaptersMeta.length === 11,
+  'Chapters count is exactly 11',
+  `Expected 11, got ${chaptersMeta.length}`
+);
+
+const sumChapterQuestions = chaptersMeta.reduce((sum, c) => sum + c.totalQuestions, 0);
+assert(
+  sumChapterQuestions === 161,
+  'Sum of chapter totalQuestions equals 161',
+  `Expected 161, got ${sumChapterQuestions}`
+);
+
+const sumChapterPoints = chaptersMeta.reduce((sum, c) => sum + c.totalPoints, 0);
+assert(
+  sumChapterPoints === 516,
+  'Sum of chapter totalPoints equals 516',
+  `Expected 516, got ${sumChapterPoints}`
+);
+
+const allRecitationFieldsValid = recitationQuestions.every(q => 
+  q.title && q.title.length > 0 &&
+  q.content && q.content.length > 0 &&
+  q.chapterTitle && q.sectionTitle &&
+  q.chapterId >= 1 && q.chapterId <= 11 &&
+  q.points > 0
+);
+assert(
+  allRecitationFieldsValid,
+  'All 161 recitation questions have complete, valid fields',
+  'Found question with missing or empty content/title/chapter'
+);
+
+// -----------------------------------------------------------------
+// 2. Homework Dataset Assertions (54 Questions across Chapters 1-11)
+// -----------------------------------------------------------------
+console.log('\n--- 2. Homework Notebook Verification ---');
+
+assert(
+  homeworkQuestions.length === 54,
+  'Homework question count is exactly 54',
+  `Expected 54, got ${homeworkQuestions.length}`
+);
+
+assert(
+  TOTAL_HOMEWORK_QUESTIONS === 54,
+  'TOTAL_HOMEWORK_QUESTIONS constant is 54',
+  `Got ${TOTAL_HOMEWORK_QUESTIONS}`
+);
+
+const hwContinuousIds = homeworkQuestions.every((q, idx) => q.id === idx + 1);
+assert(
+  hwContinuousIds,
+  'Homework question IDs are strictly continuous from 1 to 54',
+  'Found discontinuity in homework question IDs'
+);
+
+const expectedHwPerChapter = [6, 6, 3, 6, 5, 5, 5, 4, 2, 5, 7];
+const actualHwPerChapter = Array.from({ length: 11 }, (_, i) => 
+  homeworkQuestions.filter(q => q.chapterId === i + 1).length
+);
+const hwDistributionMatches = expectedHwPerChapter.every((exp, i) => exp === actualHwPerChapter[i]);
+assert(
+  hwDistributionMatches,
+  'Homework questions per chapter strictly matches standard [6,6,3,6,5,5,5,4,2,5,7]',
+  `Expected ${expectedHwPerChapter.join(',')}, got ${actualHwPerChapter.join(',')}`
+);
+
+const allHwValid = homeworkQuestions.every(q => 
+  q.question && q.question.length > 0 &&
+  q.answer && q.answer.length > 0 &&
+  q.chapterTitle && q.points > 0
+);
+assert(
+  allHwValid,
+  'All 54 homework questions have complete questions and handwritten answers',
+  'Found homework question with missing question or answer'
+);
+
+// -----------------------------------------------------------------
+// 3. Exam Question Bank Assertions (28 Terms, 40 Fill-In, 40 Choice, 30 T/F, 20 Short, 6 Essay)
+// -----------------------------------------------------------------
+console.log('\n--- 3. Exam Question Bank Verification ---');
+
+assert(
+  terminologyQuestions.length === 28,
+  'Terminology count is exactly 28 (<= 30 core terms)',
+  `Expected 28, got ${terminologyQuestions.length}`
+);
+
+const validTermChapters = [4, 5, 6, 7, 8, 10, 11];
+const allTermsFromDesignatedChapters = terminologyQuestions.every(t => 
+  validTermChapters.includes(t.chapterId)
+);
+assert(
+  allTermsFromDesignatedChapters,
+  'All 28 terms are strictly selected from designated Chapters 4, 5, 6, 7, 8, 10, 11',
+  'Found term from non-designated chapter'
+);
+
+const allTermsHave3PointBreakdown = terminologyQuestions.every(t => 
+  t.definition && t.definition.length > 0 &&
+  t.nature && t.nature.length > 0 &&
+  t.functionOrFeature && t.functionOrFeature.length > 0 &&
+  t.totalPoints === 3
+);
+assert(
+  allTermsHave3PointBreakdown,
+  'All 28 terms strictly feature 3-point definitions (definition 1.5pt, nature 1pt, function/feature 0.5pt = 3pt)',
+  'Found term with missing rubric breakdown'
+);
+
+assert(
+  fillInQuestions.length === 40,
+  'Fill-in-the-blank question count is exactly 40',
+  `Expected 40, got ${fillInQuestions.length}`
+);
+
+const allFillInsValid = fillInQuestions.every(q => 
+  q.stem.includes('_____') &&
+  q.answers.length > 0 &&
+  q.points === 1
+);
+assert(
+  allFillInsValid,
+  'All 40 fill-in questions contain blank placeholders and valid answers',
+  'Found fill-in question with missing blank or answers'
+);
+
+assert(
+  singleChoiceQuestions.length === 40,
+  'Single choice question count is exactly 40',
+  `Expected 40, got ${singleChoiceQuestions.length}`
+);
+
+const allSingleChoicesValid = singleChoiceQuestions.every(q => 
+  q.options.A && q.options.B && q.options.C && q.options.D &&
+  ['A', 'B', 'C', 'D'].includes(q.correctKey) &&
+  q.rationale && q.rationale.length > 0 &&
+  q.points === 1
+);
+assert(
+  allSingleChoicesValid,
+  'All 40 single choice questions feature complete ABCD options, valid key, and detailed rationale',
+  'Found single choice question with invalid options or missing rationale'
+);
+
+assert(
+  trueFalseQuestions.length === 30,
+  'True/False question count is exactly 30',
+  `Expected 30, got ${trueFalseQuestions.length}`
+);
+
+const allTrueFalseValid = trueFalseQuestions.every(q => 
+  typeof q.isCorrect === 'boolean' &&
+  q.errorCorrection && q.errorCorrection.length > 0 &&
+  q.points === 1
+);
+assert(
+  allTrueFalseValid,
+  'All 30 True/False questions specify boolean value and error correction statement',
+  'Found True/False question with missing boolean or correction'
+);
+
+assert(
+  shortAnswerQuestions.length === 20,
+  'Short answer question count is exactly 20',
+  `Expected 20, got ${shortAnswerQuestions.length}`
+);
+
+const allShortAnswersValid = shortAnswerQuestions.every(q => {
+  const sumRubric = q.rubricPoints.reduce((s, r) => s + r.score, 0);
+  return (q.totalPoints === 6 || q.totalPoints === 8) &&
+    Math.abs(sumRubric - q.totalPoints) < 0.01 &&
+    q.rubricPoints.length >= 2;
+});
+assert(
+  allShortAnswersValid,
+  'All 20 short answer questions have rubrics totaling exactly 6 or 8 points',
+  'Found short answer question with mismatched rubric points'
+);
+
+assert(
+  essayQuestions.length === 6,
+  'Essay question count is exactly 6 major questions',
+  `Expected 6, got ${essayQuestions.length}`
+);
+
+const validEssayChapters = [7, 8, 9, 10, 11];
+const allEssaysInCoreChapters = essayQuestions.every(e => 
+  validEssayChapters.includes(e.chapterId)
+);
+assert(
+  allEssaysInCoreChapters,
+  'All 6 essay questions strictly cover Monetary Policy [Ch 7-9] and Financial Regulation [Ch 10-11]',
+  'Found essay outside designated chapters'
+);
+
+const allEssaysHave20PtRubric = essayQuestions.every(e => 
+  e.totalPoints === 20 &&
+  e.rubric.theory.score === 4 &&
+  e.rubric.mechanism.score === 8 &&
+  e.rubric.practice.score === 6 &&
+  e.rubric.conclusion.score === 2
+);
+assert(
+  allEssaysHave20PtRubric,
+  'All 6 essay questions feature 20-point rubrics: theory 4pt, mechanism 8pt, practice 6pt, conclusion 2pt = 20pt',
+  'Found essay with non-conforming rubric points'
+);
+
+// -----------------------------------------------------------------
+// 4. 100-Point Mock Exam Paper Assertions
+// -----------------------------------------------------------------
+console.log('\n--- 4. 100-Point Mock Exam Structure Verification ---');
+
+const mockPaper = generateMockExamPaper(12345);
+
+assert(
+  mockPaper.terms.length === 5,
+  'Mock exam includes exactly 5 terminology questions (15 pt)',
+  `Got ${mockPaper.terms.length}`
+);
+
+assert(
+  mockPaper.fillIns.length === 15,
+  'Mock exam includes exactly 15 fill-in questions (15 pt)',
+  `Got ${mockPaper.fillIns.length}`
+);
+
+assert(
+  mockPaper.singleChoices.length === 15,
+  'Mock exam includes exactly 15 single choice questions (15 pt)',
+  `Got ${mockPaper.singleChoices.length}`
+);
+
+assert(
+  mockPaper.trueFalse.length === 15,
+  'Mock exam includes exactly 15 True/False questions (15 pt)',
+  `Got ${mockPaper.trueFalse.length}`
+);
+
+assert(
+  mockPaper.shortAnswers.length === 3,
+  'Mock exam includes exactly 3 short answer questions (20 pt)',
+  `Got ${mockPaper.shortAnswers.length}`
+);
+
+const shortAnswerTotal = mockPaper.shortAnswers.reduce((s, q) => s + q.totalPoints, 0);
+assert(
+  shortAnswerTotal === 20,
+  'Mock exam short answer questions sum to exactly 20 points (6 + 6 + 8)',
+  `Expected 20, got ${shortAnswerTotal}`
+);
+
+assert(
+  mockPaper.essay && mockPaper.essay.totalPoints === 20,
+  'Mock exam includes exactly 1 major essay question (20 pt)',
+  `Got ${mockPaper.essay?.totalPoints}`
+);
+
+const totalExamPoints = 
+  mockPaper.terms.reduce((s, t) => s + t.totalPoints, 0) +
+  mockPaper.fillIns.reduce((s, f) => s + f.points, 0) +
+  mockPaper.singleChoices.reduce((s, c) => s + c.points, 0) +
+  mockPaper.trueFalse.reduce((s, tf) => s + tf.points, 0) +
+  shortAnswerTotal +
+  mockPaper.essay.totalPoints;
+
+assert(
+  totalExamPoints === 100,
+  'Mock exam paper total strictly matches 100 points (15 + 15 + 15 + 15 + 20 + 20 = 100)',
+  `Expected 100, got ${totalExamPoints}`
+);
+
+console.log('\n====================================================');
+console.log(`VERIFICATION SUMMARY: ${passCount} PASSED, ${failCount} FAILED`);
+console.log('====================================================\n');
+
+if (failCount > 0) {
+  process.exit(1);
+} else {
+  console.log('ALL DATASET ASSERTIONS VERIFIED SUCCESSFULLY WITH 100% PASS RATE.');
+}
