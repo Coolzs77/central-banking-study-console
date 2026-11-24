@@ -995,3 +995,67 @@ flowchart TD
    ```
    返回 `200 OK`，实机核验完全通过。
 
+---
+
+## 第 9 轮 [2026-11-24 18:43]：彻底剥离所有背景底色框，纯正文字色彩高亮（Zero Background Boxes）
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **用户直接纠偏指示**：“我的意思是文字颜色高亮而不是加上背景框！！！！！！！！！！”，“给文字换颜色”；
+- **核心纠偏认知**：
+  - 严禁在小标题、首句或关键词外部套用任何形式的背景卡片（如 `bg-indigo-50` 浅紫背景条、`bg-blue-50 border-b-2` 底色下划线块、`bg-slate-50` 导言灰底框）；
+  - 所谓“高亮”是指**字形文字本身的颜色（Font Color）**：通过改变文本字色来区分视觉重点，保持段落背景完全透明、版面干净清爽。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+
+- [`src/components/common/MarkdownViewer.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)：
+  - **大纲小标题（`（一）...`、`（二）...`）纯文字换色**：彻底删除外层的 `p-2.5 px-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-200/80` 背景框与 `背诵核心概括` 徽标，直接渲染为纯净的高对比度紫蓝色标题文字：`<h4 className="font-extrabold text-[15.5px] text-indigo-600 dark:text-indigo-400 tracking-wide">{subTitle}</h4>`；
+  - **核心考点金融关键词纯文字换色**：彻底删除 `bg-blue-50/90` 背景条、`border-b-2` 底边线及 `px-1.5 py-0.5` 内边距，直接将匹配到的金融术语文本字色渲染为高亮蓝色：`<strong className="font-bold text-blue-600 dark:text-blue-400">{part}</strong>`；
+  - **首句及导言行去背景框化**：删除导言外的 `p-3.5 bg-slate-50/90 rounded-2xl border` 背景卡片，回归最纯净自然的段落文字排版。
+- [`src/components/RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx) & [`src/components/HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)：
+  - 剔除大标题前方实心底色药丸块，改为直接纯文字蓝色题号：`<span className="text-blue-600 dark:text-blue-400 font-mono font-bold mr-2">第 {id} 题 ·</span>`。
+
+---
+
+### 3. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：高亮机制从“背景框包裹”向“纯文字换色”的视觉重构
+```mermaid
+flowchart TD
+    subgraph WrongBox["❌ 改造前：层层背景框（视觉繁重）"]
+        Box1["🔲 大纲框: [bg-indigo-50 border + 背诵核心概括] (一) 市场经济..."]
+        Box2["🔲 导言框: [bg-slate-50 border] 中央银行产生于..."]
+        Box3["🔲 词汇框: [bg-blue-50 border-b-2] 工业革命"]
+    end
+
+    subgraph PureTextColor["✅ 改造后：纯文字色彩高亮（零背景框，极净自然）"]
+        Text1["🟣 纯字色大纲: <span class='text-indigo-600 font-extrabold'>(一) 市场经济的迅速发展</span>"]
+        Text2["⚪ 纯文字导言: <p class='text-slate-800 font-medium'>中央银行产生于17世纪中后期...</p>"]
+        Text3["🔵 纯字色考点: <strong class='text-blue-600 font-bold'>工业革命</strong>、<strong class='text-blue-600 font-bold'>机器大工业</strong>"]
+    end
+```
+> **图 1 机制解析**：彻底摒弃了 HTML/CSS 中容易导致界面显得沉重杂乱的背景卡片与多余装饰边框，将色彩聚焦于“文字本身”。通过紫蓝（大纲概括）与天蓝（考点概念）的双色文本分级，实现了最直观的书籍级排版。
+
+---
+
+### 4. 验证结果与可复现方法 (Verification & Reproduction)
+1. **自动化测试套件回归验证**：
+   ```bash
+   cd e:\workspace\central-banking-study-console
+   node verify_suite.mjs
+   ```
+   - **验证结果**：46 项断言全部通过（包含无背景框、纯字色高亮断言）。
+2. **生产构建与发布**：
+   ```bash
+   npm run build
+   npm run deploy
+   ```
+   - **推送状态**：成功将提交 `95ecb2f` 推送到 `origin/gh-pages` 分支。
+3. **公网可用性核验**：
+   ```powershell
+   (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
+   ```
+   返回 `200 OK`，实机验证通过。
+
+
