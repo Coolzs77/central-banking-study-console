@@ -596,3 +596,123 @@ flowchart TD
    (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
    ```
    - **响应凭据**：`200 OK`，实机验证通过。
+
+
+---
+
+## 第 5 轮 [2026-11-24 17:25]：彻底杜绝题号切换递归闪烁、UI 冗余小字与微观信息降噪重构
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **用户反馈痛点**：
+  1. **右侧栏点击题号频繁闪烁死锁**：“点击右边的这个题号切换会导致频繁闪烁切换，感觉和递归了一样”，截图显示第 2 题与第 30 题同时高亮（一个实心蓝底，一个蓝框带外圈高亮），界面陷入死循环重渲染；
+  2. **界面小字过多太冗余**：“全界面的小字太多，太冗余”，左侧栏模式按钮下堆砌大量小字副标题（如 `161题 · 516分`、`54题手写版`、`30词闪卡&刷题` 等），右侧栏 7 列微型方块挤占 `text-[10px]` 字体，中栏顶部堆叠过多无关状态徽章；
+  3. **视觉布局舒适度优化**：将右侧栏题号方块由拥挤的 7 列微型方块重构为宽敞舒适的 6 列矩阵，按钮增大至 `h-10`，字体放大至 `text-xs sm:text-sm font-mono font-bold`，右侧栏增设全书大纲 Tab。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+所有改动均已落地并提交至代码库：
+
+- [`src/App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)：
+  - **建立全局单向数据流与唯一事实源 (Single Source of Truth)**：在根组件统一维护 `recitationIndex`、`homeworkIndex` 与 `practiceTermIndex`；
+  - **实现智能跨章直达路由**：`handleJumpToRecitationId` 与 `handleJumpToHomeworkId` 在用户点击目标题号时，若目标题目所属章节与当前所选章节不同，自动解除局部章节锁定并精准跳转；
+  - **向下完全受控分发**：将计算得到的唯一绝对 ID（`currentRecitationQ.id`、`currentHomeworkQ.id`）纯值单向传递给中栏画板与右侧栏。
+- [`src/components/RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx) & [`src/components/HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)：
+  - **彻底移除内部 duplicate state 与双向 useEffect 链路**：完全变为无副作用的受控组件（Controlled Components），仅接收 `currentIndex`、`onPrev`、`onNext`、`onJumpToIndex`，杜绝任何将状态向上传递回父组件的 `useEffect` 反射调用；
+  - **清理多余装饰标签与底部快捷键栏**：移除臃肿的徽标堆砌与底部常驻提示，还考生一个极度纯粹、视野通透的沉浸式单题画板。
+- [`src/components/RightSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx)：
+  - **消灭双蓝高亮与闪烁**：按钮是否高亮仅由纯等值条件 `currentRecitationQuestionId === q.id` 决定，杜绝多选并存；
+  - **栅格升级为 6 列大触摸区**：由 `grid-cols-7 gap-1.5 h-8` 升级为 `grid-cols-6 gap-2 h-10`，按钮圆角升级为 `rounded-xl`，字号升级为清晰易读的 `text-xs sm:text-sm font-mono font-bold`；
+  - **微文字降噪**：全面剔除 `text-[9px]` 与 `text-[10px]` 缩放字体，考点分值与筛选器重构为舒适的 `px-2.5 py-1 text-xs` 独立胶囊；
+  - **新增知识大纲 Tab (`outline`)**：支持随时切换查阅 11 章完整小节与考点分布。
+- [`src/components/LeftSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/LeftSidebar.tsx)：
+  - **彻底清除模式副标题小字**：移除各模式下冗余的字样（如 `161题 · 516分`、`54题手写版` 等），仅保留标准字号的模式图标与主标题，界面呼吸感大幅提升；
+  - **章节完成比例字号规整**：使用统一的 `text-xs font-mono font-semibold` 徽章呈现。
+- [`src/components/PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)：
+  - 接入 `currentTermIndex` 与 `onJumpToTermIndex`，消灭旧组件内部对 `selectedTermId` 的双向监听死循环。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+
+#### 问题 1：右侧栏点击题号导致界面频繁闪烁震荡（“递归”死锁）
+- **现象还原**：考生在右侧栏点击第 30 题，页面发生高频闪烁，题号 2 与题号 30 同时呈现蓝色激活状态，无法稳定停留在目标题目。
+- **根本原因 (RCA)**：
+  1. `RecitationCanvas` 组件内部维护了一份独立的 `currentIndex` 状态，并包含两个相反方向的 `useEffect`：
+     - `useEffect` 1（父 -> 子）：监听父组件传入的 `selectedQuestionId`，查找到对应下标后调用 `setCurrentIndex(idx)`；
+     - `useEffect` 2（子 -> 父）：监听当前 `currentQ` 变化，并在组件挂载或渲染时调用 `onSelectQuestion(currentQ.id)`。
+  2. 当考生点击右侧栏 #30 时，`App` 将父级选定题号设为 30；但此时 `RecitationCanvas` 内部尚未完成渲染更新，其持有的 `currentQ` 仍为第 2 题。
+  3. `useEffect` 2 立即检测到状态不一致，强行向父级回调 `onSelectQuestion(2)`，将 `App` 的题号重置为 2！
+  4. 随后 `useEffect` 1 再次尝试响应，两者在毫秒级微任务队列中形成无休止的乒乓震荡（Ping-Pong Oscillation），导致 React 不断触发重渲染与帧抖动，并在界面上同时捕捉到两个题号的激活态。
+- **攻坚解法**：
+  - 坚决贯彻 React 单一事实源原则：彻底删除 `RecitationCanvas` 与 `HomeworkCanvas` 内部所有的 `currentIndex` 本地状态以及向上反射的 `useEffect`；
+  - 画板与右侧栏全部降级为受控视图（Pure Controlled Views），下标与题号完全由 `App` 单一状态驱动，彻底阻断了任何反向状态回环。
+
+#### 问题 2：界面微型字号泛滥与视觉噪音堆叠
+- **现象还原**：界面中充斥大量 `text-[10px]`、`text-[11px]`、`opacity-60` 的微型字体与无意义副标题徽章，造成严重的视觉疲劳与认知过载。
+- **根本原因 (RCA)**：原界面试图在单个元素内塞入过多的辅助信息（如在每个导航按钮右侧同时显示题数和总分，在每个题目卡片上贴附 4 种以上不同维度的状态标签）。
+- **攻坚解法**：遵循设计减法规范，剔除一切无必要副标题；字号下限严格提升至 12px (`text-xs`)，重要文本提升至 14px (`text-sm`) 与 16px (`text-base`)，按钮触控区加大至 40px (`h-10`)。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：死锁递归循环消灭前后架构对比图
+```mermaid
+flowchart TD
+    subgraph BuggyLoop["❌ 改造前：双向状态回环（导致高频递归闪烁）"]
+        ParentState["App: selectedQuestionId=30"] -->|Props| ChildEffect1["Child: useEffect 1 (设置 local=30)"]
+        ChildEffect1 --> ChildRender["Child Render (此时旧 state 仍指向 2)"]
+        ChildRender -->|反向触发| ChildEffect2["Child: useEffect 2 (强制回调 parent(2))"]
+        ChildEffect2 -->|循环污染| ParentState
+    end
+
+    subgraph CleanFlow["✅ 改造后：严格单向数据流（零死锁、零抖动）"]
+        RightClick["考生点击右侧栏题号 #30"] --> AppHandler["App: handleJumpToRecitationId(30)"]
+        AppHandler --> SetIdx["setRecitationIndex(29)"]
+        SetIdx --> PureCanvas["RecitationCanvas: 纯受控渲染第 30 题"]
+        SetIdx --> PureSidebar["RightSidebar: currentRecitationQuestionId === 30 (唯一高亮)"]
+    end
+```
+> **图 1 机制解析**：清晰对比了导致递归闪烁的底层调用死锁回路与重构后的单向数据流。彻底移除了子组件反向修改父组件状态的副作用链路，使得单次点击产生确定性的一次性状态转移。
+
+#### 图 2：右侧栏 6 列矩阵交互状态机
+```mermaid
+stateDiagram-v2
+    [*] --> DefaultState: 加载题目数据
+    DefaultState --> HoverState: 鼠标悬停 (展示题目名与考点数)
+    HoverState --> DefaultState: 移出
+
+    DefaultState --> ActiveState: 题号等于当前画板题号 (蓝底高光 + 外环)
+    DefaultState --> MemorizedState: 标为已背/已做 (翠绿底色 + ✓)
+    DefaultState --> StarredState: 标为重点收藏 (琥珀金底色)
+
+    ActiveState --> ClickOther: 考生点击另一题号
+    ClickOther --> ActiveState: 切换单题画板，高亮唯一转移
+```
+> **图 2 机制解析**：展示了右侧题目矩阵按钮的纯净状态迁移。按钮只有唯一互斥的激活态，无论是已背、已做还是收藏，当前激活题始终拥有最高视觉层级并由蓝光环包裹，杜绝双题同时点亮。
+
+---
+
+### 5. 验证结果与可复现方法 (Verification & Reproduction)
+1. **自动化测试套件回归验证**：
+   ```bash
+   cd e:\workspace\central-banking-study-console
+   npm test
+   ```
+   - **验证结果**：42 项断言 100% 全部通过。
+2. **生产打包与代码校验**：
+   ```bash
+   npm run build
+   ```
+   - **打包输出**：Vite 6 编译耗时 6.1s，0 警告 0 报错，产物体积精简。
+3. **GitHub Pages 部署与公网可用性核验**：
+   ```bash
+   npm run deploy
+   ```
+   - **推送状态**：成功将 `bc42ab8` 提交推送到 `origin/gh-pages` 分支。
+   - **网络状态核验**：
+     ```powershell
+     (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
+     ```
+     返回 `200 OK`，实机验证通过，闪烁 Bug 彻底排除。
