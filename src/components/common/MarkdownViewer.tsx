@@ -3,6 +3,7 @@ import { CENTRAL_BANKING_KEYWORDS } from '../../data/keywords';
 
 interface MarkdownViewerProps {
   content: string;
+  keywords?: string[];
   maskKeywords?: boolean;
   onToggleClozeAll?: boolean;
 }
@@ -16,10 +17,28 @@ const KEYWORD_REGEX = new RegExp(`(${ESCAPED_KEYWORDS.join('|')})`, 'g');
 
 export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   content,
+  keywords,
   maskKeywords = false,
   onToggleClozeAll = false,
 }) => {
   const [revealedSet, setRevealedSet] = useState<Set<number>>(new Set());
+
+  // Memoize active keywords and regex if custom keywords provided
+  const activeKeywords = React.useMemo(() => {
+    if (keywords && keywords.length > 0) {
+      const set = new Set([...keywords, ...CENTRAL_BANKING_KEYWORDS]);
+      return Array.from(set).sort((a, b) => b.length - a.length);
+    }
+    return CENTRAL_BANKING_KEYWORDS;
+  }, [keywords]);
+
+  const activeRegex = React.useMemo(() => {
+    if (keywords && keywords.length > 0) {
+      const escaped = activeKeywords.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      return new RegExp(`(${escaped.join('|')})`, 'g');
+    }
+    return KEYWORD_REGEX;
+  }, [activeKeywords, keywords]);
 
   // Reset revealed set when maskKeywords turns off
   React.useEffect(() => {
@@ -56,12 +75,12 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
     if (!text) return null;
 
     // Split by known financial keywords
-    const parts = text.split(KEYWORD_REGEX);
+    const parts = text.split(activeRegex);
 
     return parts.map((part, pIdx) => {
       if (!part) return null;
 
-      const isKeyword = CENTRAL_BANKING_KEYWORDS.includes(part);
+      const isKeyword = activeKeywords.includes(part);
 
       if (isKeyword) {
         const clozeId = globalClozeIdx++;

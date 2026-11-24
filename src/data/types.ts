@@ -36,6 +36,7 @@ export interface RecitationQuestion {
   points: number;
   content: string; // rich markdown / text with bold **keywords**
   isCore?: boolean;
+  keywords?: string[]; // Core score-bearing keywords for this question
 }
 
 export interface HomeworkQuestion {
@@ -48,12 +49,15 @@ export interface HomeworkQuestion {
 }
 
 export interface TerminologyQuestion {
-  id: number; // 1 to 30
+  id: number; // 1 to 28
   term: string;
   definition: string; // concise definition with **bold keywords**
+  nature?: string;
+  functionOrFeature?: string;
+  totalPoints?: number;
   chapterId: number;
   chapterTitle: string;
-  source: string; // e.g. "作业本第5章第1题"
+  source?: string; // e.g. "作业本第5章第1题"
 }
 
 export interface FillInQuestion {

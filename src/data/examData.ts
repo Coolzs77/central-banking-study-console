@@ -19,7 +19,7 @@ import {
 } from './types';
 
 import { terminologyList } from './terminology';
-export const TOTAL_EXAM_TERMS = 30;
+export const TOTAL_EXAM_TERMS = 28;
 export const TOTAL_FILL_IN = 40;
 export const TOTAL_SINGLE_CHOICE = 40;
 export const TOTAL_TRUE_FALSE = 30;
@@ -39,7 +39,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 1,
-    "explanation": "1844年《皮尔条例》（Bank Charter Act 1844）是中央银行发展史上的重要里程碑，奠定了垄断发钞制度。"
+    "explanation": "1844年《皮尔条例》（Bank Charter Act 1844）是中央银行发展史上的重要里程碑，奠定了垄断发钞制度。",
+    "recitationQuestionId": 4
   },
   {
     "id": 2,
@@ -50,7 +51,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 1,
-    "explanation": "英格兰银行成立于1694年，逐步垄断货币发行并充当政府与银行的银行，是公认的现代央行鼻祖。"
+    "explanation": "英格兰银行成立于1694年，逐步垄断货币发行并充当政府与银行的银行，是公认的现代央行鼻祖。",
+    "recitationQuestionId": 10
   },
   {
     "id": 3,
@@ -63,7 +65,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 1,
-    "explanation": "中国人民银行全部资本由国家财政拨款形成，归国家所有。"
+    "explanation": "中国人民银行全部资本由国家财政拨款形成，归国家所有。",
+    "recitationQuestionId": 6
   },
   {
     "id": 4,
@@ -76,7 +79,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 1,
-    "explanation": "联邦储备委员会（Federal Reserve Board of Governors）是美联储系统的最高行政与决策中枢。"
+    "explanation": "联邦储备委员会（Federal Reserve Board of Governors）是美联储系统的最高行政与决策中枢。",
+    "recitationQuestionId": 4
   },
   {
     "id": 5,
@@ -88,7 +92,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 1,
-    "explanation": "“发行的银行、银行的银行、政府的银行”是中央银行的三大传统核心职能定位。"
+    "explanation": "“发行的银行、银行的银行、政府的银行”是中央银行的三大传统核心职能定位。",
+    "recitationQuestionId": 11
   },
   {
     "id": 6,
@@ -100,7 +105,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 2,
-    "explanation": "央行独立性主要是指相对政府与财政部的独立性，以防范财政赤字货币化诱发恶性通胀。"
+    "explanation": "央行独立性主要是指相对政府与财政部的独立性，以防范财政赤字货币化诱发恶性通胀。",
+    "recitationQuestionId": 17
   },
   {
     "id": 7,
@@ -111,7 +117,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 3,
-    "explanation": "中央银行业务活动原则：非营利性、流动性、安全性、公开性、规范性。"
+    "explanation": "中央银行业务活动原则：非营利性、流动性、安全性、公开性、规范性。",
+    "recitationQuestionId": 22
   },
   {
     "id": 8,
@@ -122,7 +129,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 3,
-    "explanation": "《中国人民银行法》第二十九条硬性禁止央行向财政透支，斩断财政被动发钞的制度隐患。"
+    "explanation": "《中国人民银行法》第二十九条硬性禁止央行向财政透支，斩断财政被动发钞的制度隐患。",
+    "recitationQuestionId": 22
   },
   {
     "id": 9,
@@ -133,7 +141,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 4,
-    "explanation": "商业银行在中央银行的全部存款准备金等于法定存款准备金与超额存款准备金之和。"
+    "explanation": "商业银行在中央银行的全部存款准备金等于法定存款准备金与超额存款准备金之和。",
+    "recitationQuestionId": 30
   },
   {
     "id": 10,
@@ -145,7 +154,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 4,
-    "explanation": "基础货币公式为 B = C + R，其中 C 为流通中现金，R 为银行体系准备金总额。"
+    "explanation": "基础货币公式为 B = C + R，其中 C 为流通中现金，R 为银行体系准备金总额。",
+    "recitationQuestionId": 30
   },
   {
     "id": 11,
@@ -156,7 +166,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 4,
-    "explanation": "人民币发行的三大基本原则是：集中统一原则、计划发行原则和经济发行原则。"
+    "explanation": "人民币发行的三大基本原则是：集中统一原则、计划发行原则和经济发行原则。",
+    "recitationQuestionId": 41
   },
   {
     "id": 12,
@@ -167,7 +178,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 4,
-    "explanation": "发行库向业务库调拨为出库（投放），商业银行业务库将闲置现金缴存发行库为入库（回笼）。"
+    "explanation": "发行库向业务库调拨为出库（投放），商业银行业务库将闲置现金缴存发行库为入库（回笼）。",
+    "recitationQuestionId": 46
   },
   {
     "id": 13,
@@ -179,7 +191,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 4,
-    "explanation": "资产负债平衡恒等式：资产 ＝ 负债 ＋ 自有资本（所有者权益）。"
+    "explanation": "资产负债平衡恒等式：资产 ＝ 负债 ＋ 自有资本（所有者权益）。",
+    "recitationQuestionId": 40
   },
   {
     "id": 14,
@@ -191,7 +204,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 5,
-    "explanation": "中央银行的主要资产项目包括国外资产（黄金外汇）、对政府债权（证券买卖）、对金融机构债权（再贷款与再贴现）。"
+    "explanation": "中央银行的主要资产项目包括国外资产（黄金外汇）、对政府债权（证券买卖）、对金融机构债权（再贷款与再贴现）。",
+    "recitationQuestionId": 59
   },
   {
     "id": 15,
@@ -202,7 +216,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 5,
-    "explanation": "再贴现是商业银行以未到期商业承兑汇票或银行承兑汇票向央行获取再融资的传统资产业务。"
+    "explanation": "再贴现是商业银行以未到期商业承兑汇票或银行承兑汇票向央行获取再融资的传统资产业务。",
+    "recitationQuestionId": 52
   },
   {
     "id": 16,
@@ -213,7 +228,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 5,
-    "explanation": "正回购是央行卖出债券、吸收基础货币的紧缩性公开市场操作。"
+    "explanation": "正回购是央行卖出债券、吸收基础货币的紧缩性公开市场操作。",
+    "recitationQuestionId": 51
   },
   {
     "id": 17,
@@ -225,7 +241,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 5,
-    "explanation": "逆回购向市场融出资金、购入债券，向银行体系即期注入流动性。"
+    "explanation": "逆回购向市场融出资金、购入债券，向银行体系即期注入流动性。",
+    "recitationQuestionId": 58
   },
   {
     "id": 18,
@@ -236,7 +253,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 6,
-    "explanation": "大额实时支付系统采用 RTGS（Real-Time Gross Settlement）机制，逐笔全额实时清算。"
+    "explanation": "大额实时支付系统采用 RTGS（Real-Time Gross Settlement）机制，逐笔全额实时清算。",
+    "recitationQuestionId": 62
   },
   {
     "id": 19,
@@ -248,7 +266,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 6,
-    "explanation": "净额清算（Net Settlement）只清算各参与者借贷对冲后的净差额，节约日间流动性。"
+    "explanation": "净额清算（Net Settlement）只清算各参与者借贷对冲后的净差额，节约日间流动性。",
+    "recitationQuestionId": 63
   },
   {
     "id": 20,
@@ -259,7 +278,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 7,
-    "explanation": "货币政策框架的四大逻辑要素：政策工具 -> 操作指标 -> 中介指标 -> 最终目标。"
+    "explanation": "货币政策框架的四大逻辑要素：政策工具 -> 操作指标 -> 中介指标 -> 最终目标。",
+    "recitationQuestionId": 73
   },
   {
     "id": 21,
@@ -270,7 +290,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 7,
-    "explanation": "宏观经济政策的四大经典目标：物价稳定、充分就业、经济增长、国际收支平衡。"
+    "explanation": "宏观经济政策的四大经典目标：物价稳定、充分就业、经济增长、国际收支平衡。",
+    "recitationQuestionId": 71
   },
   {
     "id": 22,
@@ -283,7 +304,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 7,
-    "explanation": "原始菲利普斯曲线与修正菲利普斯曲线均揭示通胀率与失业率之间此消彼长的短期权衡替代关系。"
+    "explanation": "原始菲利普斯曲线与修正菲利普斯曲线均揭示通胀率与失业率之间此消彼长的短期权衡替代关系。",
+    "recitationQuestionId": 83
   },
   {
     "id": 23,
@@ -294,7 +316,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 7,
-    "explanation": "可测性、可控性、相关性（Correlativity）是中介指标选定的三大不可或缺核心准则。"
+    "explanation": "可测性、可控性、相关性（Correlativity）是中介指标选定的三大不可或缺核心准则。",
+    "recitationQuestionId": 87
   },
   {
     "id": 24,
@@ -306,7 +329,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 7,
-    "explanation": "M0 = 流通中现金；M1 = M0 + 单位活期存款；M2 = M1 + 准货币（储蓄存款、定期存款等）。"
+    "explanation": "M0 = 流通中现金；M1 = M0 + 单位活期存款；M2 = M1 + 准货币（储蓄存款、定期存款等）。",
+    "recitationQuestionId": 91
   },
   {
     "id": 25,
@@ -318,7 +342,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 7,
-    "explanation": "货币供给量 M 等于基础货币 B 与货币乘数 m 的乘积（M = m * B）。"
+    "explanation": "货币供给量 M 等于基础货币 B 与货币乘数 m 的乘积（M = m * B）。",
+    "recitationQuestionId": 88
   },
   {
     "id": 26,
@@ -329,7 +354,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 8,
-    "explanation": "法定存款准备金、再贴现和公开市场业务被公认为传统央行宏观调控的“三大法宝”。"
+    "explanation": "法定存款准备金、再贴现和公开市场业务被公认为传统央行宏观调控的“三大法宝”。",
+    "recitationQuestionId": 95
   },
   {
     "id": 27,
@@ -341,7 +367,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 8,
-    "explanation": "调整法定准备金率会立即按乘数效应改变全社会货币派生上限，具有强烈震荡效应。"
+    "explanation": "调整法定准备金率会立即按乘数效应改变全社会货币派生上限，具有强烈震荡效应。",
+    "recitationQuestionId": 95
   },
   {
     "id": 28,
@@ -352,7 +379,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 9,
-    "explanation": "凯恩斯利率传导路径：M 变动 -> 影响利率 r -> 影响投资 I -> 影响总产出 Y。"
+    "explanation": "凯恩斯利率传导路径：M 变动 -> 影响利率 r -> 影响投资 I -> 影响总产出 Y。",
+    "recitationQuestionId": 111
   },
   {
     "id": 29,
@@ -365,7 +393,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 9,
-    "explanation": "货币学派坚信“单一规则”，认为货币供给直接作用于全社会名义总支出，无需经由利率中介。"
+    "explanation": "货币学派坚信“单一规则”，认为货币供给直接作用于全社会名义总支出，无需经由利率中介。",
+    "recitationQuestionId": 114
   },
   {
     "id": 30,
@@ -376,7 +405,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 9,
-    "explanation": "内部时滞完全取决于中央银行内部识别形势与制定决策的反应效率。"
+    "explanation": "内部时滞完全取决于中央银行内部识别形势与制定决策的反应效率。",
+    "recitationQuestionId": 118
   },
   {
     "id": 31,
@@ -389,7 +419,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 9,
-    "explanation": "当 q > 1 时，股票市值高于重置成本，企业发行新股购置实物资本更有利可图，刺激实物投资。"
+    "explanation": "当 q > 1 时，股票市值高于重置成本，企业发行新股购置实物资本更有利可图，刺激实物投资。",
+    "recitationQuestionId": 113
   },
   {
     "id": 32,
@@ -401,7 +432,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 10,
-    "explanation": "金融危机往往伴随着资产价格暴跌、信用急剧紧缩以及金融机构遭受挤兑倒闭。"
+    "explanation": "金融危机往往伴随着资产价格暴跌、信用急剧紧缩以及金融机构遭受挤兑倒闭。",
+    "recitationQuestionId": 125
   },
   {
     "id": 33,
@@ -413,7 +445,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 10,
-    "explanation": "2007-2008年美国次级抵押贷款（Subprime Mortgage）违约引发全球性系统性金融海啸。"
+    "explanation": "2007-2008年美国次级抵押贷款（Subprime Mortgage）违约引发全球性系统性金融海啸。",
+    "recitationQuestionId": 125
   },
   {
     "id": 34,
@@ -425,7 +458,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 10,
-    "explanation": "1873年沃尔特·巴杰特在《伦巴第街》中提出最后贷款人原则，被奉为中央银行危机处置圭臬。"
+    "explanation": "1873年沃尔特·巴杰特在《伦巴第街》中提出最后贷款人原则，被奉为中央银行危机处置圭臬。",
+    "recitationQuestionId": 125
   },
   {
     "id": 35,
@@ -438,7 +472,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 10,
-    "explanation": "惩罚性高利率（Penalty Rate）能确保机构仅在真正走投无路时求助央行，有效遏制道德风险。"
+    "explanation": "惩罚性高利率（Penalty Rate）能确保机构仅在真正走投无路时求助央行，有效遏制道德风险。",
+    "recitationQuestionId": 125
   },
   {
     "id": 36,
@@ -450,7 +485,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 11,
-    "explanation": "宏观审慎监管包含两大维度：时间维度（顺周期波动）与空间维度（横向跨机构传染）。"
+    "explanation": "宏观审慎监管包含两大维度：时间维度（顺周期波动）与空间维度（横向跨机构传染）。",
+    "recitationQuestionId": 148
   },
   {
     "id": 37,
@@ -461,7 +497,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 11,
-    "explanation": "逆周期资本缓冲（CCyB）在繁荣期积累资本以备萧条期吸收损失，熨平信贷周期。"
+    "explanation": "逆周期资本缓冲（CCyB）在繁荣期积累资本以备萧条期吸收损失，熨平信贷周期。",
+    "recitationQuestionId": 154
   },
   {
     "id": 38,
@@ -473,7 +510,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 11,
-    "explanation": "《巴塞尔协议III》规定核心一级资本充足率不低于4.5%，一级资本不低于6%，总资本不低于8%。"
+    "explanation": "《巴塞尔协议III》规定核心一级资本充足率不低于4.5%，一级资本不低于6%，总资本不低于8%。",
+    "recitationQuestionId": 155
   },
   {
     "id": 39,
@@ -484,7 +522,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 11,
-    "explanation": "党的十九大明确健全“货币政策和宏观审慎政策双支柱调控框架”，兼顾经济周期与金融周期。"
+    "explanation": "党的十九大明确健全“货币政策和宏观审慎政策双支柱调控框架”，兼顾经济周期与金融周期。",
+    "recitationQuestionId": 148
   },
   {
     "id": 40,
@@ -496,7 +535,8 @@ export const fillInQuestions: FillInQuestion[] = [
     ],
     "points": 1,
     "chapterId": 8,
-    "explanation": "道义劝告和窗口指导没有法定强制约束力，属于利用信誉和地位实施的间接信用控制手段。"
+    "explanation": "道义劝告和窗口指导没有法定强制约束力，属于利用信誉和地位实施的间接信用控制手段。",
+    "recitationQuestionId": 107
   }
 ];
 
@@ -513,7 +553,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "英格兰银行成立于1694年，并在1844年《皮尔条例》颁布后垄断发钞，成为公认的现代中央银行鼻祖与制度典范。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 4
   },
   {
     "id": 2,
@@ -527,7 +568,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "《皮尔条例》（Bank Charter Act 1844）正式将英格兰银行分为发行部和银行部，实行信用限额发行制，奠定了发钞垄断权。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 4
   },
   {
     "id": 3,
@@ -541,7 +583,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "美联储12家联邦储备银行的全部股本由其所在地区的会员商业银行认购，属于金融机构集体所有制形态。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 6
   },
   {
     "id": 4,
@@ -555,7 +598,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "日本银行属于公私混合所有制中央银行的典型代表，日本政府持有55%的出资证券，民间持有45%但无表决权。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 6
   },
   {
     "id": 5,
@@ -569,7 +613,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "C",
     "rationale": "欧洲中央银行是由欧元区成员国共同组成的跨国货币联盟中央银行，推行单一欧元与统一货币政策。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 5
   },
   {
     "id": 6,
@@ -583,7 +628,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "新加坡金融管理局与香港金管局并未设立传统完整央行体系，而是由法定金融管理机构承担央行主要职能，属于准中央银行制。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 5
   },
   {
     "id": 7,
@@ -597,7 +643,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "“银行的银行”职能体现在三方面：集中保管存款准备金、充当全国清算中心、充当终极最后贷款人。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 12
   },
   {
     "id": 8,
@@ -611,7 +658,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "A",
     "rationale": "政府的银行职能包括代理国库、代理发行政府债券、提供资金资助、充当金融顾问与代表政府参与国际事务。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 13
   },
   {
     "id": 9,
@@ -625,7 +673,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "政府面临短视选举压力和财政收支缺口，若无独立性容易出现赤字货币化，央行独立性是保障币值稳定的制度防线。",
     "points": 1,
-    "chapterId": 2
+    "chapterId": 2,
+    "recitationQuestionId": 16
   },
   {
     "id": 10,
@@ -639,7 +688,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "C",
     "rationale": "德意志联邦银行因历史上对魏玛恶性通胀的深刻教训，法律赋予其极高独立性，欧洲央行也全盘继承了这一模式。",
     "points": 1,
-    "chapterId": 2
+    "chapterId": 2,
+    "recitationQuestionId": 17
   },
   {
     "id": 11,
@@ -653,7 +703,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "依据《中华人民共和国中国人民银行法》，中国人民银行是国务院组成部门，在国务院领导下制定和执行货币政策。",
     "points": 1,
-    "chapterId": 2
+    "chapterId": 2,
+    "recitationQuestionId": 17
   },
   {
     "id": 12,
@@ -667,7 +718,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "C",
     "rationale": "《中国人民银行法》第二十九条明确禁止对财政透支，不得直接认购、包销国债和其他政府债券。",
     "points": 1,
-    "chapterId": 3
+    "chapterId": 3,
+    "recitationQuestionId": 25
   },
   {
     "id": 13,
@@ -681,7 +733,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "C",
     "rationale": "中央银行不以营利为目的，业务活动必须服从于宏观调控和金融稳定大局，确保流动性与安全性。",
     "points": 1,
-    "chapterId": 3
+    "chapterId": 3,
+    "recitationQuestionId": 26
   },
   {
     "id": 14,
@@ -695,7 +748,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "C",
     "rationale": "流通中现金、金融机构存款、财政存款均为央行的负债；对金融机构债权（再贴现与再贷款）属于央行资产。",
     "points": 1,
-    "chapterId": 4
+    "chapterId": 4,
+    "recitationQuestionId": 40
   },
   {
     "id": 15,
@@ -709,7 +763,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "C",
     "rationale": "商业银行将超过备付限额的现金送存人民银行发行库，由流通领域退回，这一过程称为现金回笼。",
     "points": 1,
-    "chapterId": 4
+    "chapterId": 4,
+    "recitationQuestionId": 46
   },
   {
     "id": 16,
@@ -723,7 +778,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "存款派生乘数 K = 1 / (rd + e + c) = 1 / (10% + 2% + 8%) = 1 / 0.20 = 5倍。",
     "points": 1,
-    "chapterId": 4
+    "chapterId": 4,
+    "recitationQuestionId": 30
   },
   {
     "id": 17,
@@ -737,7 +793,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "现代人民币属于不兑现信用货币，其发行的根本物质保证是国家掌握的商品物资和国家综合主权信用。",
     "points": 1,
-    "chapterId": 4
+    "chapterId": 4,
+    "recitationQuestionId": 44
   },
   {
     "id": 18,
@@ -751,7 +808,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "商业银行向央行再贴现，央行付出资金并取得票据债权，属于央行的资产业务。",
     "points": 1,
-    "chapterId": 5
+    "chapterId": 5,
+    "recitationQuestionId": 51
   },
   {
     "id": 19,
@@ -765,7 +823,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "正回购是央行向一级交易商卖出有价证券并约定日后买回，即期收回流动性（回笼基础货币）。",
     "points": 1,
-    "chapterId": 5
+    "chapterId": 5,
+    "recitationQuestionId": 58
   },
   {
     "id": 20,
@@ -779,7 +838,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "公开市场业务灵活性极高、央行自主决定买卖规模与时机，可随时反向操作纠偏，无准备金调整的“巨斧”冲击。",
     "points": 1,
-    "chapterId": 5
+    "chapterId": 5,
+    "recitationQuestionId": 52
   },
   {
     "id": 21,
@@ -793,7 +853,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "A",
     "rationale": "央行购汇必然向商业银行体系投放等值本币，表现为国外资产增加与负债方准备金存款增加。",
     "points": 1,
-    "chapterId": 5
+    "chapterId": 5,
+    "recitationQuestionId": 56
   },
   {
     "id": 22,
@@ -807,7 +868,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "RTGS每笔支付即时以央行准备金全额结算，支付即最终，彻底消除了日间风险积累与多米诺传染风险。",
     "points": 1,
-    "chapterId": 6
+    "chapterId": 6,
+    "recitationQuestionId": 62
   },
   {
     "id": 23,
@@ -821,7 +883,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "C",
     "rationale": "软硬件故障、网络中断、人为操作失误引发的风险均属于支付体系的操作与系统风险范畴。",
     "points": 1,
-    "chapterId": 6
+    "chapterId": 6,
+    "recitationQuestionId": 67
   },
   {
     "id": 24,
@@ -835,7 +898,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "D",
     "rationale": "中介指标的标准为可测性、可控性、相关性、抗干扰性与适应性，与央行营利性无关。",
     "points": 1,
-    "chapterId": 7
+    "chapterId": 7,
+    "recitationQuestionId": 87
   },
   {
     "id": 25,
@@ -849,7 +913,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "菲利普斯曲线揭示了失业率与通货膨胀率之间的短期负相关反向变动关系。",
     "points": 1,
-    "chapterId": 7
+    "chapterId": 7,
+    "recitationQuestionId": 92
   },
   {
     "id": 26,
@@ -863,7 +928,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "A",
     "rationale": "不可能三角（Mundellian Trilemma）：固定汇率、资本完全自由流动、独立的货币政策三者最多只能得其二。",
     "points": 1,
-    "chapterId": 7
+    "chapterId": 7,
+    "recitationQuestionId": 81
   },
   {
     "id": 27,
@@ -877,7 +943,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "M1 为狭义货币，代表全社会现实的即时购买力和直接交易媒介。",
     "points": 1,
-    "chapterId": 7
+    "chapterId": 7,
+    "recitationQuestionId": 91
   },
   {
     "id": 28,
@@ -891,7 +958,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "C",
     "rationale": "法定准备金率微小调整即会导致货币乘数和全社会信用派生上限发生剧烈变动，被称为政策“巨斧”。",
     "points": 1,
-    "chapterId": 8
+    "chapterId": 8,
+    "recitationQuestionId": 95
   },
   {
     "id": 29,
@@ -905,7 +973,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "A",
     "rationale": "上调再贴现率意味着央行提高金融机构再融资门槛，向市场发出明确的收紧流动性警示。",
     "points": 1,
-    "chapterId": 8
+    "chapterId": 8,
+    "recitationQuestionId": 98
   },
   {
     "id": 30,
@@ -919,7 +988,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "消费者信用控制是针对耐用消费品信贷需求侧实施的选择性定向信用工具。",
     "points": 1,
-    "chapterId": 8
+    "chapterId": 8,
+    "recitationQuestionId": 105
   },
   {
     "id": 31,
@@ -933,7 +1003,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "窗口指导是央行凭借自身地位和权威，向金融机构传达宏观调控意图的温和直接监管手段。",
     "points": 1,
-    "chapterId": 8
+    "chapterId": 8,
+    "recitationQuestionId": 107
   },
   {
     "id": 32,
@@ -947,7 +1018,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "A",
     "rationale": "凯恩斯主义以利率为中介枢纽：M上升 -> r下降 -> I增加 -> Y上升。",
     "points": 1,
-    "chapterId": 9
+    "chapterId": 9,
+    "recitationQuestionId": 111
   },
   {
     "id": 33,
@@ -961,7 +1033,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "q > 1 意味着资本市场给企业的估值高于重置成本，企业增发股票购置机器设备更有利，拉动实物总投资。",
     "points": 1,
-    "chapterId": 9
+    "chapterId": 9,
+    "recitationQuestionId": 113
   },
   {
     "id": 34,
@@ -975,7 +1048,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "A",
     "rationale": "内部时滞包括认识时滞和决策时滞，完全处于中央银行可控与处置的组织内部流程之中。",
     "points": 1,
-    "chapterId": 9
+    "chapterId": 9,
+    "recitationQuestionId": 118
   },
   {
     "id": 35,
@@ -989,7 +1063,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "美国低门槛发放的次级房贷在大规模违约后刺破衍生金融链条，演化为全球深度金融海啸。",
     "points": 1,
-    "chapterId": 10
+    "chapterId": 10,
+    "recitationQuestionId": 125
   },
   {
     "id": 36,
@@ -1003,7 +1078,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "巴杰特法则通过“惩罚性利率+足额优质抵押品”救助清偿力正常的机构，在阻断挤兑的同时最大程度遏制道德风险。",
     "points": 1,
-    "chapterId": 10
+    "chapterId": 10,
+    "recitationQuestionId": 128
   },
   {
     "id": 37,
@@ -1017,7 +1093,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "A",
     "rationale": "FSAP由国际货币基金组织与世界银行共同推出，针对一国金融监管体系和抗风险能力开展权威评估。",
     "points": 1,
-    "chapterId": 10
+    "chapterId": 10,
+    "recitationQuestionId": 137
   },
   {
     "id": 38,
@@ -1031,7 +1108,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "B",
     "rationale": "微观审慎防范“单一机构倒闭”，宏观审慎防范“系统性整体金融崩溃”，兼顾时间与空间维度。",
     "points": 1,
-    "chapterId": 11
+    "chapterId": 11,
+    "recitationQuestionId": 153
   },
   {
     "id": 39,
@@ -1045,7 +1123,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "A",
     "rationale": "逆周期资本缓冲在宏观信贷过度扩张期提取（0~2.5%），在经济衰退期释放以吸收信贷损失。",
     "points": 1,
-    "chapterId": 11
+    "chapterId": 11,
+    "recitationQuestionId": 154
   },
   {
     "id": 40,
@@ -1059,7 +1138,8 @@ export const singleChoiceQuestions: SingleChoiceQuestion[] = [
     "correctKey": "A",
     "rationale": "2023年党和国家机构改革设立中央金融委员会，作为党中央决策议事协调机构统筹金融稳定与宏观顶层设计。",
     "points": 1,
-    "chapterId": 11
+    "chapterId": 11,
+    "recitationQuestionId": 150
   }
 ];
 
@@ -1070,7 +1150,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。英格兰银行1694年建立，并在1844年通过《皮尔条例》确立垄断发钞权，是现代中央银行体制的标准鼻祖与典范。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 4
   },
   {
     "id": 2,
@@ -1078,7 +1159,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。中央银行是不以营利为目的的特殊公共金融机构，其业务活动完全服从于宏观经济调控和维护金融稳定，严禁以营利为导向。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 1
   },
   {
     "id": 3,
@@ -1086,7 +1168,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。欧洲央行根据《马斯特里赫特条约》设立，属于跨国货币联盟中央银行，统一发行欧元并制定共同货币政策。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 5
   },
   {
     "id": 4,
@@ -1094,7 +1177,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。美联储在资本所有权上属于金融机构集体所有制，其12家联邦储备银行的全部股本由所在辖区的会员商业银行认购持有。",
     "points": 1,
-    "chapterId": 1
+    "chapterId": 1,
+    "recitationQuestionId": 6
   },
   {
     "id": 5,
@@ -1102,7 +1186,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。《中国人民银行法》第二十九条作出硬性法律禁止，旨在从法律机制上彻底根除财政透支迫使央行被动发钞的恶性通胀隐患。",
     "points": 1,
-    "chapterId": 3
+    "chapterId": 3,
+    "recitationQuestionId": 22
   },
   {
     "id": 6,
@@ -1110,7 +1195,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。商业银行准备金包括法定准备金和超额准备金。超额准备金用于日常银行间跨行清算与提现备付，商业银行可实时自由调度使用。",
     "points": 1,
-    "chapterId": 4
+    "chapterId": 4,
+    "recitationQuestionId": 30
   },
   {
     "id": 7,
@@ -1118,7 +1204,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。发行基金由发行库出库进入商业银行业务库并对外付出，属于现金投放；反之由业务库缴存回发行库属于现金回笼。",
     "points": 1,
-    "chapterId": 4
+    "chapterId": 4,
+    "recitationQuestionId": 46
   },
   {
     "id": 8,
@@ -1126,7 +1213,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。基础货币（流通中现金加金融机构准备金存款）属于中央银行负债方的核心项目，而非资产方项目。",
     "points": 1,
-    "chapterId": 4
+    "chapterId": 4,
+    "recitationQuestionId": 40
   },
   {
     "id": 9,
@@ -1134,7 +1222,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。在最简化的假定条件下，存款派生乘数 K = 1 / rd = 1 / 10% = 10倍。",
     "points": 1,
-    "chapterId": 4
+    "chapterId": 4,
+    "recitationQuestionId": 30
   },
   {
     "id": 10,
@@ -1142,7 +1231,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。再贴现是央行向商业银行融出资金的资产业务，商业银行贴现票据后其准备金存款增加，属于基础货币投放与流动性扩张操作。",
     "points": 1,
-    "chapterId": 5
+    "chapterId": 5,
+    "recitationQuestionId": 52
   },
   {
     "id": 11,
@@ -1150,7 +1240,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。逆回购是央行买入证券、向一级交易商注入即期资金的操作，平抑短期流动性紧张；正回购才是吸收回笼流动性。",
     "points": 1,
-    "chapterId": 5
+    "chapterId": 5,
+    "recitationQuestionId": 58
   },
   {
     "id": 12,
@@ -1158,7 +1249,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。法定准备金率具有刚性强、乘数效应剧烈的特点，被称为政策“巨斧”，不宜频繁微调；连续微调且最温和的是公开市场业务。",
     "points": 1,
-    "chapterId": 5
+    "chapterId": 5,
+    "recitationQuestionId": 52
   },
   {
     "id": 13,
@@ -1166,7 +1258,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。大额支付系统采用全额逐笔实时处理（RTGS），一笔资金清算即时完成并不可撤销，消除了隔夜累积信用违约隐患。",
     "points": 1,
-    "chapterId": 6
+    "chapterId": 6,
+    "recitationQuestionId": 62
   },
   {
     "id": 14,
@@ -1174,7 +1267,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。净额清算通过多方借贷双向冲抵轧差，仅清算净额差额，显著降低了参与机构日间维持大额超额准备金的资金成本。",
     "points": 1,
-    "chapterId": 6
+    "chapterId": 6,
+    "recitationQuestionId": 63
   },
   {
     "id": 15,
@@ -1182,7 +1276,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。故意拒不还款属于信用风险；操作风险是指由于软硬件技术故障、通信网络中断、电力系统瘫痪或人员操作失误导致的系统瘫痪。",
     "points": 1,
-    "chapterId": 6
+    "chapterId": 6,
+    "recitationQuestionId": 67
   },
   {
     "id": 16,
@@ -1190,7 +1285,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。这四大目标构成了现代中央银行宏观货币政策调控的经典目标体系。",
     "points": 1,
-    "chapterId": 7
+    "chapterId": 7,
+    "recitationQuestionId": 70
   },
   {
     "id": 17,
@@ -1198,7 +1294,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。菲利普斯曲线表明短期内通货膨胀率与失业率呈现反向替代（负相关）关系，即失业率较低时往往伴随较高的通胀压力。",
     "points": 1,
-    "chapterId": 7
+    "chapterId": 7,
+    "recitationQuestionId": 83
   },
   {
     "id": 18,
@@ -1206,7 +1303,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。中介变量必须能被央行准确统计（可测）、受央行工具有效驾驭（可控）并与最终目标高度联动（相关）。",
     "points": 1,
-    "chapterId": 7
+    "chapterId": 7,
+    "recitationQuestionId": 87
   },
   {
     "id": 19,
@@ -1214,7 +1312,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。M2 = M1 + 准货币，涵盖了全社会的即期购买力资产与潜在流动性储蓄资金。",
     "points": 1,
-    "chapterId": 7
+    "chapterId": 7,
+    "recitationQuestionId": 91
   },
   {
     "id": 20,
@@ -1222,7 +1321,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。三元悖论指出资本自由流动、固定汇率与独立货币政策不可兼得，最多只能同时实现其中两个，必弃其一。",
     "points": 1,
-    "chapterId": 7
+    "chapterId": 7,
+    "recitationQuestionId": 70
   },
   {
     "id": 21,
@@ -1230,7 +1330,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。再贴现利率作为央行基准官方利率，具有强烈的告示效应，其上调意味着央行加息收紧资金成本。",
     "points": 1,
-    "chapterId": 8
+    "chapterId": 8,
+    "recitationQuestionId": 100
   },
   {
     "id": 22,
@@ -1238,7 +1339,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。消费者信用控制属于选择性（结构性）货币政策工具，专门针对耐用消费品分期付款的首付比例与期限进行定向规制。",
     "points": 1,
-    "chapterId": 8
+    "chapterId": 8,
+    "recitationQuestionId": 105
   },
   {
     "id": 23,
@@ -1246,7 +1348,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。窗口指导带有道义劝告与指导性质，虽无直接行政罚款，但基于央行综合权威在信贷调控中具有强大的实效约束力。",
     "points": 1,
-    "chapterId": 8
+    "chapterId": 8,
+    "recitationQuestionId": 107
   },
   {
     "id": 24,
@@ -1254,7 +1357,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。凯恩斯学派坚信利率是核心传导纽带（M -> r -> I -> Y）；主张无需利率中介、直接作用于名义支出的是弗里德曼货币学派。",
     "points": 1,
-    "chapterId": 9
+    "chapterId": 9,
+    "recitationQuestionId": 120
   },
   {
     "id": 25,
@@ -1262,7 +1366,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。当 q < 1 时，企业市值低于重建成本，直接买二手资产更划算，企业会缩减实物投资；只有 q > 1 时才会刺激实物资本新增投资。",
     "points": 1,
-    "chapterId": 9
+    "chapterId": 9,
+    "recitationQuestionId": 113
   },
   {
     "id": 26,
@@ -1270,7 +1375,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。题干描述的是外部时滞（效应时滞）。内部时滞是指央行从认识到客观形势变化到正式出台决策付诸行动所经历的时间。",
     "points": 1,
-    "chapterId": 9
+    "chapterId": 9,
+    "recitationQuestionId": 118
   },
   {
     "id": 27,
@@ -1278,7 +1384,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。巴杰特法则通过惩罚性高利率与优质抵押品要求，在救助清偿力正常机构的同时有效遏制金融机构的道德风险与投机依赖。",
     "points": 1,
-    "chapterId": 10
+    "chapterId": 10,
+    "recitationQuestionId": 125
   },
   {
     "id": 28,
@@ -1286,7 +1393,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。微观审慎重在防范单体倒闭，宏观审慎重在防范系统性崩溃，二者视角互补，共同构成现代金融安全网。",
     "points": 1,
-    "chapterId": 11
+    "chapterId": 11,
+    "recitationQuestionId": 148
   },
   {
     "id": 29,
@@ -1294,7 +1402,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": false,
     "errorCorrection": "错误。方向颠倒：逆周期资本缓冲要求在经济繁荣信贷过度扩张期额外计提积累资本（逆周期平抑过热），在经济衰退期释放以吸收信贷损失。",
     "points": 1,
-    "chapterId": 11
+    "chapterId": 11,
+    "recitationQuestionId": 154
   },
   {
     "id": 30,
@@ -1302,7 +1411,8 @@ export const trueFalseQuestions: TrueFalseQuestion[] = [
     "isCorrect": true,
     "errorCorrection": "陈述正确。党的十九大正式确立双支柱调控框架，货币政策主要应对经济周期与总需求，宏观审慎政策主要应对金融周期与资产泡沫。",
     "points": 1,
-    "chapterId": 11
+    "chapterId": 11,
+    "recitationQuestionId": 138
   }
 ];
 
@@ -1340,15 +1450,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "集中保管商业银行的存款准备金",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "组织和充当全国银行间资金清算中心",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "充当商业银行等金融机构的终极“最后贷款人”",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "“银行的银行”是中央银行的核心职能，体现在三方面：1. 集中保管商业银行等金融机构的法定和超额存款准备金，保障清偿能力并调控信贷规模；2. 充当全国票据清算中心，为金融机构提供资金划拨与清算清偿服务；3. 充当最后贷款人（LOLR），在商业银行面临突发流动性短缺时通过再贴现或再贷款提供紧急救助。"
@@ -1361,15 +1471,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "防范政府财政赤字货币化，切断政府被动命令央行发钞印钱的恶性通胀链条",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "克服政治选举与经济短期视角的干扰，避免为迎合短期竞选制造繁荣而损害长期币值稳定",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "适应现代货币金融运行的高度专业性、复杂性与宏观规律要求",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "中央银行保持相对独立性主要基于三点原因：1. 防范财政赤字货币化：政府面临财政缺口容易命令央行超发纸币，独立性是捍卫货币购买力稳定的制度防线；2. 避免政治周期的负面冲击：政客常倾向于在大选前推行超宽松政策刺激短期就业，独立央行能够抵御政治短视冲动；3. 货币政策制定具有高度专业性和技术性，必须由专业专家机构基于客观经济规律独立研判。"
@@ -1382,15 +1492,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "禁止对政府财政透支，不得直接认购、包销国债和其他政府债券",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "不得向地方政府、各级政府部门提供贷款，不得向非银行金融机构和个人提供贷款（特殊救助除外）",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "不得从事商业性不动产买卖和一般企业性商业证券买卖，严禁参与商业性存贷款牟利竞争",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "《中国人民银行法》规定的主要禁止性规范包括：1. 绝对禁止对政府财政透支，不得在初级市场直接认购、包销国债；2. 不得向地方政府及政府部门提供贷款，严禁对个人或普通工商企业办理存贷款业务；3. 不得以营利为目的从事商业性股票、不动产买卖，不得向任何单位或个人提供非自用担保。"
@@ -1428,11 +1538,11 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "三大原则：经济发行原则（依据经济增长需要）、计划发行原则、集中统一发行原则",
-        "score": 3.0
+        "score": 3
       },
       {
         "point": "“双库”机制：发行库（央行保管未发行基金）与业务库（商业银行备付周转金）之间的调拨投放与入库回笼",
-        "score": 3.0
+        "score": 3
       }
     ],
     "sampleAnswer": "人民币发行的三大基本原则是：集中统一发行原则（全国由中国人民银行统一管理）、计划发行原则（纳入国家宏观综合现金收支计划）和经济发行原则（根据商品流通客观需要投放，杜绝财政性超发）。“双库”流转机制是指：中国人民银行设立发行库，保管不具现实流通力的发行基金；商业银行设立业务库，保存日常存取备付金。现金从发行库调入业务库并向社会付出即为“现金投放”；现金退回业务库并送交发行库入库即为“现金回笼”。"
@@ -1445,15 +1555,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "法律关系不同：再贴现属于票据买卖债权转让；再贷款属于直接信贷借贷契约",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "流动性与信用安全性不同：再贴现票据经多方背书且期限短，风险显著低于贷款",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "政策调控机制不同：再贴现重在通过官方基准利率传导告示效应；贷款重在信贷规模与定向结构扶持",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "主要区别包括：1. 法律关系：再贴现是票据权利的有偿转让（买断），央行享有追索权；央行贷款是普通借贷关系，确立债权债务契约；2. 资金安全性：再贴现具有商业汇票出票人、承兑人与背书人的多重信用担保，流动性更高、坏账风险极低，而再贷款信用风险相对偏大；3. 调控机制：再贴现主要依靠再贴现率调整传导央行货币政策意图（告示效应），而再贷款更突出信贷额度控制与特定领域定向倾斜。"
@@ -1466,15 +1576,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "操作原理：央行在二级市场上买卖有价证券（主要是国债），直接吞吐基础货币并影响市场利率水平",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "核心优点：主动权完全在央行；可以进行连续性、微量微调操作；灵活性极高且易于随时逆向纠偏，震荡小",
-        "score": 3.0
+        "score": 3
       },
       {
         "point": "主要缺点：严重依赖发达、流动性充裕的国债二级市场；政策传导受金融机构预期博弈影响，时滞存在不确定性",
-        "score": 3.0
+        "score": 3
       }
     ],
     "sampleAnswer": "操作原理：中央银行在公开市场上向一级交易商买入或卖出国债等有价证券，买入则向市场注入基础货币并压低利率，卖出则吸收流动性并推高利率。主要优点：1. 主动权完全掌握在央行手中；2. 可根据微观流动性状况进行高频、微量微调；3. 操作灵活，一旦发现市场超调可随时进行反向回购操作纠偏，无准备金调整的强烈巨震。主要缺点：1. 高度依赖深厚发达的国债二级市场规模；2. 必须金融机构自愿配合交易，政策效果易受市场主体预期分歧的制约。"
@@ -1487,11 +1597,11 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "保管目的：调节国际收支逆差、干预外汇市场稳定本币汇率、充当国家综合偿债保障并抵御外部冲击",
-        "score": 3.0
+        "score": 3
       },
       {
         "point": "经营原则：安全性第一、流动性第二、盈利性第三（三原则有机平衡统筹）",
-        "score": 3.0
+        "score": 3
       }
     ],
     "sampleAnswer": "保管目的：1. 平衡国际收支赤字，保障国家对外支付结算顺畅；2. 在汇率异常波动时适时干预外汇市场，维持本币汇率在合理均衡水平上的基本稳定；3. 彰显国家主权资信，抵御跨境投机资本冲击。经营原则：严格遵循“安全性、流动性、盈利性”三原则统筹兼顾，其中安全性是首要底线，确保储备本金不受损；流动性是关键支撑，确保随时变现动用；在确保前两者的前提下追求保值增值（盈利性）。"
@@ -1504,11 +1614,11 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "净额清算：优点在于极大节约日间备付流动资金；缺点在于日间风险累积，存在一家违约引发连锁多米诺瘫痪风险",
-        "score": 3.0
+        "score": 3
       },
       {
         "point": "RTGS系统：优点在于逐笔全额即时终局清算，彻底杜绝隔夜信用风险；缺点在于对银行日间流动性占用量极大",
-        "score": 3.0
+        "score": 3
       }
     ],
     "sampleAnswer": "净额清算系统：通过各机构双向支付指令轧差冲抵，仅清算净额差额。优点是大幅减少日间资金占用，提高小额批量结算效率；缺点是清算延时完成，白天积累大量未结清敞口，一旦某大机构倒闭会引发系统性违约。全额实时清算系统（RTGS）：每笔支付指令即时全额在准备金账户划转完成。优点是支付即最终，彻底消除结算机构之间的隔夜信用风险；缺点是需要各银行保有极为充足的日间流动性，若资金调度不灵可能产生支付排队阻塞。"
@@ -1521,15 +1631,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "推广并依托大额实时全额支付系统（RTGS），减少延时风险暴露",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "对净额结算系统实行严格的双边/多边日间透支限额与足额合格抵押品制度",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "建立央行日间紧急流动性便利支持机制与异地双活容灾技术备份系统",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "主要防范措施包括：1. 广泛采用全额实时清算模式（RTGS）处理单笔大额及紧急支付，从机制上根除跨日信用风险累积；2. 针对净额清算系统设立日间借记净额净透支限额，要求参与机构提供优质足额债券作为风险担保品；3. 中央银行提供日间质押透支便利，协助解决临时性头寸短缺；4. 建立同城与异地灾备数据中心，防范硬件宕机与网络中断引发的操作风险。"
@@ -1542,19 +1652,19 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "阐述四大最终目标：物价稳定、充分就业、经济增长、国际收支平衡",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "物价稳定与充分就业的冲突：短期菲利普斯曲线揭示二者此消彼长，刺激就业易推升通胀，紧缩压制通胀会导致失业上升",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "经济增长与国际收支平衡的冲突：经济高速扩张带动进口大增，易恶化贸易收支引发逆差",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "物价稳定与经济增长的冲突：短期内追求高速增长往往需要信贷扩张，容易推升物价泡沫",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "货币政策四大目标是物价稳定、充分就业、经济增长和国际收支平衡。它们之间存在深刻的内在冲突：1. 物价稳定与充分就业的冲突：短期菲利普斯曲线表明通胀与失业负相关，央行若采取扩张政策降低失业往往引发物价上涨，紧缩压制通胀则牺牲就业；2. 经济增长与国际收支平衡的冲突：经济快速增长带动国民收入提高，国内对国外商品和原材料进口需求激增，常导致贸易赤字扩大；3. 物价稳定与经济增长的冲突：经济超常高速增长容易引起产能过载与信贷过度扩张，加剧物价通胀压力。因此央行必须综合权衡，相机抉择。"
@@ -1567,11 +1677,11 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "五大技术标准：可测性（数据准确及时获取）、可控性（工具能有效调控）、相关性（与最终目标高度联动）以及抗干扰性与适应性",
-        "score": 3.0
+        "score": 3
       },
       {
         "point": "常用中介指标：数量型指标（如广义货币M2、社会融资规模）与价格型指标（如短期市场利率、国债收益率）",
-        "score": 3.0
+        "score": 3
       }
     ],
     "sampleAnswer": "选定中介指标的基本标准包括：1. 可测性：央行能迅速准确获得统计数据并进行量化分析；2. 可控性：央行通过自身政策工具能够有效施加影响并调控其轨迹；3. 相关性：中介变量的变动与货币政策最终目标的变动存在稳定、高度的因果联动关系；4. 抗干扰性：受外生偶然变量扰动较小。常用中介指标主要分为：数量型中介指标（基础货币、广义货币供应量M2、社会融资规模）和价格型中介指标（银行间同业拆借利率、国债收益率等长期利率）。"
@@ -1584,7 +1694,7 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "法定存款准备金政策：调整准备率直接改变货币乘数与商业银行超额准备金，产生倍数级剧烈扩张或收缩效应",
-        "score": 3.0
+        "score": 3
       },
       {
         "point": "再贴现政策：通过调整再贴现基准利率改变商业银行借款成本，释放强烈政策告示效应并调节票据投向",
@@ -1605,15 +1715,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "消费者信用控制：规定耐用消费品分期付款最低首付比例与最长还款期限",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "证券市场信用控制：规定证券现券交易最低现金保证金比例，遏制股市投机泡沫",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "不动产信用控制：限制商业银行对房地产开发与按揭贷款的首付比例与期限，防范地产过热",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "选择性货币政策工具旨在定向调节特定领域信贷，主要包括：1. 消费者信用控制：中央银行规定耐用消费品分期付款的最低首付款比例和最长偿还期限，调节消费信贷总需求；2. 证券市场信用控制：对投资者购买股票规定的法定最低保证金比例，限制借钱炒股规模，抑制资本市场过度投机泡沫；3. 不动产信用控制：对房地产抵押贷款规定的最高贷款限额、最长偿还期限及最低首付比例，防范信贷资金过度涌入房地产市场诱发资产泡沫。"
@@ -1626,11 +1736,11 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "凯恩斯主义：认为利率是核心传导枢纽，传导路径为 M -> r -> I -> Y，政策首先作用于金融资产价格与借贷成本，间接影响实体经济",
-        "score": 4.0
+        "score": 4
       },
       {
         "point": "货币学派：强调“货币最重要”，传导路径为 M -> 实际现金余额失衡 -> 名义总支出变化 -> 产出与物价变动，无需利率间接媒介，具有直接冲击效应",
-        "score": 4.0
+        "score": 4
       }
     ],
     "sampleAnswer": "核心分歧表现在传导路径和传导媒介上：1. 凯恩斯主义学派强调“利率中介间接传导”。其逻辑链路为：货币供应量 M 变动 -> 改变货币供求与金融市场利率 r -> 改变企业边际借贷成本与投资 I -> 通过乘数效应影响国民收入 Y。凯恩斯学派认为货币无法直接越过利率作用于实物产出，流动性陷阱可能导致传导失效；2. 弗里德曼货币学派强调“货币对名义支出的直接传导”。其逻辑链路为：货币供应量 M 增加打破公众意愿持币平衡 -> 公众直接增加对耐用品、实物商品和金融资产等所有资产的购买支出 -> 直接推升名义总支出与物价。货币学派主张利率传导作用微弱，货币总量本身才是决定经济名义总量的根本主导力量。"
@@ -1643,15 +1753,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "货币政策时滞制约（内部时滞与外部时滞的不确定性，易导致政策顺周期错配）",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "微观主体与金融机构的理性预期抵消博弈（理性预期假说削弱系统性政策实效）",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "金融创新、影子银行发展、货币流通速度变动以及不良资产包袱（银行惜贷阻滞信贷渠道）",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "制约货币政策有效性的主要因素包括：1. 政策时滞：认识、决策、执行及外部生效时滞漫长且具有不可控波动，可能使逆周期政策在起效时变成顺周期加剧波动；2. 微观主体的理性预期与博弈：企业和居民根据央行规律形成合理预期，提前调整行为抵消政策刺激实效；3. 金融结构与中介传导阻滞：商业银行不良贷款高企或资本不足时出现“流动性陷阱”和“惜贷、慎贷”，加上影子银行与非银金融创新泛滥，导致资金脱实向虚，弱化实体传导。"
@@ -1664,15 +1774,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "严格甄别救助对象：仅向具有偿付清偿能力（Solvent）但暂时缺乏流动性的机构提供紧急流动性",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "实行惩罚性高利率（Penalty Rate）：借款利率必须高于市场常态利率，促使机构尽快还款并遏制道德风险",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "要求提供足额优质抵押品（Good Collateral）：保障央行资金绝对安全并防范财政性坏账",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "巴杰特法则的核心要求包括：1. 救助范围限定：中央银行只向因突发挤兑导致流动性短缺、但资产大于负债（具有长期偿付能力）的机构提供救助，对资不抵债的僵尸机构坚决不予兜底；2. 惩罚性高利率：救助借款必须收取高于市场常态的罚息利率，确保金融机构仅在生死关头才申请救助，危机缓解后有动力尽快偿还；3. 足额优质抵押品：必须提供经过审慎折价评估的高等级资产作为质押品，确保央行公共资金本金安全不受损。"
@@ -1685,15 +1795,15 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "终极监管目标不同：微观审慎保护单一机构债权人与存款人；宏观审慎防范系统性风险、维护金融系统总体稳定",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "风险性质假定不同：微观审慎假定风险外生给定；宏观审慎认为风险内生累积（顺周期与互联互通放大）",
-        "score": 2.0
+        "score": 2
       },
       {
         "point": "监管维度与工具不同：微观审慎重在个体资本比率合规；宏观审慎重在时间维度（逆周期资本）与空间维度（SIFIs附加要求）",
-        "score": 2.0
+        "score": 2
       }
     ],
     "sampleAnswer": "核心区别体现在三个方面：1. 监管目标：微观审慎旨在防范单家金融机构破产倒闭，保护个体存款人和投资者利益；宏观审慎旨在防范系统性金融风险，避免金融体系整体瘫痪对实体经济造成巨大冲击；2. 风险性质认识：微观审慎视个体风险为外生变量，认为只要每家机构稳健则整体稳健（合成谬误）；宏观审慎视风险为内生变量，认识到个体理性行为可能引发全局踩踏（如抛售资产去杠杆）；3. 工具维度：微观审慎侧重合规性指标（如单一资本充足率、不良率等）；宏观审慎涵盖时间维度（逆周期缓冲）与空间维度（系统重要性机构附加监管）。"
@@ -1706,11 +1816,11 @@ export const shortAnswerQuestions: ShortAnswerQuestion[] = [
     "rubricPoints": [
       {
         "point": "时间维度目标与工具：旨在平抑信贷与资产价格的顺周期波动。核心工具包括：逆周期资本缓冲（CCyB）、动态贷款损失准备金计提、杠杆率限制、逆周期的贷款价值比（LTV）与偿债收入比（DTI）调整",
-        "score": 4.0
+        "score": 4
       },
       {
         "point": "空间维度目标与工具：旨在防范跨机构、跨市场的系统性风险传染与大而不能倒。核心工具包括：系统重要性金融机构（SIFIs）附加资本与流动性要求、大额风险暴露集中度上限、金融控股公司并表监管与处置恢复计划（生前遗嘱）",
-        "score": 4.0
+        "score": 4
       }
     ],
     "sampleAnswer": "宏观审慎监管在双维度的工具匹配如下：1. 时间维度（应对金融顺周期性）：针对金融体系在繁荣期过度加杠杆、萧条期过度去杠杆的顺周期特征，主要工具包括：逆周期资本缓冲（CCyB，在信贷繁荣期额外计提0~2.5%资本）、动态拨备计提制度（以丰补歉）、杠杆率下限要求以及逆周期的贷款价值比（LTV）和偿债收入比（DTI）动态限额；2. 空间维度（应对跨机构传染）：针对大机构“大而不能倒”与网络传染性风险，主要工具包括：对全球和国内系统重要性金融机构（G-SIFIs/D-SIFIs）设定附加资本要求、附加杠杆率与总损失吸收能力（TLAC）标准、严格限制跨机构大额风险暴露集中度、强化金融控股公司全面并表监管以及要求编制恢复与处置计划（“生前遗嘱”）。"

@@ -372,6 +372,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
               <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-800">
                 单选题 第 {choiceIdx + 1} / {singleChoices.length} 题
               </span>
+              {currentChoice.recitationQuestionId && (
+                <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+                  源自背诵 #{currentChoice.recitationQuestionId}
+                </span>
+              )}
               <button
                 onClick={() => {
                   setChoiceIdx((p) => Math.min(singleChoices.length - 1, p + 1));
@@ -482,6 +487,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
               <span className="text-xs font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
                 判断改错 第 {tfIdx + 1} / {trueFalse.length} 题
               </span>
+              {currentTF.recitationQuestionId && (
+                <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+                  源自背诵 #{currentTF.recitationQuestionId}
+                </span>
+              )}
               <button
                 onClick={() => {
                   setTfIdx((p) => Math.min(trueFalse.length - 1, p + 1));
@@ -590,6 +600,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
               <span className="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800">
                 填空专项 第 {fillIdx + 1} / {fillIns.length} 题
               </span>
+              {currentFill.recitationQuestionId && (
+                <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+                  源自背诵 #{currentFill.recitationQuestionId}
+                </span>
+              )}
               <button
                 onClick={() => {
                   setFillIdx((p) => Math.min(fillIns.length - 1, p + 1));

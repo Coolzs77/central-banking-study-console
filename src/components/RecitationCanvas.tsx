@@ -144,7 +144,7 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
 
         {/* 3. Question Content / Answer Area */}
         <div className="mt-2 p-5 sm:p-6 rounded-2xl bg-slate-50/80 dark:bg-[#18202e] border border-slate-200/80 dark:border-slate-800/80 clay-card-shadow">
-          <MarkdownViewer content={currentQ.content} maskKeywords={isMasking} />
+          <MarkdownViewer content={currentQ.content} keywords={currentQ.keywords} maskKeywords={isMasking} />
         </div>
       </div>
     </div>
