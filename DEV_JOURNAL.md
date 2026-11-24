@@ -1058,4 +1058,67 @@ flowchart TD
    ```
    返回 `200 OK`，实机验证通过。
 
+---
+
+## 第 10 轮 [2026-11-24 18:50]：全面采用学术翠绿色文字高亮，题号标准化为“1.”极简序号
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **用户明确要求**：“使用绿色，另外题号用1.”；
+- **具体执行方案**：
+  1. **色彩体系切换为绿色（Emerald Green）**：
+     - 大纲小标题（`（一）...`、`（二）...`）字色统一调整为清爽高识别度的翠绿色（`text-emerald-600 dark:text-emerald-400 font-extrabold`）；
+     - 核心金融考点关键词字色同样统一调整为绿色高亮（`text-emerald-600 dark:text-emerald-400 font-bold`）；
+     - 保持零背景框原则，纯靠字色提供清晰的视觉焦点。
+  2. **题号改为“1.”标准极简风格**：
+     - 去除原本较为冗长的“`第 1 题 ·`”字样，直接使用极简阿拉伯数字序号“`1. `”（如 `1. 中央银行产生的历史背景。(p4-5)`），在全书速记与平时作业本大标题中统一生效。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+
+- [`src/components/common/MarkdownViewer.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)：
+  - **大纲小标题绿字渲染**：`<h4 className="font-extrabold text-[15.5px] text-emerald-600 dark:text-emerald-400 tracking-wide">{subTitle}</h4>`；
+  - **金融考点词汇绿字高亮**：`<strong className="font-bold text-emerald-600 dark:text-emerald-400">{part}</strong>`；
+  - **遮挡模式下按需揭开按钮**：微调为匹配翠绿调性的微型圆角药丸按钮。
+- [`src/components/RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx) & [`src/components/HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)：
+  - 主标题题号前缀修改为纯绿色数字序号：`<span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold mr-1.5">{id}.</span>`。
+
+---
+
+### 3. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：极简绿字高亮与“1.”序号流线
+```mermaid
+flowchart LR
+    QuestionTitle["主标题呈现"] --> CleanNumber["🟢 纯绿色题号: 1. (text-emerald-600)"]
+    CleanNumber --> RawTitle["中央银行产生的历史背景。(p4-5)"]
+    
+    SubheadingLine["大纲小标题行"] --> GreenOutline["🟢 纯绿色大纲: (一) 市场经济的迅速发展 (text-emerald-600)"]
+    
+    BodyLine["正文核心考点"] --> GreenKeywords["🟢 纯绿色考点: 工业革命、机器大工业 (text-emerald-600)"]
+```
+> **图 1 机制解析**：整体视觉色彩彻底收敛为统一的学术翠绿主题色，序号遵循传统教材与试卷习惯的“1.”排版，呈现最舒适专注的背诵体验。
+
+---
+
+### 4. 验证结果与可复现方法 (Verification & Reproduction)
+1. **自动化测试套件回归验证**：
+   ```bash
+   cd e:\workspace\central-banking-study-console
+   node verify_suite.mjs
+   ```
+   - **验证结果**：46 项断言全部通过（含绿色字色断言与 1. 序号断言）。
+2. **生产构建与发布**：
+   ```bash
+   npm run build
+   npm run deploy
+   ```
+   - **推送状态**：成功将提交 `18828c0` 推送到 `origin/gh-pages` 分支。
+3. **公网可用性核验**：
+   ```powershell
+   (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
+   ```
+   返回 `200 OK`，实机核验完全通过。
+
+
 
