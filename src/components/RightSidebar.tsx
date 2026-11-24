@@ -6,9 +6,6 @@ import {
   CheckCircle2,
   Clock,
   Search,
-  Filter,
-  Bookmark,
-  Award,
   BookOpen,
 } from 'lucide-react';
 import {
@@ -29,8 +26,6 @@ interface RightSidebarProps {
   starredList: number[];
   activeFilter: 'all' | 'memorized' | 'unmemorized' | 'starred';
   onSelectFilter: (filter: 'all' | 'memorized' | 'unmemorized' | 'starred') => void;
-  pointFilter: number | null;
-  onSelectPointFilter: (pts: number | null) => void;
   // Homework
   homeworkQuestions: HomeworkQuestion[];
   currentHomeworkQuestionId: number;
@@ -43,6 +38,7 @@ interface RightSidebarProps {
   currentTermId: number;
   onSelectTermId: (id: number) => void;
   termMemorizedList: number[];
+  practiceTab?: 'terms' | 'choice' | 'truefalse' | 'fill';
   // Chapter metadata
   currentChapterId?: number;
   chapters?: ChapterMeta[];
@@ -58,8 +54,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   starredList,
   activeFilter,
   onSelectFilter,
-  pointFilter,
-  onSelectPointFilter,
   homeworkQuestions,
   currentHomeworkQuestionId,
   onSelectHomeworkQuestionId,
@@ -70,6 +64,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   currentTermId,
   onSelectTermId,
   termMemorizedList,
+  practiceTab = 'terms',
   currentChapterId,
   chapters = [],
   className = '',
@@ -87,14 +82,13 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     );
   }, [terminologyList, termSearch]);
 
-  // Tab Title
   const matrixTitle =
     currentMode === 'homework'
       ? '作业矩阵'
       : currentMode === 'practice'
-      ? '名词矩阵'
+      ? '专项题号'
       : currentMode === 'exam'
-      ? '考卷结构'
+      ? '试卷架构'
       : '背诵矩阵';
 
   return (
@@ -134,7 +128,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-sm border border-slate-200/60 dark:border-slate-700'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50'
           }`}
-          title="章节与考点大纲"
+          title="章节知识大纲"
         >
           <BookOpen className="w-4 h-4" />
           <span>大纲</span>
@@ -144,14 +138,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       {/* Tab 1: Number Matrix */}
       {activeTab === 'matrix' && (
         <div className="flex-1 flex flex-col h-full overflow-hidden">
-          {/* A. RECITATION MODE MATRIX */}
+          {/* A. RECITATION MODE MATRIX (Zero score division!) */}
           {currentMode === 'recitation' && (
             <div className="flex-1 flex flex-col h-full overflow-hidden">
               {/* Header Filter Controls */}
               <div className="p-3.5 border-b border-slate-200/80 dark:border-slate-800 space-y-3 shrink-0 bg-slate-50/40 dark:bg-slate-900/40">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                    背诵题目矩阵
+                    全书背诵题 (161题)
                   </span>
                   <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200/60 dark:border-blue-800">
                     已背 {memorizedList.length} / {recitationQuestions.length} ({Math.round((memorizedList.length / (recitationQuestions.length || 1)) * 100)}%)
@@ -201,26 +195,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     收藏 ({starredList.length})
                   </button>
                 </div>
-
-                {/* Point Filter Row */}
-                <div className="flex items-center justify-between text-xs pt-0.5">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">考点分值：</span>
-                  <div className="flex items-center gap-1.5">
-                    {[null, 2, 3, 4, 5].map((pts) => (
-                      <button
-                        key={pts === null ? 'all' : pts}
-                        onClick={() => onSelectPointFilter(pts)}
-                        className={`px-2.5 py-1 rounded-md text-xs font-bold cursor-pointer transition-all ${
-                          pointFilter === pts
-                            ? 'bg-blue-600 text-white shadow-xs'
-                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        {pts === null ? '全部' : `${pts}点`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
 
               {/* 161 Question Matrix - 6 Columns, Clean comfortable sizing */}
@@ -249,7 +223,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       <button
                         key={q.id}
                         onClick={() => onSelectRecitationQuestionId(q.id)}
-                        title={`第 ${q.id} 题: ${q.title} (${q.points}点)`}
+                        title={`第 ${q.id} 题: ${q.title}`}
                         className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition-all cursor-pointer ${cellStyle}`}
                       >
                         {q.id}
@@ -303,7 +277,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 </div>
               </div>
 
-              {/* 54 Homework Grid - 6 Columns */}
+              {/* 54 Homework Grid */}
               <div className="flex-1 overflow-y-auto p-3.5">
                 <div className="grid grid-cols-6 gap-2">
                   {homeworkQuestions
@@ -344,79 +318,116 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             </div>
           )}
 
-          {/* C. PRACTICE MODE MATRIX */}
+          {/* C. PRACTICE MODE MATRIX (Dynamically adapts to practiceTab) */}
           {currentMode === 'practice' && (
             <div className="flex-1 flex flex-col h-full overflow-hidden p-3.5 space-y-3">
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-800">
                 <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  30 核心名词速达
+                  {practiceTab === 'terms' && '30 核心名词速达'}
+                  {practiceTab === 'choice' && '单选题号 (40题)'}
+                  {practiceTab === 'truefalse' && '判断改错题号 (30题)'}
+                  {practiceTab === 'fill' && '填空题号 (40题)'}
                 </span>
-                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800">
-                  已掌握 {termMemorizedList.length} / {terminologyList.length}
-                </span>
+                {practiceTab === 'terms' && (
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800">
+                    已掌握 {termMemorizedList.length} / {terminologyList.length}
+                  </span>
+                )}
               </div>
 
-              <div className="grid grid-cols-5 gap-2 pt-1">
-                {terminologyList.map((t) => {
-                  const isMem = termMemorizedList.includes(t.id);
-                  const isCurr = currentTermId === t.id;
+              {/* Number Buttons for Active Practice Tab */}
+              <div className="grid grid-cols-6 gap-2 pt-1 overflow-y-auto">
+                {practiceTab === 'terms' &&
+                  terminologyList.map((t) => {
+                    const isMem = termMemorizedList.includes(t.id);
+                    const isCurr = currentTermId === t.id;
 
-                  let cellStyle =
-                    'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200';
+                    let cellStyle =
+                      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200';
 
-                  if (isCurr) {
-                    cellStyle =
-                      'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10';
-                  } else if (isMem) {
-                    cellStyle = 'bg-emerald-500 text-white font-bold border-emerald-600';
-                  }
+                    if (isCurr) {
+                      cellStyle =
+                        'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10';
+                    } else if (isMem) {
+                      cellStyle = 'bg-emerald-500 text-white font-bold border-emerald-600';
+                    }
 
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => onSelectTermId(t.id)}
-                      title={`#${t.id} ${t.term}`}
-                      className={`h-11 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${cellStyle}`}
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => onSelectTermId(t.id)}
+                        title={`#${t.id} ${t.term}`}
+                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${cellStyle}`}
+                      >
+                        {t.id}
+                      </button>
+                    );
+                  })}
+
+                {practiceTab === 'choice' &&
+                  Array.from({ length: 40 }, (_, i) => i + 1).map((num) => (
+                    <div
+                      key={num}
+                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-mono font-bold flex items-center justify-center"
                     >
-                      {t.id}
-                    </button>
-                  );
-                })}
+                      {num}
+                    </div>
+                  ))}
+
+                {practiceTab === 'truefalse' &&
+                  Array.from({ length: 30 }, (_, i) => i + 1).map((num) => (
+                    <div
+                      key={num}
+                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-mono font-bold flex items-center justify-center"
+                    >
+                      {num}
+                    </div>
+                  ))}
+
+                {practiceTab === 'fill' &&
+                  Array.from({ length: 40 }, (_, i) => i + 1).map((num) => (
+                    <div
+                      key={num}
+                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-mono font-bold flex items-center justify-center"
+                    >
+                      {num}
+                    </div>
+                  ))}
               </div>
             </div>
           )}
 
           {/* D. EXAM MODE MATRIX */}
           {currentMode === 'exam' && (
-            <div className="flex-1 flex flex-col h-full p-4 space-y-4">
+            <div className="flex-1 flex flex-col h-full p-4 space-y-4 overflow-y-auto">
               <div className="flex items-center gap-2 text-sm font-bold text-purple-700 dark:text-purple-400 pb-2 border-b border-slate-200/80 dark:border-slate-800">
                 <Clock className="w-4 h-4" />
-                <span>期末 100 分试卷题型架构</span>
+                <span>期末 100 分全真试卷结构</span>
               </div>
-              <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 space-y-2.5 leading-relaxed bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold">1. 名词概念解释题</span>
-                  <span className="font-mono text-purple-600 font-bold">5题 × 3分 = 15分</span>
+              <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 space-y-3 leading-relaxed bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800">
+                  <span className="font-semibold">一、名词解释</span>
+                  <span className="font-mono text-purple-600 dark:text-purple-400 font-bold">5题 · 15分</span>
+                </div>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800">
+                  <span className="font-semibold">二、填空题</span>
+                  <span className="font-mono text-purple-600 dark:text-purple-400 font-bold">15题 · 15分</span>
+                </div>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800">
+                  <span className="font-semibold">三、单项选择题</span>
+                  <span className="font-mono text-purple-600 dark:text-purple-400 font-bold">15题 · 15分</span>
+                </div>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800">
+                  <span className="font-semibold">四、判断改错题</span>
+                  <span className="font-mono text-purple-600 dark:text-purple-400 font-bold">15题 · 15分</span>
+                </div>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800">
+                  <span className="font-semibold">五、简答题</span>
+                  <span className="font-mono text-purple-600 dark:text-purple-400 font-bold">3题 · 20分</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold">2. 填空题 (关键词/原理)</span>
-                  <span className="font-mono text-purple-600 font-bold">15空 × 1分 = 15分</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold">3. 单项选择题</span>
-                  <span className="font-mono text-purple-600 font-bold">15题 × 1分 = 15分</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold">4. 判断并改错题</span>
-                  <span className="font-mono text-purple-600 font-bold">15题 × 1分 = 15分</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold">5. 简答题</span>
-                  <span className="font-mono text-purple-600 font-bold">3题 (6+6+8) = 20分</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold">6. 论述题 (货币政策/监管)</span>
-                  <span className="font-mono text-purple-600 font-bold">1题 × 20分 = 20分</span>
+                  <span className="font-semibold">六、宏观论述题</span>
+                  <span className="font-mono text-purple-600 dark:text-purple-400 font-bold">1题 · 20分</span>
                 </div>
               </div>
             </div>
@@ -479,7 +490,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         </div>
       )}
 
-      {/* Tab 3: Chapter Outline & Key Points */}
+      {/* Tab 3: Chapter Outline */}
       {activeTab === 'outline' && (
         <div className="flex-1 flex flex-col h-full overflow-hidden p-3.5">
           <div className="text-sm font-bold text-slate-800 dark:text-slate-200 pb-2 border-b border-slate-200/80 dark:border-slate-800 mb-2">
@@ -499,9 +510,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 >
                   <div className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 flex items-center justify-between">
                     <span>{ch.title}</span>
-                    <span className="font-mono text-xs text-blue-600 dark:text-blue-400 font-semibold">
-                      {ch.totalPoints} 考点
-                    </span>
                   </div>
                   {ch.sections && (
                     <div className="mt-2 space-y-1 pl-2 border-l-2 border-slate-200 dark:border-slate-700">
@@ -511,7 +519,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                           className="text-xs text-slate-600 dark:text-slate-400 flex items-center justify-between"
                         >
                           <span className="truncate">{sec.title}</span>
-                          <span className="font-mono text-[11px] opacity-75">{sec.points}点</span>
                         </div>
                       ))}
                     </div>

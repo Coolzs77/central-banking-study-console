@@ -249,8 +249,8 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
 
   if (examStatus === 'idle') {
     return (
-      <div className="flex-1 max-w-3xl mx-auto px-4 py-12">
-        <div className="p-8 rounded-3xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/70 dark:border-slate-700/70 clay-card-shadow text-center">
+      <div className="flex-1 w-full h-full overflow-y-auto px-4 py-12 flex flex-col items-center">
+        <div className="w-full max-w-3xl p-8 rounded-3xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/70 dark:border-slate-700/70 clay-card-shadow text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-400 text-white flex items-center justify-center clay-button-shadow">
             <Award className="w-8 h-8" />
           </div>
@@ -302,7 +302,8 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
   if (!paper) return null;
 
   return (
-    <div className="flex-1 max-w-5xl mx-auto px-4 py-6">
+    <div className="flex-1 w-full h-full overflow-y-auto px-4 py-6">
+      <div className="max-w-5xl mx-auto">
       {/* Top Floating / Sticky Exam Header */}
       <div className="sticky top-20 z-20 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/80 dark:border-slate-800 clay-card-shadow backdrop-blur-md mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -415,7 +416,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
             </span>
             名词解释 (共5小题，每小题3分，共15分)
           </h3>
-          <span className="text-xs text-slate-400 font-mono">规范3分答题法：定义1.5分+性质1分+职能0.5分</span>
+          <span className="text-xs text-slate-400 font-mono">回答核心概念与内涵</span>
         </div>
 
         <div className="space-y-6">
@@ -449,14 +450,14 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
               {examStatus === 'submitted' && (
                 <div className="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700/60 space-y-3">
                   <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    标准定义与核心采分点 (共3分)：
+                    权威参考定义：
                   </div>
                   <div className="text-xs leading-relaxed text-slate-700 dark:text-slate-200">
                     <MarkdownViewer content={q.definition} maskKeywords={false} />
                   </div>
 
                   <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800 flex items-center gap-3 text-xs">
-                    <span className="font-medium text-slate-700 dark:text-slate-300">自我采分：</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">对照核对评分：</span>
                     <select
                       value={subjectiveScores.termScores[q.id] ?? 3.0}
                       onChange={(e) => {
@@ -785,7 +786,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
               {examStatus === 'submitted' && (
                 <div className="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700/60 space-y-3">
                   <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    标准要点采分评分标准 (共{q.totalPoints}分)：
+                    参考要点与对照核对 (共{q.totalPoints}分)：
                   </div>
 
                   <div className="space-y-2">
@@ -862,7 +863,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
           {examStatus === 'submitted' && (
             <div className="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700/60 space-y-4 text-xs">
               <div className="font-semibold text-slate-700 dark:text-slate-300">
-                论述题四大维度采分量表 (满分20分)：
+                论述题参考维度与核对要点 (满分20分)：
               </div>
 
               {/* Rubric dimensions */}
@@ -992,5 +993,6 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
         </div>
       </div>
     </div>
+  </div>
   );
 };

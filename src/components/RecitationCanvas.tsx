@@ -125,14 +125,10 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
               第 {currentQ.id} 题 · {currentQ.chapterTitle.split(' ')[0]}
             </span>
-            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
-              <Award className="w-3.5 h-3.5 text-amber-600" />
-              {currentQ.points} 个考点
-            </span>
             {currentQ.isCore && (
               <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
                 <Zap className="w-3.5 h-3.5 text-rose-500" />
-                核心
+                核心必背
               </span>
             )}
           </div>
@@ -153,7 +149,7 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
             <div className="flex items-center gap-2">
               <span className="text-base">💡</span>
               <span className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100">
-                标准答案与采分要点
+                背诵与参考解答
               </span>
             </div>
             <div className="text-xs font-semibold text-blue-600 dark:text-blue-400">

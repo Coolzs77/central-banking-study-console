@@ -39,7 +39,7 @@ export function App() {
   const [selectedChapterId, setSelectedChapterId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'memorized' | 'unmemorized' | 'starred'>('all');
-  const [pointFilter, setPointFilter] = useState<number | null>(null);
+  const [practiceTab, setPracticeTab] = useState<'terms' | 'choice' | 'truefalse' | 'fill'>('terms');
 
   // Single Source of Truth for question navigation indices (0-based)
   const [recitationIndex, setRecitationIndex] = useState<number>(0);
@@ -54,7 +54,6 @@ export function App() {
   const filteredRecitationQuestions = useMemo(() => {
     return recitationQuestions.filter((q) => {
       if (selectedChapterId && q.chapterId !== selectedChapterId) return false;
-      if (pointFilter && q.points !== pointFilter) return false;
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const matchesTitle = q.title.toLowerCase().includes(query);
@@ -66,7 +65,7 @@ export function App() {
       if (activeFilter === 'starred' && !state.starred.includes(q.id)) return false;
       return true;
     });
-  }, [selectedChapterId, pointFilter, searchQuery, activeFilter, state.memorized, state.starred]);
+  }, [selectedChapterId, searchQuery, activeFilter, state.memorized, state.starred]);
 
   // Filtered Homework Questions
   const filteredHomeworkQuestions = useMemo(() => {
@@ -220,6 +219,8 @@ export function App() {
               fillIns={fillInQuestions}
               termMemorized={state.termMemorized}
               onToggleTermMemorized={toggleTermMemorized}
+              activePracticeTab={practiceTab}
+              onPracticeTabChange={setPracticeTab}
             />
           )}
 
@@ -247,8 +248,6 @@ export function App() {
           starredList={state.starred}
           activeFilter={activeFilter}
           onSelectFilter={setActiveFilter}
-          pointFilter={pointFilter}
-          onSelectPointFilter={setPointFilter}
           // Homework props
           homeworkQuestions={homeworkQuestions}
           currentHomeworkQuestionId={currentHomeworkQ?.id || 1}
@@ -256,7 +255,7 @@ export function App() {
           homeworkCompletedList={state.homeworkCompleted}
           selectedHomeworkChapter={selectedChapterId}
           onSelectHomeworkChapter={handleSelectChapter}
-          // Terminology props
+          // Terminology & Practice props
           terminologyList={terminologyList}
           currentTermId={currentTerm?.id || 1}
           onSelectTermId={(termId) => {
@@ -264,6 +263,7 @@ export function App() {
             if (tIdx !== -1) setPracticeTermIndex(tIdx);
           }}
           termMemorizedList={state.termMemorized}
+          practiceTab={practiceTab}
           // Chapter metadata
           currentChapterId={
             currentMode === 'homework'

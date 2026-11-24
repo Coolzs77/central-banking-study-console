@@ -148,6 +148,28 @@ async function runTests() {
     // Check MarkdownViewer cloze keyword masking
     const mdViewerCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/common/MarkdownViewer.tsx'), 'utf-8');
     assert(mdViewerCode.includes('maskKeywords') && mdViewerCode.includes('··· 揭开'), 'MarkdownViewer supports keyword-only cloze masking and reveal');
+
+    // Check MockExamCanvas has vertical scrolling
+    const mockExamCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/MockExamCanvas.tsx'), 'utf-8');
+    assert(mockExamCode.includes('overflow-y-auto'), 'MockExamCanvas includes overflow-y-auto for smooth paper scrolling');
+    assert(!mockExamCode.includes('规范3分答题法：定义1.5分+性质1分+职能0.5分'), 'MockExamCanvas removes artificial 3-pt formula text');
+
+    // Check RecitationCanvas does NOT contain "标准答案与采分要点"
+    const recitationCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RecitationCanvas.tsx'), 'utf-8');
+    assert(!recitationCode.includes('标准答案与采分要点'), 'RecitationCanvas does NOT contain "标准答案与采分要点"');
+
+    // Check RightSidebar does NOT contain "考点分值："
+    const rightSidebarCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RightSidebar.tsx'), 'utf-8');
+    assert(!rightSidebarCode.includes('考点分值：') && !rightSidebarCode.includes('pointFilter'), 'RightSidebar does NOT divide questions by score or pointFilter');
+
+    // Check LeftSidebar replicated FRM progress bar
+    const leftSidebarCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/LeftSidebar.tsx'), 'utf-8');
+    assert(leftSidebarCode.includes('rounded-full bg-slate-200') && leftSidebarCode.includes('stats.pct'), 'LeftSidebar replicates FRM miniature progress bar');
+
+    // Check PracticeCanvas properly accesses single choice and true-false fields
+    const practiceCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/PracticeCanvas.tsx'), 'utf-8');
+    assert(practiceCode.includes('currentChoice.options[key]') && practiceCode.includes('currentChoice.rationale'), 'PracticeCanvas accesses singleChoice options and rationale correctly');
+    assert(practiceCode.includes('currentTF.statement') && practiceCode.includes('currentTF.errorCorrection'), 'PracticeCanvas accesses trueFalse statement and errorCorrection correctly');
   } catch (err) {
     console.error('Error checking layout & features:', err.message);
     failedAssertions++;

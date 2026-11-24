@@ -118,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="搜索题目、关键词、考点分值 (按 / 聚焦)..."
+              placeholder="搜索题目、关键词 (按 / 聚焦)..."
               className="w-full pl-10 pr-9 py-1.5 text-sm rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 transition-all clay-inset-groove"
             />
             {searchQuery && (
