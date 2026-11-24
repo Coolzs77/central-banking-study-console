@@ -67,27 +67,39 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         const clozeId = globalClozeIdx++;
         const isRevealed = !maskKeywords || onToggleClozeAll || revealedSet.has(clozeId);
 
-        // When masked: apply a soft shadow/blur layer directly over the word (no ...揭开 text replacement!)
+        // When masked: apply cute washi tape (贴纸胶带) overlay directly over the word
         if (!isRevealed) {
           return (
             <span
               key={`${keyPrefix}-${pIdx}`}
               onClick={(e) => toggleCloze(clozeId, e)}
-              style={{ filter: 'blur(4px)' }}
-              className="inline-block cursor-pointer select-none transition-all rounded px-0.5 bg-slate-400/40 dark:bg-slate-600/50 text-transparent"
-              title="点击揭开"
+              title="点击撕开胶带"
+              className="inline-flex items-center justify-center relative mx-1 px-1.5 py-0.5 rounded cursor-pointer select-none transition-all duration-150 hover:scale-[1.03] active:scale-[0.97] align-baseline shadow-xs"
+              style={{
+                background:
+                  'repeating-linear-gradient(135deg, rgba(254, 215, 170, 0.95) 0px, rgba(254, 215, 170, 0.95) 6px, rgba(251, 207, 232, 0.95) 6px, rgba(251, 207, 232, 0.95) 12px)',
+                boxShadow:
+                  '0 1px 2px rgba(244, 63, 94, 0.15), inset 0 0 0 1px rgba(244, 114, 182, 0.35)',
+                borderRadius: '3px',
+                verticalAlign: 'baseline',
+              }}
             >
-              {part}
+              <span className="opacity-0 select-none pointer-events-none font-bold inline-block leading-normal">
+                {part}
+              </span>
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] text-rose-400/80 font-bold pointer-events-none select-none tracking-widest">
+                ···
+              </span>
             </span>
           );
         }
 
-        // When revealed / normal: standard high-contrast text (NOT green!)
+        // When revealed / normal: cute rose-pink font (NOT black, NOT green!)
         return (
           <strong
             key={`${keyPrefix}-${pIdx}`}
             onClick={(e) => maskKeywords && toggleCloze(clozeId, e)}
-            className={`font-bold text-slate-900 dark:text-slate-100 ${
+            className={`font-extrabold text-rose-500 dark:text-rose-400 transition-colors ${
               maskKeywords ? 'cursor-pointer hover:opacity-75' : ''
             }`}
             title={maskKeywords ? '点击重新遮挡' : undefined}
@@ -145,27 +157,39 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
               const clozeId = globalClozeIdx++;
               const isRevealed = !maskKeywords || onToggleClozeAll || revealedSet.has(clozeId);
 
-              // When masked: apply soft shadow/blur over the keyword
+              // When masked: apply cute washi tape (贴纸胶带) overlay over the keyword
               if (!isRevealed) {
                 return (
                   <span
                     key={i}
                     onClick={(e) => toggleCloze(clozeId, e)}
-                    style={{ filter: 'blur(4px)' }}
-                    className="inline-block cursor-pointer select-none transition-all rounded px-0.5 bg-slate-400/40 dark:bg-slate-600/50 text-transparent"
-                    title="点击揭开"
+                    title="点击撕开胶带"
+                    className="inline-flex items-center justify-center relative mx-1 px-1.5 py-0.5 rounded cursor-pointer select-none transition-all duration-150 hover:scale-[1.03] active:scale-[0.97] align-baseline shadow-xs"
+                    style={{
+                      background:
+                        'repeating-linear-gradient(135deg, rgba(254, 215, 170, 0.95) 0px, rgba(254, 215, 170, 0.95) 6px, rgba(251, 207, 232, 0.95) 6px, rgba(251, 207, 232, 0.95) 12px)',
+                      boxShadow:
+                        '0 1px 2px rgba(244, 63, 94, 0.15), inset 0 0 0 1px rgba(244, 114, 182, 0.35)',
+                      borderRadius: '3px',
+                      verticalAlign: 'baseline',
+                    }}
                   >
-                    {rawWord}
+                    <span className="opacity-0 select-none pointer-events-none font-bold inline-block leading-normal">
+                      {rawWord}
+                    </span>
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] text-rose-400/80 font-bold pointer-events-none select-none tracking-widest">
+                      ···
+                    </span>
                   </span>
                 );
               }
 
-              // When revealed / normal: standard high-contrast text (NOT green!)
+              // When revealed / normal: cute rose-pink font (NOT black, NOT green!)
               return (
                 <strong
                   key={i}
                   onClick={(e) => maskKeywords && toggleCloze(clozeId, e)}
-                  className={`font-bold text-slate-900 dark:text-slate-100 ${
+                  className={`font-extrabold text-rose-500 dark:text-rose-400 transition-colors ${
                     maskKeywords ? 'cursor-pointer hover:opacity-75' : ''
                   }`}
                   title={maskKeywords ? '点击重新遮挡' : undefined}
@@ -240,7 +264,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         }
 
         // Subheading style: lines like *（一）市场经济的迅速发展* or （二）统一银行券发行的需要
-        // The summary subheadings stay in vibrant emerald green! ZERO background box!
+        // The summary subheadings use cute vibrant purple/violet (NOT green, NOT black!)
         const isSubheading =
           /^[\\*]*[（\(][一二三四五六七八九十0-9]+[）\)][^\\*]*[\\*]*/.test(cleanText) ||
           (/^\*[^*]+\*$/.test(cleanText) && !cleanText.includes('**'));
@@ -249,7 +273,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
           const subTitle = cleanText.replace(/^\*+|\*+$/g, '');
           return (
             <div key={lineIdx} className="mt-4 mb-1 pt-1 first:mt-0 first:pt-0">
-              <h4 className="font-extrabold text-[15.5px] text-emerald-600 dark:text-emerald-400 tracking-wide">
+              <h4 className="font-extrabold text-[15.5px] text-purple-600 dark:text-purple-400 tracking-wide">
                 {subTitle}
               </h4>
             </div>

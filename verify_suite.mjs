@@ -71,18 +71,18 @@ async function runTests() {
     const syncCode = fs.readFileSync(path.join(ROOT_DIR, 'src/services/syncService.ts'), 'utf-8');
     assert(syncCode.includes('textdb.online') && syncCode.includes('SHA-256'), 'SyncService uses textdb.online SHA-256 cloud KV sync');
 
-    // 6. Check MarkdownViewer supports blurred shadow cloze masking (NO ...揭开 text replacement!)
+    // 6. Check MarkdownViewer supports cute washi tape (贴纸胶带) cloze masking (NO ...揭开, NO blurry shadow)
     const mdViewerCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/common/MarkdownViewer.tsx'), 'utf-8');
-    assert(mdViewerCode.includes('maskKeywords') && mdViewerCode.includes("filter: 'blur(4px)'"), 'MarkdownViewer applies soft blurred shadow layer directly over keyword without ...揭开 replacement');
+    assert(mdViewerCode.includes('maskKeywords') && mdViewerCode.includes('repeating-linear-gradient') && mdViewerCode.includes('点击撕开胶带'), 'MarkdownViewer applies cute washi tape (贴纸胶带) overlay directly over keyword');
 
     // 7. Check that "共 N 点" is RETAINED per user explicit demand!
     assert(mdViewerCode.includes('共 {badgeNum} 点'), 'MarkdownViewer RETAINS the "共 N 点" amber badge per user demand');
 
-    // 8. Check that outline subheadings like （一）/（二）use green text color (NO background boxes!)
-    assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('text-emerald-600') && !mdViewerCode.includes('bg-indigo-50'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct green text color without background boxes');
+    // 8. Check that outline subheadings like （一）/（二）use cute purple/violet text color (NOT green, NOT black!)
+    assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('text-purple-600') && !mdViewerCode.includes('text-emerald-600'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct cute purple text color without green or black');
 
-    // 9. Check that body keywords do NOT use green text color (normal high-contrast bold font per user requirement)
-    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-slate-900 dark:text-slate-100'), 'MarkdownViewer renders paragraph body keywords in standard high-contrast font (NOT green)');
+    // 9. Check that keywords use cute rose-pink font (NOT black, NOT green!)
+    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-rose-500 dark:text-rose-400'), 'MarkdownViewer renders keywords in cute rose-pink font (NEITHER black NOR green)');
 
     // 10. Check MockExamCanvas has vertical scrolling and pinned countdown bar
     const mockExamCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/MockExamCanvas.tsx'), 'utf-8');
