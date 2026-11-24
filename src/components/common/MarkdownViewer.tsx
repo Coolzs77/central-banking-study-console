@@ -264,7 +264,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         }
 
         // Subheading style: lines like *（一）市场经济的迅速发展* or （二）统一银行券发行的需要
-        // The summary subheadings use cute vibrant purple/violet (NOT green, NOT black!)
+        // The summary subheadings stay in vibrant emerald green per user requirement!
         const isSubheading =
           /^[\\*]*[（\(][一二三四五六七八九十0-9]+[）\)][^\\*]*[\\*]*/.test(cleanText) ||
           (/^\*[^*]+\*$/.test(cleanText) && !cleanText.includes('**'));
@@ -273,7 +273,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
           const subTitle = cleanText.replace(/^\*+|\*+$/g, '');
           return (
             <div key={lineIdx} className="mt-4 mb-1 pt-1 first:mt-0 first:pt-0">
-              <h4 className="font-extrabold text-[15.5px] text-purple-600 dark:text-purple-400 tracking-wide">
+              <h4 className="font-extrabold text-[15.5px] text-emerald-600 dark:text-emerald-400 tracking-wide">
                 {subTitle}
               </h4>
             </div>

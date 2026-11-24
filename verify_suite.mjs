@@ -78,8 +78,8 @@ async function runTests() {
     // 7. Check that "共 N 点" is RETAINED per user explicit demand!
     assert(mdViewerCode.includes('共 {badgeNum} 点'), 'MarkdownViewer RETAINS the "共 N 点" amber badge per user demand');
 
-    // 8. Check that outline subheadings like （一）/（二）use cute purple/violet text color (NOT green, NOT black!)
-    assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('text-purple-600') && !mdViewerCode.includes('text-emerald-600'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct cute purple text color without green or black');
+    // 8. Check that outline subheadings like （一）/（二）use green text color (NO background boxes!)
+    assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('text-emerald-600') && !mdViewerCode.includes('bg-indigo-50'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct green text color without background boxes');
 
     // 9. Check that keywords use cute rose-pink font (NOT black, NOT green!)
     assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-rose-500 dark:text-rose-400'), 'MarkdownViewer renders keywords in cute rose-pink font (NEITHER black NOR green)');
