@@ -716,3 +716,110 @@ stateDiagram-v2
      (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
      ```
      返回 `200 OK`，实机验证通过，闪烁 Bug 彻底排除。
+
+
+---
+
+## 第 6 轮 [2026-11-24 17:46]：题型专项客观题可用性修复、彻底删除杜撰分值划分与期末模考全真滚动修复
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **用户反馈问题清单**：
+  1. **题型专项客观题完全不可用**：“题型专项里面的单选和判断都不正常，点了都没法用”；
+  2. **删除杜撰的分值划分与采分要点**：“删除标准答案与采分要点这种东西，我根本不需要根据分值来划分题目，这都是你杜撰胡编的”；
+  3. **左侧章节导航 1:1 复刻金融风险管理**：“左侧的章节导航也和金融风险管理复刻”；
+  4. **期末模考界面无法滑动**：“期末模考的界面都没法滑动，很多bug”；
+  5. **右侧栏界面优化降噪**：“右侧栏的界面太垃圾”，需根据专项模式自适应，去除所有分值划分按钮。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+
+- [`src/components/PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)：
+  - **单选题数据映射修复**：将错误的 `options.map`（原代码将包含 A/B/C/D 键的对象当成数组映射）重构为 `(['A', 'B', 'C', 'D'] as const).map`；将答案比对键由不存在的 `correctIndex` 修正为强类型 `correctKey`；将解析字段由 `explanation` 修正为权威数据源的 `rationale`；
+  - **判断改错题数据映射修复**：将题干字段由不存在的 `stem` 修正为 `statement`；将改错解析字段由不存在的 `correction/explanation` 修正为 `errorCorrection`；
+  - **填空专项与名词抽背全链路支持**：增加 `J`/`K` 键盘切题，置顶快捷步进导航条，全面支持即时点击验证与显隐解析。
+- [`src/components/MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx)：
+  - **界面滚动修复**：外层容器增加 `w-full h-full overflow-y-auto`，解除受根容器 `overflow-hidden` 约束导致的页面无法向下滚动的死锁，试卷全流程 100 分题型均可顺畅滑动到底部并提交；
+  - **彻底清除杜撰采分公式**：移除“规范3分答题法：定义1.5分+性质1分+职能0.5分”、“标准要点采分评分标准”与“四大维度采分量表”等人工杜撰的公式化词汇，回归客观严谨的“权威参考答案”与“参考要点对照”。
+- [`src/components/LeftSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/LeftSidebar.tsx)：
+  - **1:1 复刻《金融风险管理》(FRM) 章节大纲与微型进度条**：
+    - 模式按钮采用 FRM 标志性的 `bg-gradient-to-r from-blue-600 to-indigo-600 text-white clay-button-shadow` 活跃拟态渐变；
+    - 11 章导航列表全面对齐 FRM：顶部章节专属图标 + 章节标题，右侧呈现 `{已做/已背}/{总数}` 数量徽标；
+    - 每个章节卡片底部配备平滑微型进度条（`h-1.5 rounded-full bg-slate-200/80`，完成进度达 100% 自动点亮为翠绿 `bg-emerald-500`）。
+- [`src/components/RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)：
+  - 彻底删除“标准答案与采分要点”表头字样，重构为朴实自然的“背诵与参考解答”；
+  - 移除考点分值划分标签。
+- [`src/components/RightSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx) & [`src/App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)：
+  - 彻底移除 `pointFilter` 状态机与“考点分值：全/2点/3点/4点/5点”过滤机制；
+  - 右侧栏针对题型专项自适应渲染：在单选模式下渲染 40 题题号矩阵，在判断模式下渲染 30 题题号矩阵，在填空模式下渲染 40 题题号矩阵；
+  - 核心名词 Tab 剔除所有采分点话术，专注于纯净概念释义。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+
+#### 问题 1：题型专项中单选与判断题点击无反应、报错不可用
+- **根本原因 (RCA)**：
+  - 数据模型中 `SingleChoiceQuestion.options` 是形如 `{"A": "...", "B": "...", "C": "...", "D": "..."}` 的对象，而之前组件写成了 `singleChoices[choiceIdx].options.map(...)`，直接在对象上调用数组方法引发 JavaScript 运行时类型异常；
+  - 答案判定键在数据中为 `correctKey` ('A'|'B'|'C'|'D')，而原组件判断条件误用了 `correctIndex === idx`，导致任何选项点击后都无法正确匹配对错；
+  - 判断题的数据字段为 `statement` 与 `errorCorrection`，原组件读取了 `stem`，导致题干内容为 `undefined`。
+- **攻坚解法**：严格根据 `types.ts` 定义的强类型接口，改用 `(['A', 'B', 'C', 'D'] as const).map(key => ...)` 遍历选项，正确比对 `key === currentChoice.correctKey`，并绑定真实存在的 `rationale` 与 `errorCorrection` 字段。
+
+#### 问题 2：期末模考无法向下滚动查看试卷
+- **根本原因 (RCA)**：根组件 `App.tsx` 中的 `<main>` 设置了固定视口高度 `h-[calc(100vh-4rem)] overflow-hidden`，而 `MockExamCanvas` 顶层仅声明了 `max-w-5xl mx-auto px-4 py-6`，缺失 `h-full overflow-y-auto`，导致超出屏幕的整张试卷被外层隐式截断。
+- **攻坚解法**：在 `MockExamCanvas` 最外层包裹 `w-full h-full overflow-y-auto`，形成独立的滚动沙盒，确保试卷能够顺畅滚动至最后一题并交卷。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：题型专项客观题运行时数据管道校准
+```mermaid
+flowchart LR
+    DataBank["权威试题库 (examData.ts)"] --> SingleQ["单选题目数据 (options: {A,B,C,D}, correctKey, rationale)"]
+    DataBank --> TFQ["判断题目数据 (statement, isCorrect, errorCorrection)"]
+    
+    SingleQ --> RenderKeys["(['A','B','C','D'] as const).map()"]
+    RenderKeys --> CompareKey{"选定 key === correctKey ?"}
+    CompareKey -- "正确" --> EmeraldHighlight["翡翠绿高亮 (bg-emerald-50)"]
+    CompareKey -- "错误" --> RoseHighlight["玫瑰红高亮 (bg-rose-50)"]
+    CompareKey --> ShowRationale["展示 rationale 权威解析"]
+
+    TFQ --> RenderTF["正确 (√) / 错误 (×) 交互按键"]
+    RenderTF --> CompareTF{"选定 bool === isCorrect ?"}
+    CompareTF --> ShowCorrection["展示 errorCorrection 改错说明"]
+```
+> **图 1 机制解析**：修正了因字段名称错配引发的运行时阻断，建立从数据源强类型到用户交互事件的闭环链路。
+
+#### 图 2：FRM 风格章节导航组件渲染机制
+```mermaid
+flowchart TD
+    ChaptersList["11 章元数据 (ChapterMeta)"] --> ChButton["章节独立 Clay 卡片 (p-3 rounded-2xl)"]
+    ChButton --> TopRow["顶行：章节 Emoji + 标题 + 完成度徽标 (X/Y)"]
+    ChButton --> ProgressTrack["底行：w-full h-1.5 rounded-full 进度条底轨"]
+    ProgressTrack --> CalcPct["计算 pct = Math.round(done / total * 100)"]
+    CalcPct --> ActiveBar["进度指示器 (pct===100 ? 翠绿 : 湛蓝)"]
+    ChButton --> ClickAction["点击切换 selectedChapterId 并同步双侧矩阵"]
+```
+> **图 2 机制解析**：还原了《金融风险管理》经典的章节概览视觉卡片，使考生对各章复习进度一目了然。
+
+---
+
+### 5. 验证结果与可复现方法 (Verification & Reproduction)
+1. **自动化测试套件执行**：
+   ```bash
+   cd e:\workspace\central-banking-study-console
+   npm test
+   ```
+   - **验证结果**：49 项断言 100% 全部通过（新增客观题字段映射、模考滚动容器、剔除分值划分断言）。
+2. **生产构建与发布**：
+   ```bash
+   npm run build
+   npm run deploy
+   ```
+   - **部署状态**：成功将提交 `d250c62` 推送到 `origin/gh-pages` 分支。
+3. **公网可用性核验**：
+   ```powershell
+   (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
+   ```
+   返回 `200 OK`，实机核验通过。
