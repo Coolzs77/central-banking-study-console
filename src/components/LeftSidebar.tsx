@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   Bookmark,
 } from 'lucide-react';
-import { ChapterMeta, MasteryStatus } from '../data/types';
+import { ChapterMeta } from '../data/types';
 
 export type AppMode = 'recitation' | 'homework' | 'practice' | 'mock-exam';
 
@@ -19,7 +19,7 @@ interface LeftSidebarProps {
   chapters: ChapterMeta[];
   selectedChapterId: number | null;
   onSelectChapter: (chapterId: number | null) => void;
-  masteryMap: Record<number, MasteryStatus>;
+  memorizedList: number[];
   recitationQuestions: { id: number; chapterId: number }[];
   homeworkCompleted: number[];
   homeworkQuestions: { id: number; chapterId: number }[];
@@ -33,7 +33,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   chapters,
   selectedChapterId,
   onSelectChapter,
-  masteryMap,
+  memorizedList,
   recitationQuestions,
   homeworkCompleted,
   homeworkQuestions,
@@ -68,7 +68,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     {
       id: 'practice' as AppMode,
       name: '题型专项',
-      count: '名词闪卡 & 刷题',
+      count: '30词闪卡&刷题',
       icon: Layers,
       color: 'text-indigo-500',
     },
@@ -85,7 +85,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const getChapterRecitationStats = (chId: number) => {
     const qList = recitationQuestions.filter((q) => q.chapterId === chId);
     const total = qList.length;
-    const mastered = qList.filter((q) => masteryMap[q.id] === 'mastered').length;
+    const mastered = qList.filter((q) => memorizedList.includes(q.id)).length;
     return { mastered, total };
   };
 
@@ -115,7 +115,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 onSelectMode(mode.id);
                 if (onCloseMobile) onCloseMobile();
               }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all clay-squash ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all clay-squash cursor-pointer ${
                 isActive
                   ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white clay-brick-shadow font-semibold border border-sky-400/30'
                   : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200'
@@ -141,7 +141,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           </span>
           <button
             onClick={() => onSelectChapter(null)}
-            className={`text-xs px-2 py-0.5 rounded-lg transition-colors ${
+            className={`text-xs px-2 py-0.5 rounded-lg transition-colors cursor-pointer ${
               selectedChapterId === null
                 ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 font-medium'
                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
@@ -179,7 +179,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   <div className="flex items-center gap-2 truncate">
                     <button
                       onClick={(e) => toggleExpand(ch.id, e)}
-                      className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                     >
                       {isExpanded ? (
                         <ChevronDown className="w-3.5 h-3.5" />
@@ -203,16 +203,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   </div>
                 </div>
 
-                {/* Sub-sections tree if expanded */}
+                {/* Subsections if expanded */}
                 {isExpanded && ch.sections && ch.sections.length > 0 && (
-                  <div className="ml-6 pl-2 border-l border-slate-200 dark:border-slate-800 space-y-0.5 my-1">
+                  <div className="ml-5 pl-2 border-l border-slate-200 dark:border-slate-800 my-1 space-y-1">
                     {ch.sections.map((sec) => (
                       <div
                         key={sec.id}
-                        className="px-2 py-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between hover:text-slate-900 dark:hover:text-slate-200"
+                        className="text-[11px] text-slate-500 dark:text-slate-400 py-1 px-1.5 rounded flex items-center justify-between"
                       >
                         <span className="truncate">{sec.title}</span>
-                        <span className="text-[9px] font-mono opacity-70">
+                        <span className="text-[10px] opacity-70 ml-1">
                           {sec.points}分
                         </span>
                       </div>

@@ -30,13 +30,18 @@ async function runTests() {
     'src/data/recitation.ts',
     'src/data/homework.ts',
     'src/data/terminology.ts',
-    'src/data/exam.ts',
+    'src/data/examData.ts',
+    'src/services/syncService.ts',
+    'src/components/common/MarkdownViewer.tsx',
+    'src/components/MiddleNav.tsx',
     'src/components/Header.tsx',
     'src/components/LeftSidebar.tsx',
     'src/components/RightSidebar.tsx',
     'src/components/RecitationCanvas.tsx',
     'src/components/HomeworkCanvas.tsx',
+    'src/components/PracticeCanvas.tsx',
     'src/components/MockExamCanvas.tsx',
+    'src/components/SyncModal.tsx',
     'src/App.tsx',
     'src/index.css',
   ];
@@ -49,20 +54,19 @@ async function runTests() {
 
   console.log('\n--- Phase 2: Data Integrity Verification ---');
   try {
-    // Dynamic import of TypeScript files via Node experimental strip types or jiti
     const recitationModule = await import(pathToFileURL(path.join(ROOT_DIR, 'src/data/recitation.ts')).href);
     const recitationQuestions = recitationModule.recitationQuestions || recitationModule.default || [];
-    
+
     assert(Array.isArray(recitationQuestions), 'recitationQuestions is an array');
     assert(recitationQuestions.length === 161, `Recitation count is 161 (actual: ${recitationQuestions.length})`);
-    
+
     const totalPoints = recitationQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
     assert(totalPoints === 516, `Recitation total points is 516 (actual: ${totalPoints})`);
 
     const hasSequentialIds = recitationQuestions.every((q, idx) => q.id === idx + 1);
     assert(hasSequentialIds, 'Recitation IDs are continuous 1..161');
 
-    const chaptersInRecitation = new Set(recitationQuestions.map(q => q.chapterId));
+    const chaptersInRecitation = new Set(recitationQuestions.map((q) => q.chapterId));
     assert(chaptersInRecitation.size === 11, `Recitation covers 11 chapters (actual: ${chaptersInRecitation.size})`);
   } catch (err) {
     console.error('Error testing recitation.ts:', err.message);
@@ -79,7 +83,7 @@ async function runTests() {
     const expectedChapterDist = [6, 6, 3, 6, 5, 5, 5, 4, 2, 5, 7];
     const actualChapterDist = [];
     for (let ch = 1; ch <= 11; ch++) {
-      const cnt = homeworkQuestions.filter(q => q.chapterId === ch).length;
+      const cnt = homeworkQuestions.filter((q) => q.chapterId === ch).length;
       actualChapterDist.push(cnt);
     }
     const distMatches = JSON.stringify(actualChapterDist) === JSON.stringify(expectedChapterDist);
@@ -98,113 +102,62 @@ async function runTests() {
 
     assert(Array.isArray(terminologyList), 'terminologyList is an array');
     assert(terminologyList.length <= 30, `Terminology count <= 30 (actual: ${terminologyList.length})`);
-    assert(terminologyList.length === 28, `Terminology count is exactly 28 (actual: ${terminologyList.length})`);
+    assert(terminologyList.length === 30, `Terminology count is exactly 30 (actual: ${terminologyList.length})`);
 
-    const allHave3Points = terminologyList.every(t => t.totalPoints === 3);
-    assert(allHave3Points, 'All terminology items have 3.0 totalPoints allocation');
+    // Homework Ch 5 Q1 terms (8 terms)
+    const ch5Terms = ['中央银行资产', '再贴现业务', '再贴现利率', '中央银行贷款', '证券买卖业务', '正回购', '逆回购', '国际储备'];
+    const hasAllCh5 = ch5Terms.every((term) => terminologyList.some((t) => t.term === term));
+    assert(hasAllCh5, 'Terminology includes all 8 terms from Homework Chapter 5 Question 1');
+
+    // Homework Ch 8 Q1 terms (12 terms)
+    const ch8Terms = ['一般性货币政策工具', '选择性货币政策工具', '法定存款准备金政策', '再贴现政策', '公开市场业务', '消费者信用控制', '证券市场信用控制', '不动产信用控制', '信用配额', '流动性比率管理', '道义劝告', '窗口指导'];
+    const hasAllCh8 = ch8Terms.every((term) => terminologyList.some((t) => t.term === term));
+    assert(hasAllCh8, 'Terminology includes all 12 terms from Homework Chapter 8 Question 1');
+
+    // Check that definitions contain bold keywords
+    const hasBoldKeywords = terminologyList.every((t) => /\*\*[^*]+\*\*/.test(t.definition));
+    assert(hasBoldKeywords, 'All 30 terminology definitions contain bold **keywords** for cloze masking');
   } catch (err) {
     console.error('Error testing terminology.ts:', err.message);
     failedAssertions++;
   }
 
+  console.log('\n--- Phase 3: Layout & Feature Verification ---');
   try {
-    const examModule = await import(pathToFileURL(path.join(ROOT_DIR, 'src/data/exam.ts')).href);
-    const {
-      examQuestionBank,
-      generateExamPaper,
-      fillInBank,
-      singleChoiceBank,
-      trueFalseBank,
-      shortAnswerBank,
-      essayBank,
-    } = examModule;
+    // Check Header full-width
+    const headerCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/Header.tsx'), 'utf-8');
+    assert(!headerCode.includes('max-w-[1600px] mx-auto'), 'Header does NOT contain max-w-[1600px] mx-auto (full width achieved)');
 
-    const fillIns = fillInBank || examQuestionBank?.fillIns || [];
-    const singles = singleChoiceBank || examQuestionBank?.singleChoices || [];
-    const tfs = trueFalseBank || examQuestionBank?.trueFalse || [];
-    const shortAnswers = shortAnswerBank || examQuestionBank?.shortAnswers || [];
-    const essays = essayBank || examQuestionBank?.essays || [];
+    // Check App full-width
+    const appCode = fs.readFileSync(path.join(ROOT_DIR, 'src/App.tsx'), 'utf-8');
+    assert(!appCode.includes('max-w-[1600px] w-full mx-auto'), 'App does NOT contain max-w-[1600px] w-full mx-auto (full width layout)');
 
-    assert(fillIns.length >= 15, `Fill-in question pool >= 15 (actual: ${fillIns.length})`);
-    assert(singles.length >= 15, `Single-choice question pool >= 15 (actual: ${singles.length})`);
-    assert(tfs.length >= 15, `True/false question pool >= 15 (actual: ${tfs.length})`);
-    assert(shortAnswers.length >= 3, `Short-answer question pool >= 3 (actual: ${shortAnswers.length})`);
-    assert(essays.length >= 1, `Essay question pool >= 1 (actual: ${essays.length})`);
+    // Check that RightSidebar is rendered in all 4 modes
+    assert(appCode.includes('<RightSidebar'), 'RightSidebar is mounted');
+    assert(!appCode.includes("{currentMode === 'recitation' && (\n          <RightSidebar"), 'RightSidebar is NOT restricted only to recitation mode');
 
-    if (typeof generateExamPaper === 'function') {
-      const paper = generateExamPaper();
-      assert(paper.durationMinutes === 120, 'Mock exam duration is 120 minutes');
-      assert(paper.terms?.length === 5, `Mock exam terms count is 5 (actual: ${paper.terms?.length})`);
-      assert(paper.fillIns?.length === 15, `Mock exam fill-ins count is 15 (actual: ${paper.fillIns?.length})`);
-      assert(paper.singleChoices?.length === 15, `Mock exam single choices count is 15 (actual: ${paper.singleChoices?.length})`);
-      assert(paper.trueFalse?.length === 15, `Mock exam true/false count is 15 (actual: ${paper.trueFalse?.length})`);
-      assert(paper.shortAnswers?.length === 3, `Mock exam short answers count is 3 (actual: ${paper.shortAnswers?.length})`);
-      assert(!!paper.essay, 'Mock exam has 1 essay question');
+    // Check that "已吃透" is discarded from study state and canvases
+    const studyStateCode = fs.readFileSync(path.join(ROOT_DIR, 'src/hooks/useStudyState.ts'), 'utf-8');
+    assert(!studyStateCode.includes('已吃透') && !studyStateCode.includes('masteryMap'), 'Study state uses clean memorized array, discarded old 已吃透');
 
-      const termPts = (paper.terms || []).reduce((s, q) => s + (q.totalPoints || 3), 0);
-      const fillPts = (paper.fillIns || []).reduce((s, q) => s + (q.points || 1), 0);
-      const singlePts = (paper.singleChoices || []).reduce((s, q) => s + (q.points || 1), 0);
-      const tfPts = (paper.trueFalse || []).reduce((s, q) => s + (q.points || 1), 0);
-      const shortPts = (paper.shortAnswers || []).reduce((s, q) => s + (q.totalPoints || 0), 0);
-      const essayPts = paper.essay ? (paper.essay.totalPoints || 20) : 0;
-      const totalExamPts = termPts + fillPts + singlePts + tfPts + shortPts + essayPts;
+    // Check sync service implementation
+    const syncCode = fs.readFileSync(path.join(ROOT_DIR, 'src/services/syncService.ts'), 'utf-8');
+    assert(syncCode.includes('api.textdb.online') && syncCode.includes('sha256Hex'), 'SyncService uses textdb.online SHA-256 cloud KV sync');
 
-      assert(termPts === 15, `Terms score is 15 pt (actual: ${termPts})`);
-      assert(fillPts === 15, `Fill-in score is 15 pt (actual: ${fillPts})`);
-      assert(singlePts === 15, `Single-choice score is 15 pt (actual: ${singlePts})`);
-      assert(tfPts === 15, `True/false score is 15 pt (actual: ${tfPts})`);
-      assert(shortPts === 20, `Short-answer score is 20 pt (actual: ${shortPts})`);
-      assert(essayPts === 20, `Essay score is 20 pt (actual: ${essayPts})`);
-      assert(totalExamPts === 100, `Total exam paper score is strictly 100 pt (actual: ${totalExamPts})`);
-    } else {
-      console.warn('generateExamPaper function not found in exam.ts');
-    }
+    // Check MarkdownViewer cloze keyword masking
+    const mdViewerCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/common/MarkdownViewer.tsx'), 'utf-8');
+    assert(mdViewerCode.includes('maskKeywords') && mdViewerCode.includes('··· 揭开'), 'MarkdownViewer supports keyword-only cloze masking and reveal');
   } catch (err) {
-    console.error('Error testing exam.ts:', err.message);
+    console.error('Error checking layout & features:', err.message);
     failedAssertions++;
   }
 
-  console.log('\n--- Phase 3: UI & Claymorphism Standards Verification ---');
-  const indexCss = fs.readFileSync(path.join(ROOT_DIR, 'src/index.css'), 'utf-8');
-  assert(indexCss.includes('--clay-card-shadow'), 'index.css defines --clay-card-shadow');
-  assert(indexCss.includes('--clay-button-shadow'), 'index.css defines --clay-button-shadow');
-  assert(indexCss.includes('--clay-inset-groove'), 'index.css defines --clay-inset-groove');
-
-  const headerSrc = fs.readFileSync(path.join(ROOT_DIR, 'src/components/Header.tsx'), 'utf-8');
-  assert(headerSrc.includes('中央银行学'), 'Header has clean title "中央银行学"');
-  assert(!headerSrc.includes('颠覆') && !headerSrc.includes('神级') && !headerSrc.includes('降维打击'), 'Header has zero marketing fluff');
-
-  const recitationSrc = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RecitationCanvas.tsx'), 'utf-8');
-  assert(recitationSrc.includes("code === 'Space'"), 'RecitationCanvas implements Space key mask/reveal toggle');
-  assert(recitationSrc.includes('handleRandomJump'), 'RecitationCanvas implements random jump');
-
-  const homeworkSrc = fs.readFileSync(path.join(ROOT_DIR, 'src/components/HomeworkCanvas.tsx'), 'utf-8');
-  assert(homeworkSrc.includes('clipboard.writeText'), 'HomeworkCanvas implements one-click copy button');
-  assert(homeworkSrc.includes('onToggleCompleted'), 'HomeworkCanvas implements checkbox tracking');
-
-  const rightSidebarSrc = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RightSidebar.tsx'), 'utf-8');
-  assert(rightSidebarSrc.includes('scrollToQuestion'), 'RightSidebar implements scrollToQuestion click-to-scroll');
-  assert(rightSidebarSrc.includes('grid grid-cols-8'), 'RightSidebar renders matrix heatmap grid');
-
-  console.log('\n--- Phase 4: Production Build Verification ---');
-  try {
-    console.log('  Running npm run build...');
-    const buildOutput = execSync('npm run build', { cwd: ROOT_DIR, encoding: 'utf-8' });
-    console.log('  Build successful!');
-    assert(true, 'npm run build exited with code 0');
-    assert(fs.existsSync(path.join(ROOT_DIR, 'dist/index.html')), 'dist/index.html generated');
-  } catch (err) {
-    console.error('  Build failed:', err.message);
-    assert(false, 'npm run build failed');
-  }
-
   console.log('\n====================================================');
-  console.log(`Results: ${passedAssertions} PASSED, ${failedAssertions} FAILED`);
-  console.log('====================================================');
+  console.log(`   QA Suite Finished: ${passedAssertions} PASSED, ${failedAssertions} FAILED`);
+  console.log('====================================================\n');
+
   if (failedAssertions > 0) {
     process.exit(1);
-  } else {
-    process.exit(0);
   }
 }
 

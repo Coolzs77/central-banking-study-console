@@ -8,51 +8,69 @@ import { MockExamCanvas } from './components/MockExamCanvas';
 import { PracticeCanvas } from './components/PracticeCanvas';
 import { SyncModal } from './components/SyncModal';
 import { useStudyState } from './hooks/useStudyState';
+import { syncService } from './services/syncService';
 
 // Authoritative datasets
 import { chaptersMeta } from './data/chapters';
 import { recitationQuestions } from './data/recitation';
 import { homeworkQuestions } from './data/homework';
-
-// Exam question bank (imported with fallback)
-import * as examModule from './data/exam';
-import * as termModule from './data/terminology';
+import { terminologyList } from './data/terminology';
+import {
+  fillInQuestions,
+  singleChoiceQuestions,
+  trueFalseQuestions,
+  shortAnswerQuestions,
+  essayQuestions,
+} from './data/examData';
 
 export function App() {
   const {
     state,
-    setMastery,
-    toggleStar,
-    toggleHomework,
-    toggleTermMastery,
-    saveExamRecord,
-    resetAllState,
-    exportBase64State,
-    importBase64State,
+    toggleMemorized,
+    toggleStarred,
+    toggleHomeworkCompleted,
+    toggleTermMemorized,
+    addExamRecord,
+    importState,
   } = useStudyState();
 
   // Navigation & filters state
   const [currentMode, setCurrentMode] = useState<AppMode>('recitation');
   const [selectedChapterId, setSelectedChapterId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'mastered' | 'reviewing' | 'unlearned' | 'starred'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'memorized' | 'unmemorized' | 'starred'>('all');
   const [pointFilter, setPointFilter] = useState<number | null>(null);
+
+  // Selected question/term IDs across canvases & right sidebar
+  const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(1);
+  const [selectedHomeworkId, setSelectedHomeworkId] = useState<number | null>(1);
+  const [selectedTermId, setSelectedTermId] = useState<number | null>(1);
 
   // Modals & UI state
   const [syncModalOpen, setSyncModalOpen] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
-  // Safe fallback for exam banks
-  const termsBank = (termModule as any).terminologyList || (examModule as any).termsBank || [];
-  const fillInsBank = (examModule as any).fillInBank || (examModule as any).examQuestionBank?.fillIns || [];
-  const singleChoicesBank = (examModule as any).singleChoiceBank || (examModule as any).examQuestionBank?.singleChoices || [];
-  const trueFalseBank = (examModule as any).trueFalseBank || (examModule as any).examQuestionBank?.trueFalse || [];
-  const shortAnswersBank = (examModule as any).shortAnswerBank || (examModule as any).examQuestionBank?.shortAnswers || [];
-  const essaysBank = (examModule as any).essayBank || (examModule as any).examQuestionBank?.essays || [];
+  // Check URL query parameters for QR code sync handoff (?account=xxx&sync=pull)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const acc = params.get('account');
+    const shouldSync = params.get('sync') === 'pull';
+    if (acc) {
+      syncService.setAccount(acc);
+      if (shouldSync) {
+        syncService.pullFromCloud().then((res) => {
+          if (res.ok && res.found && res.state) {
+            importState(res.state as any);
+          }
+        });
+      }
+    }
+  }, [importState]);
 
   return (
     <div className="min-h-screen bg-[#eef2f7] dark:bg-[#0b0f17] text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
-      {/* 1. Header (Zero fluff, clean title "中央银行学") */}
+      {/* 1. Header (Clean edge-to-edge, zero fluff) */}
       <Header
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -61,8 +79,8 @@ export function App() {
         activeMode={currentMode}
       />
 
-      {/* 2. Main Tri-Column Layout */}
-      <div className="flex-1 max-w-[1600px] w-full mx-auto flex items-start">
+      {/* 2. Main Full-Width Tri-Column Layout */}
+      <div className="flex-1 w-full flex items-start overflow-hidden">
         {/* Left Sidebar (Desktop + Mobile Drawer) */}
         <LeftSidebar
           currentMode={currentMode}
@@ -70,7 +88,7 @@ export function App() {
           chapters={chaptersMeta || []}
           selectedChapterId={selectedChapterId}
           onSelectChapter={setSelectedChapterId}
-          masteryMap={state.mastery}
+          memorizedList={state.memorized}
           recitationQuestions={recitationQuestions || []}
           homeworkCompleted={state.homeworkCompleted}
           homeworkQuestions={homeworkQuestions || []}
@@ -86,19 +104,21 @@ export function App() {
           />
         )}
 
-        {/* Middle Canvas */}
-        <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)]">
+        {/* Middle Canvas (Edge-to-edge flexible layout) */}
+        <main className="flex-1 min-w-0 h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
           {currentMode === 'recitation' && (
             <RecitationCanvas
               questions={recitationQuestions || []}
-              masteryMap={state.mastery}
+              memorizedList={state.memorized}
               starredList={state.starred}
-              onSetMastery={setMastery}
-              onToggleStar={toggleStar}
+              onToggleMemorized={toggleMemorized}
+              onToggleStar={toggleStarred}
               searchQuery={searchQuery}
               selectedChapterId={selectedChapterId}
               activeFilter={activeFilter}
               pointFilter={pointFilter}
+              selectedQuestionId={selectedQuestionId}
+              onSelectQuestion={setSelectedQuestionId}
             />
           )}
 
@@ -106,58 +126,72 @@ export function App() {
             <HomeworkCanvas
               questions={homeworkQuestions || []}
               completedList={state.homeworkCompleted}
-              onToggleCompleted={toggleHomework}
+              onToggleCompleted={toggleHomeworkCompleted}
               selectedChapterId={selectedChapterId}
               onSelectChapter={setSelectedChapterId}
+              selectedQuestionId={selectedHomeworkId}
+              onSelectQuestion={setSelectedHomeworkId}
             />
           )}
 
           {currentMode === 'practice' && (
             <PracticeCanvas
-              terms={termsBank}
-              singleChoices={singleChoicesBank}
-              trueFalse={trueFalseBank}
-              fillIns={fillInsBank}
-              termMastery={state.termMastery}
-              onToggleTermMastery={toggleTermMastery}
+              terms={terminologyList}
+              singleChoices={singleChoiceQuestions}
+              trueFalse={trueFalseQuestions}
+              fillIns={fillInQuestions}
+              termMemorized={state.termMemorized}
+              onToggleTermMemorized={toggleTermMemorized}
+              selectedTermId={selectedTermId}
+              onSelectTerm={setSelectedTermId}
             />
           )}
 
           {currentMode === 'mock-exam' && (
             <MockExamCanvas
-              termsBank={termsBank}
-              fillInsBank={fillInsBank}
-              singleChoicesBank={singleChoicesBank}
-              trueFalseBank={trueFalseBank}
-              shortAnswersBank={shortAnswersBank}
-              essaysBank={essaysBank}
-              onFinishExam={saveExamRecord}
+              termsBank={terminologyList}
+              fillInsBank={fillInQuestions}
+              singleChoicesBank={singleChoiceQuestions}
+              trueFalseBank={trueFalseQuestions}
+              shortAnswersBank={shortAnswerQuestions}
+              essaysBank={essayQuestions}
+              onFinishExam={addExamRecord}
             />
           )}
         </main>
 
-        {/* Right Sidebar: 161 Questions Heatmap Matrix (Active in recitation mode on desktop) */}
-        {currentMode === 'recitation' && (
-          <RightSidebar
-            questions={recitationQuestions || []}
-            masteryMap={state.mastery}
-            starredList={state.starred}
-            activeFilter={activeFilter}
-            onSelectFilter={setActiveFilter}
-            pointFilter={pointFilter}
-            onSelectPointFilter={setPointFilter}
-            className="hidden xl:flex"
-          />
-        )}
+        {/* Right Sidebar (Tri-column present across ALL 4 modes) */}
+        <RightSidebar
+          currentMode={currentMode === 'mock-exam' ? 'exam' : currentMode}
+          recitationQuestions={recitationQuestions || []}
+          memorizedList={state.memorized}
+          starredList={state.starred}
+          selectedQuestionId={selectedQuestionId}
+          onSelectRecitationQuestion={setSelectedQuestionId}
+          activeFilter={activeFilter}
+          onSelectFilter={setActiveFilter}
+          pointFilter={pointFilter}
+          onSelectPointFilter={setPointFilter}
+          homeworkQuestions={homeworkQuestions || []}
+          homeworkCompletedList={state.homeworkCompleted}
+          selectedHomeworkId={selectedHomeworkId}
+          onSelectHomeworkQuestion={setSelectedHomeworkId}
+          selectedHomeworkChapter={selectedChapterId}
+          onSelectHomeworkChapter={setSelectedChapterId}
+          terminologyList={terminologyList}
+          termMemorizedList={state.termMemorized}
+          selectedTermId={selectedTermId}
+          onSelectTerm={setSelectedTermId}
+          className="hidden lg:flex"
+        />
       </div>
 
-      {/* 3. Multi-device Sync Modal */}
+      {/* 3. Multi-device Short Account Sync Modal */}
       <SyncModal
         isOpen={syncModalOpen}
         onClose={() => setSyncModalOpen(false)}
-        exportBase64={exportBase64State}
-        importBase64={importBase64State}
-        onResetAll={resetAllState}
+        state={state}
+        onImportState={importState}
       />
     </div>
   );

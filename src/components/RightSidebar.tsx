@@ -1,241 +1,385 @@
 import React, { useState } from 'react';
 import {
   CheckCircle2,
-  Zap,
   Star,
   CircleDashed,
   Target,
   Filter,
+  Layers,
+  BookOpen,
+  Award,
+  Check,
+  Circle,
+  Clock,
 } from 'lucide-react';
-import { MasteryStatus, RecitationQuestion } from '../data/types';
+import {
+  RecitationQuestion,
+  HomeworkQuestion,
+  TerminologyQuestion,
+} from '../data/types';
 
 interface RightSidebarProps {
-  questions: RecitationQuestion[];
-  masteryMap: Record<number, MasteryStatus>;
+  currentMode: 'recitation' | 'homework' | 'practice' | 'exam';
+  // Recitation
+  recitationQuestions: RecitationQuestion[];
+  memorizedList: number[];
   starredList: number[];
-  onSelectFilter: (filter: 'all' | 'mastered' | 'reviewing' | 'unlearned' | 'starred') => void;
-  activeFilter: 'all' | 'mastered' | 'reviewing' | 'unlearned' | 'starred';
-  pointFilter: number | null; // e.g. 3, 4 (>=4), etc.
+  selectedQuestionId: number | null;
+  onSelectRecitationQuestion: (id: number) => void;
+  activeFilter: 'all' | 'memorized' | 'unmemorized' | 'starred';
+  onSelectFilter: (filter: 'all' | 'memorized' | 'unmemorized' | 'starred') => void;
+  pointFilter: number | null;
   onSelectPointFilter: (pts: number | null) => void;
+  // Homework
+  homeworkQuestions: HomeworkQuestion[];
+  homeworkCompletedList: number[];
+  selectedHomeworkId: number | null;
+  onSelectHomeworkQuestion: (id: number) => void;
+  selectedHomeworkChapter: number | null;
+  onSelectHomeworkChapter: (ch: number | null) => void;
+  // Practice
+  terminologyList: TerminologyQuestion[];
+  termMemorizedList: number[];
+  selectedTermId: number | null;
+  onSelectTerm: (id: number) => void;
+  // Exam
+  examAnsweredCount?: number;
+  totalExamQuestions?: number;
+  onJumpExamQuestion?: (idx: number) => void;
   className?: string;
 }
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({
-  questions,
-  masteryMap,
+  currentMode,
+  recitationQuestions,
+  memorizedList,
   starredList,
-  onSelectFilter,
+  selectedQuestionId,
+  onSelectRecitationQuestion,
   activeFilter,
+  onSelectFilter,
   pointFilter,
   onSelectPointFilter,
+  homeworkQuestions,
+  homeworkCompletedList,
+  selectedHomeworkId,
+  onSelectHomeworkQuestion,
+  selectedHomeworkChapter,
+  onSelectHomeworkChapter,
+  terminologyList,
+  termMemorizedList,
+  selectedTermId,
+  onSelectTerm,
+  examAnsweredCount = 0,
+  totalExamQuestions = 40,
+  onJumpExamQuestion,
   className = '',
 }) => {
-  const totalQuestions = questions.length;
-  const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
-
-  const masteredCount = questions.filter((q) => masteryMap[q.id] === 'mastered').length;
-  const reviewingCount = questions.filter((q) => masteryMap[q.id] === 'reviewing').length;
-  const unlearnedCount = totalQuestions - masteredCount - reviewingCount;
-  const starredCount = starredList.length;
-
-  const masteredPoints = questions
-    .filter((q) => masteryMap[q.id] === 'mastered')
-    .reduce((sum, q) => sum + q.points, 0);
-
-  const percentMastered = totalQuestions > 0 ? Math.round((masteredCount / totalQuestions) * 100) : 0;
-
-  const scrollToQuestion = (id: number) => {
-    const el = document.getElementById(`q-${id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-sky-500', 'ring-offset-2');
-      setTimeout(() => {
-        el.classList.remove('ring-2', 'ring-sky-500', 'ring-offset-2');
-      }, 1500);
-    }
-  };
-
   return (
     <aside
-      className={`w-80 flex-shrink-0 flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-l border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto ${className}`}
+      className={`w-72 lg:w-80 shrink-0 h-full bg-white/95 border-l border-slate-200/90 flex flex-col overflow-hidden text-slate-800 ${className}`}
     >
-      {/* Progress Dashboard Card */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 clay-card-shadow mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-sky-500" />
-            背诵掌握仪表盘
-          </span>
-          <span className="text-xs font-mono font-bold text-sky-600 dark:text-sky-400">
-            {percentMastered}%
-          </span>
-        </div>
+      {/* ================= MODE 1: RECITATION ================= */}
+      {currentMode === 'recitation' && (
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          {/* Header */}
+          <div className="p-4 border-b border-slate-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-blue-600" />
+                <h3 className="text-sm font-bold text-slate-900">背诵题阵列</h3>
+              </div>
+              <span className="text-xs font-semibold text-slate-500">
+                {memorizedList.length} / {recitationQuestions.length} ({Math.round((memorizedList.length / recitationQuestions.length) * 100)}%)
+              </span>
+            </div>
 
-        {/* Progress bar */}
-        <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-700/60 overflow-hidden clay-inset-groove mb-3">
-          <div
-            className="h-full bg-gradient-to-r from-sky-500 to-emerald-500 rounded-full transition-all duration-500"
-            style={{ width: `${percentMastered}%` }}
-          />
-        </div>
+            {/* Filter Pills */}
+            <div className="grid grid-cols-2 gap-1.5 text-xs">
+              <button
+                onClick={() => onSelectFilter('all')}
+                className={`py-1.5 px-2 rounded-lg font-medium transition cursor-pointer text-center ${
+                  activeFilter === 'all'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                全部 ({recitationQuestions.length})
+              </button>
+              <button
+                onClick={() => onSelectFilter('memorized')}
+                className={`py-1.5 px-2 rounded-lg font-medium transition cursor-pointer text-center ${
+                  activeFilter === 'memorized'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                }`}
+              >
+                已背会 ({memorizedList.length})
+              </button>
+              <button
+                onClick={() => onSelectFilter('unmemorized')}
+                className={`py-1.5 px-2 rounded-lg font-medium transition cursor-pointer text-center ${
+                  activeFilter === 'unmemorized'
+                    ? 'bg-slate-700 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                未背 ({recitationQuestions.length - memorizedList.length})
+              </button>
+              <button
+                onClick={() => onSelectFilter('starred')}
+                className={`py-1.5 px-2 rounded-lg font-medium transition cursor-pointer text-center ${
+                  activeFilter === 'starred'
+                    ? 'bg-amber-500 text-white shadow-xs'
+                    : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                }`}
+              >
+                收藏 ({starredList.length})
+              </button>
+            </div>
 
-        {/* Metric Badges */}
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
-            <div className="text-[10px] text-slate-400">已吃透题目</div>
-            <div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm mt-0.5">
-              {masteredCount}{' '}
-              <span className="text-[11px] font-normal text-slate-400">/ {totalQuestions}</span>
+            {/* Point Filter */}
+            <div className="pt-1 flex items-center justify-between text-xs text-slate-500">
+              <span className="flex items-center gap-1 font-medium">
+                <Award className="w-3.5 h-3.5 text-amber-600" />
+                考点分值:
+              </span>
+              <div className="flex items-center gap-1">
+                {[null, 2, 3, 4, 5].map((pts) => (
+                  <button
+                    key={pts === null ? 'all' : pts}
+                    onClick={() => onSelectPointFilter(pts)}
+                    className={`px-1.5 py-0.5 rounded text-[11px] font-bold cursor-pointer transition ${
+                      pointFilter === pts
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {pts === null ? '全' : `${pts}点`}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
-            <div className="text-[10px] text-slate-400">已吃透分值</div>
-            <div className="font-bold text-sky-600 dark:text-sky-400 text-sm mt-0.5">
-              {masteredPoints}{' '}
-              <span className="text-[11px] font-normal text-slate-400">/ {totalPoints}分</span>
+
+          {/* 161 Question Heatmap Matrix */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+              全书 161 题矩阵图 (点击直达)
+            </div>
+            <div className="grid grid-cols-7 gap-1.5">
+              {recitationQuestions.map((q) => {
+                const isMem = memorizedList.includes(q.id);
+                const isStar = starredList.includes(q.id);
+                const isSelected = selectedQuestionId === q.id;
+
+                let cellClass = 'bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200';
+                if (isMem) {
+                  cellClass = 'bg-emerald-500 text-white border-emerald-600 font-bold';
+                } else if (isStar) {
+                  cellClass = 'bg-amber-400 text-amber-950 border-amber-500 font-bold';
+                }
+
+                if (isSelected) {
+                  cellClass += ' ring-2 ring-blue-600 ring-offset-1 scale-105 z-10';
+                }
+
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => onSelectRecitationQuestion(q.id)}
+                    title={`第${q.id}题: ${q.title} (${q.points}点)`}
+                    className={`h-8 rounded-lg border text-xs flex flex-col items-center justify-center transition-all cursor-pointer ${cellClass}`}
+                  >
+                    <span>{q.id}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Status Filter Buttons */}
-      <div className="space-y-1 mb-4">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-1 mb-1.5 flex items-center justify-between">
-          <span className="flex items-center gap-1">
-            <Filter className="w-3 h-3" /> 状态筛选
-          </span>
+      {/* ================= MODE 2: HOMEWORK ================= */}
+      {currentMode === 'homework' && (
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <div className="p-4 border-b border-slate-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-blue-600" />
+                <h3 className="text-sm font-bold text-slate-900">作业题目录</h3>
+              </div>
+              <span className="text-xs font-bold text-emerald-600">
+                {homeworkCompletedList.length} / {homeworkQuestions.length} 已做
+              </span>
+            </div>
+
+            {/* Chapter quick filter */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => onSelectHomeworkChapter(null)}
+                className={`px-2 py-1 text-xs rounded-md font-semibold transition cursor-pointer ${
+                  selectedHomeworkChapter === null
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                全部
+              </button>
+              {Array.from({ length: 11 }, (_, i) => i + 1).map((ch) => (
+                <button
+                  key={ch}
+                  onClick={() => onSelectHomeworkChapter(ch)}
+                  className={`px-2 py-1 text-xs rounded-md font-semibold transition cursor-pointer ${
+                    selectedHomeworkChapter === ch
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  第{ch}章
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Homework list */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+            {homeworkQuestions
+              .filter((q) => !selectedHomeworkChapter || q.chapterId === selectedHomeworkChapter)
+              .map((q) => {
+                const isCompleted = homeworkCompletedList.includes(q.id);
+                const isSelected = selectedHomeworkId === q.id;
+
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => {
+                      onSelectHomeworkQuestion(q.id);
+                      const el = document.getElementById(`homework-card-${q.id}`);
+                      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }}
+                    className={`w-full p-2.5 rounded-xl border text-left transition flex items-start gap-2 text-xs cursor-pointer ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-50/60 font-semibold'
+                        : isCompleted
+                        ? 'border-emerald-200 bg-emerald-50/20 text-slate-700'
+                        : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span className="shrink-0 mt-0.5">
+                      {isCompleted ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600 font-bold" />
+                      ) : (
+                        <Circle className="w-3.5 h-3.5 text-slate-300" />
+                      )}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-slate-400">
+                          {q.chapterId}-{q.questionNumber}
+                        </span>
+                        <span className="truncate text-slate-800 font-medium">
+                          {q.questionTitle}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+          </div>
         </div>
+      )}
 
-        <div className="grid grid-cols-3 gap-1.5 text-xs">
-          <button
-            onClick={() => onSelectFilter('all')}
-            className={`py-1.5 px-2 rounded-xl transition-all clay-squash text-center font-medium ${
-              activeFilter === 'all'
-                ? 'bg-sky-500 text-white font-semibold clay-button-shadow'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-            }`}
-          >
-            全部 ({totalQuestions})
-          </button>
-          <button
-            onClick={() => onSelectFilter('mastered')}
-            className={`py-1.5 px-2 rounded-xl transition-all clay-squash text-center font-medium ${
-              activeFilter === 'mastered'
-                ? 'bg-emerald-500 text-white font-semibold clay-button-shadow'
-                : 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-            }`}
-          >
-            已吃透 ({masteredCount})
-          </button>
-          <button
-            onClick={() => onSelectFilter('reviewing')}
-            className={`py-1.5 px-2 rounded-xl transition-all clay-squash text-center font-medium ${
-              activeFilter === 'reviewing'
-                ? 'bg-amber-400 text-slate-900 font-semibold clay-button-shadow'
-                : 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30'
-            }`}
-          >
-            待复习 ({reviewingCount})
-          </button>
-        </div>
+      {/* ================= MODE 3: PRACTICE ================= */}
+      {currentMode === 'practice' && (
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <div className="p-4 border-b border-slate-100 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-blue-600" />
+                <h3 className="text-sm font-bold text-slate-900">核心名词索引</h3>
+              </div>
+              <span className="text-xs font-bold text-emerald-600">
+                {termMemorizedList.length} / {terminologyList.length} 词
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              包含作业本第5章、第8章全部名词解释及各章核心考查概念
+            </p>
+          </div>
 
-        <div className="grid grid-cols-2 gap-1.5 text-xs pt-1">
-          <button
-            onClick={() => onSelectFilter('unlearned')}
-            className={`py-1.5 px-2 rounded-xl transition-all clay-squash text-center font-medium ${
-              activeFilter === 'unlearned'
-                ? 'bg-slate-700 text-white font-semibold clay-button-shadow'
-                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-            }`}
-          >
-            未掌握 ({unlearnedCount})
-          </button>
-          <button
-            onClick={() => onSelectFilter('starred')}
-            className={`py-1.5 px-2 rounded-xl transition-all clay-squash text-center font-medium flex items-center justify-center gap-1 ${
-              activeFilter === 'starred'
-                ? 'bg-yellow-400 text-slate-900 font-semibold clay-button-shadow'
-                : 'bg-white dark:bg-slate-800 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-950/30'
-            }`}
-          >
-            <Star className="w-3 h-3 fill-current" />
-            收藏 ({starredCount})
-          </button>
-        </div>
-      </div>
-
-      {/* Point Filter Tags */}
-      <div className="mb-4">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-1 mb-1.5">
-          分值过滤
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          {[
-            { label: '全部', value: null },
-            { label: '≤2分', value: 2 },
-            { label: '3分', value: 3 },
-            { label: '≥4分高频', value: 4 },
-          ].map((item) => (
-            <button
-              key={item.label}
-              onClick={() => onSelectPointFilter(item.value)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                pointFilter === item.value
-                  ? 'bg-sky-500 text-white font-semibold'
-                  : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300/70 dark:hover:bg-slate-700'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 161 Questions Matrix Heatmap Grid */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex items-center justify-between px-1 mb-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            全书题目热力图 (161题)
-          </span>
-          <span className="text-[10px] text-slate-400">点击直达考点</span>
-        </div>
-
-        <div className="p-3 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 clay-card-shadow overflow-y-auto flex-1">
-          <div className="grid grid-cols-8 gap-1.5">
-            {questions.map((q) => {
-              const status = masteryMap[q.id] || 'unlearned';
-              const isStarred = starredList.includes(q.id);
-
-              let bgClass = 'bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400';
-              if (status === 'mastered') {
-                bgClass = 'bg-emerald-500 text-white font-bold';
-              } else if (status === 'reviewing') {
-                bgClass = 'bg-amber-400 text-slate-900 font-bold';
-              }
+          {/* 30 Terms Matrix */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+            {terminologyList.map((t) => {
+              const isMem = termMemorizedList.includes(t.id);
+              const isSelected = selectedTermId === t.id;
 
               return (
                 <button
-                  key={q.id}
-                  onClick={() => scrollToQuestion(q.id)}
-                  title={`第${q.id}题: ${q.title} (${q.points}分) - ${
-                    status === 'mastered'
-                      ? '已吃透'
-                      : status === 'reviewing'
-                      ? '待复习'
-                      : '未掌握'
+                  key={t.id}
+                  onClick={() => onSelectTerm(t.id)}
+                  className={`w-full p-2.5 rounded-xl border text-left transition flex items-center justify-between text-xs cursor-pointer ${
+                    isSelected
+                      ? 'border-blue-500 bg-blue-50 text-blue-900 font-bold shadow-xs'
+                      : isMem
+                      ? 'border-emerald-200 bg-emerald-50/30 text-emerald-900'
+                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                   }`}
-                  className={`relative aspect-square flex items-center justify-center rounded-lg text-[10px] font-mono transition-transform hover:scale-110 active:scale-95 clay-squash ${bgClass}`}
                 >
-                  {q.id}
-                  {isStarred && (
-                    <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-yellow-400 ring-1 ring-white dark:ring-slate-900" />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-mono text-slate-500 shrink-0">
+                      {t.id}
+                    </span>
+                    <span className="truncate font-semibold">{t.term}</span>
+                  </div>
+                  {isMem && (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   )}
                 </button>
               );
             })}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ================= MODE 4: EXAM ================= */}
+      {currentMode === 'exam' && (
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <div className="p-4 border-b border-slate-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-purple-600" />
+                <h3 className="text-sm font-bold text-slate-900">模考答题卡</h3>
+              </div>
+              <span className="text-xs font-bold text-purple-700">
+                120 分钟标准
+              </span>
+            </div>
+            <div className="text-xs text-slate-500 flex items-center justify-between">
+              <span>已答题数：</span>
+              <span className="font-bold text-slate-800">
+                {examAnsweredCount} / {totalExamQuestions}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="p-3 bg-purple-50/60 rounded-xl border border-purple-200 text-xs text-purple-900 space-y-1">
+              <div className="font-bold">期末题型分布 (100分)：</div>
+              <div>1. 名词解释：5题 × 3分 = 15分</div>
+              <div>2. 填空题：15空 × 1分 = 15分</div>
+              <div>3. 单选题：15题 × 1分 = 15分</div>
+              <div>4. 判断改错：15题 × 1分 = 15分</div>
+              <div>5. 简答题：3题 (6+6+8) = 20分</div>
+              <div>6. 论述题：1题 × 20分 = 20分</div>
+            </div>
+
+            <div className="text-xs text-slate-400">
+              请在主界面完成作答并点击交卷评分。
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

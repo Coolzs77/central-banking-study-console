@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Layers,
   RotateCcw,
-  ChevronLeft,
-  ChevronRight,
-  Shuffle,
   CheckCircle2,
   Circle,
   Sparkles,
@@ -12,6 +9,9 @@ import {
   HelpCircle,
   Check,
   X,
+  BookOpen,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import {
   TerminologyQuestion,
@@ -19,14 +19,18 @@ import {
   TrueFalseQuestion,
   FillInQuestion,
 } from '../data/types';
+import { MarkdownViewer } from './common/MarkdownViewer';
+import { MiddleNav } from './MiddleNav';
 
 interface PracticeCanvasProps {
   terms: TerminologyQuestion[];
   singleChoices: SingleChoiceQuestion[];
   trueFalse: TrueFalseQuestion[];
   fillIns: FillInQuestion[];
-  termMastery: Record<number, boolean>;
-  onToggleTermMastery: (id: number) => void;
+  termMemorized: number[];
+  onToggleTermMemorized: (id: number) => void;
+  selectedTermId?: number | null;
+  onSelectTerm?: (id: number) => void;
 }
 
 export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
@@ -34,350 +38,516 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   singleChoices,
   trueFalse,
   fillIns,
-  termMastery,
-  onToggleTermMastery,
+  termMemorized,
+  onToggleTermMemorized,
+  selectedTermId = null,
+  onSelectTerm,
 }) => {
-  const [activeTab, setActiveTab] = useState<'flashcards' | 'drill'>('flashcards');
+  const [activeTab, setActiveTab] = useState<'terms' | 'choice' | 'truefalse' | 'fill'>('terms');
 
-  // Flashcards state
-  const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
+  // Term Flashcards State
+  const [currentTermIdx, setCurrentTermIdx] = useState<number>(0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
+  const [isMasking, setIsMasking] = useState<boolean>(false);
+  const [isAllRevealed, setIsAllRevealed] = useState<boolean>(false);
 
-  // Drill state
-  const [drillIndex, setDrillIndex] = useState<number>(0);
-  const [drillAnswers, setDrillAnswers] = useState<Record<number, any>>({});
-  const [drillSubmitted, setDrillSubmitted] = useState<Record<number, boolean>>({});
+  // Sync selectedTermId from RightSidebar
+  useEffect(() => {
+    if (selectedTermId !== null) {
+      const idx = terms.findIndex((t) => t.id === selectedTermId);
+      if (idx !== -1) {
+        setCurrentTermIdx(idx);
+        setIsFlipped(false);
+      }
+    }
+  }, [selectedTermId, terms]);
 
-  // 10-question drill pool
-  const drillQuestions = React.useMemo(() => {
-    const pool = [
-      ...singleChoices.map((q) => ({ ...q, qType: 'single' as const })),
-      ...trueFalse.map((q) => ({ ...q, qType: 'tf' as const })),
-    ];
-    return pool.slice(0, 15);
-  }, [singleChoices, trueFalse]);
+  const currentTerm = terms[currentTermIdx] || terms[0];
 
-  const currentTerm = terms[currentCardIndex] || terms[0];
-  const totalTerms = terms.length;
-  const masteredTermsCount = terms.filter((t) => termMastery[t.id]).length;
-  const percentTerms = totalTerms > 0 ? Math.round((masteredTermsCount / totalTerms) * 100) : 0;
+  useEffect(() => {
+    if (currentTerm && onSelectTerm && selectedTermId !== currentTerm.id) {
+      onSelectTerm(currentTerm.id);
+    }
+  }, [currentTerm, onSelectTerm, selectedTermId]);
 
-  const handlePrevCard = () => {
-    setIsFlipped(false);
-    setCurrentCardIndex((prev) => (prev > 0 ? prev - 1 : totalTerms - 1));
-  };
+  // Choice drill state
+  const [choiceIdx, setChoiceIdx] = useState<number>(0);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [showChoiceExplanation, setShowChoiceExplanation] = useState<boolean>(false);
 
-  const handleNextCard = () => {
-    setIsFlipped(false);
-    setCurrentCardIndex((prev) => (prev < totalTerms - 1 ? prev + 1 : 0));
-  };
+  // True/False drill state
+  const [tfIdx, setTfIdx] = useState<number>(0);
+  const [selectedTf, setSelectedTf] = useState<boolean | null>(null);
+  const [showTfExplanation, setShowTfExplanation] = useState<boolean>(false);
 
-  const handleShuffleCard = () => {
-    setIsFlipped(false);
-    const rnd = Math.floor(Math.random() * totalTerms);
-    setCurrentCardIndex(rnd);
-  };
+  // Fill drill state
+  const [fillIdx, setFillIdx] = useState<number>(0);
+  const [showFillAnswer, setShowFillAnswer] = useState<boolean>(false);
+
+  // Keyboard navigation for terms
+  useEffect(() => {
+    if (activeTab !== 'terms') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setIsFlipped((prev) => !prev);
+      } else if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setCurrentTermIdx((prev) => Math.max(0, prev - 1));
+        setIsFlipped(false);
+      } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        setCurrentTermIdx((prev) => Math.min(terms.length - 1, prev + 1));
+        setIsFlipped(false);
+      } else if (e.key === 'm' || e.key === 'M') {
+        if (currentTerm) {
+          e.preventDefault();
+          onToggleTermMemorized(currentTerm.id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, terms.length, currentTerm, onToggleTermMemorized]);
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto px-4 py-6">
-      {/* Top Tab Switcher */}
-      <div className="flex items-center justify-between mb-6 p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 clay-card-shadow backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-            <Layers className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="font-bold text-base text-slate-800 dark:text-slate-100">
-              题型专项速练
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              28个核心名词闪卡 · 客观题速刷强化
-            </p>
-          </div>
+    <div className="flex-1 flex flex-col h-full bg-slate-50/50 overflow-hidden select-text">
+      {/* Top Mode Tabs */}
+      <div className="bg-white border-b border-slate-200/80 px-4 py-2 flex items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl">
+          <button
+            onClick={() => setActiveTab('terms')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+              activeTab === 'terms'
+                ? 'bg-white text-blue-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            📇 名词概念抽背 ({terms.length}词)
+          </button>
+          <button
+            onClick={() => setActiveTab('choice')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+              activeTab === 'choice'
+                ? 'bg-white text-blue-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            🎯 单选专项 ({singleChoices.length}题)
+          </button>
+          <button
+            onClick={() => setActiveTab('truefalse')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+              activeTab === 'truefalse'
+                ? 'bg-white text-blue-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            ⚖️ 判断改错 ({trueFalse.length}题)
+          </button>
+          <button
+            onClick={() => setActiveTab('fill')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+              activeTab === 'fill'
+                ? 'bg-white text-blue-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            ✏️ 填空专项 ({fillIns.length}题)
+          </button>
         </div>
 
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-700/60 clay-inset-groove">
-          <button
-            onClick={() => setActiveTab('flashcards')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'flashcards'
-                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-          >
-            核心名词闪卡 ({totalTerms})
-          </button>
-          <button
-            onClick={() => setActiveTab('drill')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'drill'
-                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-          >
-            客观题快速刷题
-          </button>
-        </div>
+        {activeTab === 'terms' && (
+          <div className="text-xs text-slate-500 font-medium">
+            已掌握: <span className="font-bold text-emerald-600">{termMemorized.length}</span> / {terms.length}
+          </div>
+        )}
       </div>
 
-      {activeTab === 'flashcards' ? (
-        <div>
-          {/* Progress Header */}
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2 px-1">
-            <span>
-              已掌握 {masteredTermsCount} / {totalTerms} 个名词
-            </span>
-            <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
-              卡片 {currentCardIndex + 1} / {totalTerms}
-            </span>
-          </div>
+      {/* Tab 1: Terminology Flashcards */}
+      {activeTab === 'terms' && currentTerm && (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Middle Nav */}
+          <MiddleNav
+            currentIndex={currentTermIdx}
+            totalCount={terms.length}
+            chapterTitle={currentTerm.chapterTitle}
+            sectionTitle={currentTerm.source}
+            isMasking={isMasking}
+            onToggleMask={() => setIsMasking((prev) => !prev)}
+            isAllRevealed={isAllRevealed}
+            onToggleRevealAll={() => setIsAllRevealed((prev) => !prev)}
+            onPrev={() => {
+              setCurrentTermIdx((prev) => Math.max(0, prev - 1));
+              setIsFlipped(false);
+            }}
+            onNext={() => {
+              setCurrentTermIdx((prev) => Math.min(terms.length - 1, prev + 1));
+              setIsFlipped(false);
+            }}
+            onRandom={() => {
+              const r = Math.floor(Math.random() * terms.length);
+              setCurrentTermIdx(r);
+              setIsFlipped(false);
+            }}
+            onJumpToIndex={(idx) => {
+              setCurrentTermIdx(idx);
+              setIsFlipped(false);
+            }}
+            modeTitle="名词概念"
+          />
 
-          <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-700/60 overflow-hidden clay-inset-groove mb-6">
-            <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-sky-500 rounded-full transition-all duration-300"
-              style={{ width: `${percentTerms}%` }}
-            />
-          </div>
-
-          {/* Flashcard Component */}
-          {currentTerm && (
-            <div
-              onClick={() => setIsFlipped(!isFlipped)}
-              className="min-h-[320px] p-8 rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-slate-200/80 dark:border-slate-700/80 clay-card-shadow flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] clay-squash select-none mb-6 relative overflow-hidden"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-200/40 dark:border-indigo-800/40">
-                  {currentTerm.chapterTitle}
-                </span>
-
-                <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>{isFlipped ? '点击查看词条正面' : '点击翻转查看三阶采分'}</span>
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center justify-center">
+            <div className="w-full max-w-3xl space-y-4">
+              {/* Flashcard container */}
+              <div
+                onClick={() => setIsFlipped((prev) => !prev)}
+                className="w-full min-h-[300px] bg-white rounded-3xl border-2 border-slate-200/90 shadow-md hover:shadow-lg transition-all p-8 flex flex-col justify-between cursor-pointer select-none group"
+              >
+                {/* Card Top */}
+                <div className="flex items-center justify-between text-xs text-slate-400">
+                  <span className="font-mono bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg font-bold">
+                    核心名词 #{currentTerm.id}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500">{currentTerm.source}</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                      {isFlipped ? '点击翻回正面' : '点击翻转看定义'}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Card Body */}
-              <div className="my-auto text-center py-6">
-                {!isFlipped ? (
-                  <div>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-3">
-                      {currentTerm.term}
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      期末标准采分：定义 (1.5分) + 性质 (1.0分) + 职能 (0.5分)
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-left space-y-3.5 text-xs sm:text-sm">
-                    <div className="p-3 rounded-xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900/50">
-                      <span className="font-bold text-sky-700 dark:text-sky-300 block mb-1">
-                        1. 概念定义 (1.5分)：
-                      </span>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {currentTerm.definition}
+                {/* Card Center */}
+                <div className="my-8 text-center">
+                  {!isFlipped ? (
+                    <div className="space-y-4">
+                      <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">
+                        {currentTerm.term}
+                      </h2>
+                      <p className="text-sm text-slate-400 font-medium">
+                        按 <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-xs text-slate-600 font-mono">Space</kbd> 或点击卡片查看定义及加粗关键词
                       </p>
                     </div>
-
-                    <div className="p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50">
-                      <span className="font-bold text-emerald-700 dark:text-emerald-300 block mb-1">
-                        2. 核心性质 (1.0分)：
-                      </span>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {currentTerm.nature}
-                      </p>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/50">
-                      <span className="font-bold text-amber-700 dark:text-amber-300 block mb-1">
-                        3. 职能与特征 (0.5分)：
-                      </span>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {currentTerm.functionOrFeature}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Card Footer */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700/60">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleTermMastery(currentTerm.id);
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all clay-squash ${
-                    termMastery[currentTerm.id]
-                      ? 'bg-emerald-500 text-white font-semibold clay-button-shadow'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-                  }`}
-                >
-                  {termMastery[currentTerm.id] ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>已掌握此名词</span>
-                    </>
                   ) : (
-                    <>
-                      <Circle className="w-4 h-4 text-slate-400" />
-                      <span>标记已掌握</span>
-                    </>
+                    <div className="text-left space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                        <h3 className="text-xl font-bold text-slate-900">
+                          {currentTerm.term}
+                        </h3>
+                      </div>
+                      <div className="p-4 bg-slate-50/90 rounded-2xl border border-slate-200/80 text-base leading-relaxed text-slate-800">
+                        <MarkdownViewer
+                          content={currentTerm.definition}
+                          maskKeywords={isMasking}
+                          onToggleClozeAll={isAllRevealed}
+                        />
+                      </div>
+                    </div>
                   )}
-                </button>
-
-                <div className="text-[11px] text-slate-400 font-mono">
-                  题号 #{currentTerm.id}
                 </div>
+
+                {/* Card Bottom */}
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                  <span className="text-xs text-slate-400">
+                    {currentTerm.chapterTitle}
+                  </span>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleTermMemorized(currentTerm.id);
+                    }}
+                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                      termMemorized.includes(currentTerm.id)
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-emerald-200'
+                        : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    {termMemorized.includes(currentTerm.id) ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>已掌握概念</span>
+                      </>
+                    ) : (
+                      <>
+                        <Circle className="w-4 h-4 text-slate-400" />
+                        <span>标为已掌握</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Hints */}
+              <div className="flex items-center justify-between text-xs text-slate-400 px-2">
+                <span>快捷键：Space 翻面/遮挡 · J 上一个 · K 下一个 · M 标记掌握</span>
+                <span>进度：{currentTermIdx + 1} / {terms.length}</span>
               </div>
             </div>
-          )}
-
-          {/* Navigation Bar */}
-          <div className="flex items-center justify-center gap-4">
-            <button
-              onClick={handlePrevCard}
-              className="p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 clay-button-shadow clay-squash"
-              title="上一张 (←)"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={handleShuffleCard}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold text-xs clay-squash"
-            >
-              <Shuffle className="w-4 h-4" />
-              <span>随机抽词</span>
-            </button>
-
-            <button
-              onClick={handleNextCard}
-              className="p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 clay-button-shadow clay-squash"
-              title="下一张 (→)"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
           </div>
         </div>
-      ) : (
-        /* Objective Drill Mode */
-        <div className="space-y-6">
-          {drillQuestions.map((q, idx) => {
-            const isSingle = q.qType === 'single';
-            const userChoice = drillAnswers[q.id];
-            const isSubmitted = drillSubmitted[q.id];
+      )}
 
-            return (
-              <div
-                key={q.id}
-                className="p-5 rounded-2xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/70 dark:border-slate-700/70 clay-card-shadow"
-              >
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    <span className="font-mono text-indigo-600 dark:text-indigo-400 mr-2 font-bold">
-                      {idx + 1}. [{isSingle ? '单选题' : '判断题'}]
+      {/* Tab 2: Single Choice Drill */}
+      {activeTab === 'choice' && singleChoices.length > 0 && (
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
+          <div className="w-full max-w-3xl bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs">
+              <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                单选题 {choiceIdx + 1} / {singleChoices.length}
+              </span>
+              <span className="text-slate-500">{singleChoices[choiceIdx].chapterTitle}</span>
+            </div>
+
+            <h3 className="text-lg font-bold text-slate-900 leading-relaxed">
+              {singleChoices[choiceIdx].stem}
+            </h3>
+
+            {/* Options */}
+            <div className="space-y-3">
+              {singleChoices[choiceIdx].options.map((opt, idx) => {
+                const isSelected = selectedOption === idx;
+                const isCorrect = singleChoices[choiceIdx].correctIndex === idx;
+
+                let optClass = 'border-slate-200 hover:bg-slate-50 text-slate-700';
+                if (showChoiceExplanation) {
+                  if (isCorrect) optClass = 'bg-emerald-50 border-emerald-500 text-emerald-900 font-bold';
+                  else if (isSelected) optClass = 'bg-rose-50 border-rose-500 text-rose-900';
+                } else if (isSelected) {
+                  optClass = 'border-blue-500 bg-blue-50/50 text-blue-900';
+                }
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setSelectedOption(idx);
+                      setShowChoiceExplanation(true);
+                    }}
+                    className={`w-full p-4 rounded-xl border text-left flex items-start gap-3 transition cursor-pointer text-sm ${optClass}`}
+                  >
+                    <span className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs shrink-0">
+                      {String.fromCharCode(65 + idx)}
                     </span>
-                    {isSingle ? (q as SingleChoiceQuestion).stem : (q as TrueFalseQuestion).statement}
-                  </div>
+                    <span className="flex-1 pt-0.5">{opt}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Explanation */}
+            {showChoiceExplanation && (
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                <div className="font-bold text-slate-800">
+                  解析：正确答案是【{String.fromCharCode(65 + singleChoices[choiceIdx].correctIndex)}】
                 </div>
+                <div className="text-slate-600 leading-relaxed">
+                  {singleChoices[choiceIdx].explanation}
+                </div>
+              </div>
+            )}
 
-                {/* Options */}
-                {isSingle ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    {(['A', 'B', 'C', 'D'] as const).map((optKey) => {
-                      const optText = (q as SingleChoiceQuestion).options[optKey];
-                      const isSelected = userChoice === optKey;
-                      const isCorrectKey = optKey === (q as SingleChoiceQuestion).correctKey;
+            {/* Stepper */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+              <button
+                onClick={() => {
+                  setChoiceIdx((p) => Math.max(0, p - 1));
+                  setSelectedOption(null);
+                  setShowChoiceExplanation(false);
+                }}
+                disabled={choiceIdx === 0}
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40"
+              >
+                上一题
+              </button>
+              <button
+                onClick={() => {
+                  setChoiceIdx((p) => Math.min(singleChoices.length - 1, p + 1));
+                  setSelectedOption(null);
+                  setShowChoiceExplanation(false);
+                }}
+                disabled={choiceIdx === singleChoices.length - 1}
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
+              >
+                下一题
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-                      let style = 'bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300';
-                      if (isSubmitted) {
-                        if (isCorrectKey) {
-                          style = 'bg-emerald-500 text-white font-semibold';
-                        } else if (isSelected) {
-                          style = 'bg-red-500 text-white font-semibold';
-                        }
-                      } else if (isSelected) {
-                        style = 'bg-indigo-500 text-white font-semibold';
-                      }
+      {/* Tab 3: True / False Drill */}
+      {activeTab === 'truefalse' && trueFalse.length > 0 && (
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
+          <div className="w-full max-w-3xl bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs">
+              <span className="font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded">
+                判断并改错 {tfIdx + 1} / {trueFalse.length}
+              </span>
+              <span className="text-slate-500">{trueFalse[tfIdx].chapterTitle}</span>
+            </div>
 
-                      return (
-                        <button
-                          key={optKey}
-                          onClick={() => {
-                            if (!isSubmitted) {
-                              setDrillAnswers((prev) => ({ ...prev, [q.id]: optKey }));
-                              setDrillSubmitted((prev) => ({ ...prev, [q.id]: true }));
-                            }
-                          }}
-                          className={`p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700 text-left transition-all ${style}`}
-                        >
-                          <span className="font-mono font-bold mr-1">{optKey}.</span>
-                          <span>{optText}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 text-xs">
-                    <button
-                      onClick={() => {
-                        if (!isSubmitted) {
-                          setDrillAnswers((prev) => ({ ...prev, [q.id]: true }));
-                          setDrillSubmitted((prev) => ({ ...prev, [q.id]: true }));
-                        }
-                      }}
-                      className={`px-4 py-2 rounded-xl font-semibold border transition-all ${
-                        isSubmitted
-                          ? (q as TrueFalseQuestion).isCorrect === true
-                            ? 'bg-emerald-500 text-white'
-                            : userChoice === true
-                            ? 'bg-red-500 text-white'
-                            : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
-                          : userChoice === true
-                          ? 'bg-indigo-500 text-white'
-                          : 'bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      正确 (✓)
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!isSubmitted) {
-                          setDrillAnswers((prev) => ({ ...prev, [q.id]: false }));
-                          setDrillSubmitted((prev) => ({ ...prev, [q.id]: true }));
-                        }
-                      }}
-                      className={`px-4 py-2 rounded-xl font-semibold border transition-all ${
-                        isSubmitted
-                          ? (q as TrueFalseQuestion).isCorrect === false
-                            ? 'bg-emerald-500 text-white'
-                            : userChoice === false
-                            ? 'bg-red-500 text-white'
-                            : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
-                          : userChoice === false
-                          ? 'bg-indigo-500 text-white'
-                          : 'bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      错误 (✕)
-                    </button>
+            <h3 className="text-lg font-bold text-slate-900 leading-relaxed">
+              {trueFalse[tfIdx].stem}
+            </h3>
+
+            {/* Answer buttons */}
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => {
+                  setSelectedTf(true);
+                  setShowTfExplanation(true);
+                }}
+                className={`p-4 rounded-xl border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
+                  showTfExplanation
+                    ? trueFalse[tfIdx].isCorrect
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
+                      : selectedTf === true
+                      ? 'bg-rose-50 border-rose-500 text-rose-800'
+                      : 'border-slate-200 text-slate-500'
+                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <Check className="w-4 h-4 text-emerald-600" />
+                <span>正确 (√)</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedTf(false);
+                  setShowTfExplanation(true);
+                }}
+                className={`p-4 rounded-xl border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
+                  showTfExplanation
+                    ? !trueFalse[tfIdx].isCorrect
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
+                      : selectedTf === false
+                      ? 'bg-rose-50 border-rose-500 text-rose-800'
+                      : 'border-slate-200 text-slate-500'
+                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <X className="w-4 h-4 text-rose-600" />
+                <span>错误 (×)</span>
+              </button>
+            </div>
+
+            {/* Explanation & Correction */}
+            {showTfExplanation && (
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                <div className="font-bold text-slate-800">
+                  判断：本题为【{trueFalse[tfIdx].isCorrect ? '正确 (√)' : '错误 (×)'}】
+                </div>
+                {!trueFalse[tfIdx].isCorrect && trueFalse[tfIdx].correction && (
+                  <div className="text-rose-700 font-medium">
+                    改正说明：{trueFalse[tfIdx].correction}
                   </div>
                 )}
+                <div className="text-slate-600 leading-relaxed">
+                  解析：{trueFalse[tfIdx].explanation}
+                </div>
+              </div>
+            )}
 
-                {/* Explanation feedback */}
-                {isSubmitted && (
-                  <div className="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800 text-xs">
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                      <strong>解析：</strong>{' '}
-                      {isSingle
-                        ? (q as SingleChoiceQuestion).rationale
-                        : (q as TrueFalseQuestion).errorCorrection}
-                    </p>
+            {/* Stepper */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+              <button
+                onClick={() => {
+                  setTfIdx((p) => Math.max(0, p - 1));
+                  setSelectedTf(null);
+                  setShowTfExplanation(false);
+                }}
+                disabled={tfIdx === 0}
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40"
+              >
+                上一题
+              </button>
+              <button
+                onClick={() => {
+                  setTfIdx((p) => Math.min(trueFalse.length - 1, p + 1));
+                  setSelectedTf(null);
+                  setShowTfExplanation(false);
+                }}
+                disabled={tfIdx === trueFalse.length - 1}
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-40"
+              >
+                下一题
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: Fill in blanks Drill */}
+      {activeTab === 'fill' && fillIns.length > 0 && (
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
+          <div className="w-full max-w-3xl bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs">
+              <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                填空题 {fillIdx + 1} / {fillIns.length}
+              </span>
+              <span className="text-slate-500">{fillIns[fillIdx].chapterTitle}</span>
+            </div>
+
+            <h3 className="text-lg font-bold text-slate-900 leading-relaxed">
+              {fillIns[fillIdx].stem}
+            </h3>
+
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowFillAnswer((prev) => !prev)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition cursor-pointer"
+              >
+                {showFillAnswer ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <span>{showFillAnswer ? '隐藏参考关键词' : '揭开参考关键词'}</span>
+              </button>
+            </div>
+
+            {showFillAnswer && (
+              <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-2 text-xs">
+                <div className="font-bold text-amber-900">
+                  参考答案关键词：
+                  {fillIns[fillIdx].answers.map((ans, aIdx) => (
+                    <span key={aIdx} className="ml-2 px-2 py-0.5 bg-amber-200 text-amber-900 rounded font-bold">
+                      {ans}
+                    </span>
+                  ))}
+                </div>
+                {fillIns[fillIdx].explanation && (
+                  <div className="text-slate-600 mt-2">
+                    解析：{fillIns[fillIdx].explanation}
                   </div>
                 )}
               </div>
-            );
-          })}
+            )}
+
+            {/* Stepper */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+              <button
+                onClick={() => {
+                  setFillIdx((p) => Math.max(0, p - 1));
+                  setShowFillAnswer(false);
+                }}
+                disabled={fillIdx === 0}
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40"
+              >
+                上一题
+              </button>
+              <button
+                onClick={() => {
+                  setFillIdx((p) => Math.min(fillIns.length - 1, p + 1));
+                  setShowFillAnswer(false);
+                }}
+                disabled={fillIdx === fillIns.length - 1}
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-40"
+              >
+                下一题
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

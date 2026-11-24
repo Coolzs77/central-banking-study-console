@@ -13,19 +13,17 @@ export interface ChapterMeta {
   }[];
 }
 
-export type MasteryStatus = 'unlearned' | 'mastered' | 'reviewing'; // 'unlearned' (gray), 'mastered' (green), 'reviewing' (yellow)
-
 export interface UserMasteryState {
-  // Keyed by recitation question id (1..161)
-  mastery: Record<number, MasteryStatus>;
-  // Starred/favorited question IDs
+  // Question IDs marked as memorized [✓] (1..161)
+  memorized: number[];
+  // Starred/favorited question IDs (1..161)
   starred: number[];
   // Completed homework question IDs (1..54)
   homeworkCompleted: number[];
+  // Terminology memorized IDs (1..30)
+  termMemorized: number[];
   // User exam records
   examHistory: ExamRecord[];
-  // Terminology practice progress
-  termMastery: Record<number, boolean>;
 }
 
 export interface RecitationQuestion {
@@ -50,14 +48,12 @@ export interface HomeworkQuestion {
 }
 
 export interface TerminologyQuestion {
-  id: number; // 1 to 28
+  id: number; // 1 to 30
   term: string;
-  definition: string; // 1.5 pt
-  nature: string; // 1.0 pt
-  functionOrFeature: string; // 0.5 pt
-  totalPoints: number; // 3 pt
+  definition: string; // concise definition with **bold keywords**
   chapterId: number;
   chapterTitle: string;
+  source: string; // e.g. "作业本第5章第1题"
 }
 
 export interface FillInQuestion {
@@ -100,64 +96,87 @@ export interface ShortAnswerRubric {
 
 export interface ShortAnswerQuestion {
   id: number;
+  title: string;
   question: string;
-  rubricPoints: ShortAnswerRubric[];
-  totalPoints: number; // 6 or 8
+  points: number; // 6 or 8 pt
   chapterId: number;
-  sampleAnswer?: string;
+  standardAnswer: string;
+  rubrics: ShortAnswerRubric[];
 }
 
-export interface EssayRubric {
-  theory: { desc: string; score: number }; // 4 pt
-  mechanism: { desc: string; score: number }; // 8 pt
-  practice: { desc: string; score: number }; // 6 pt
-  conclusion: { desc: string; score: number }; // 2 pt
+export interface EssayRubricPart {
+  dimension: string; // e.g. "理论基础", "作用机制", "现实结合", "政策结论"
+  score: number; // 4, 8, 6, 2 pt
+  criterion: string;
 }
 
 export interface EssayQuestion {
   id: number;
+  topicCategory: 'monetary-policy' | 'financial-regulation';
+  title: string;
   question: string;
-  rubric: EssayRubric;
-  totalPoints: number; // 20 pt
-  chapterId: number;
-  sampleAnswer?: string;
+  points: number; // 20 pt
+  chapterRange: string;
+  standardOutline: string;
+  rubrics: EssayRubricPart[];
 }
 
 export interface ExamPaper {
   id: string;
-  createdAt: number;
+  generatedAt: number;
   durationMinutes: number; // 120
-  terms: TerminologyQuestion[]; // 5 questions (15 pt)
-  fillIns: FillInQuestion[]; // 15 questions (15 pt)
-  singleChoices: SingleChoiceQuestion[]; // 15 questions (15 pt)
-  trueFalse: TrueFalseQuestion[]; // 15 questions (15 pt)
-  shortAnswers: ShortAnswerQuestion[]; // 3 questions (20 pt: 6, 6, 8)
-  essay: EssayQuestion; // 1 question (20 pt)
-  totalPoints: number; // 100 pt
-}
-
-export interface ExamUserAnswers {
-  terms: Record<number, string>; // user answer text
-  fillIns: Record<number, string[]>; // user fill-in inputs
-  singleChoices: Record<number, 'A' | 'B' | 'C' | 'D' | ''>;
-  trueFalse: Record<number, boolean | null>;
-  shortAnswers: Record<number, string>;
-  essay: Record<number, string>;
-}
-
-export interface ExamUserScores {
-  termScores: Record<number, number>; // user self-graded (0-3)
-  fillInScores: Record<number, number>; // auto-graded (0 or 1)
-  singleChoiceScores: Record<number, number>; // auto-graded (0 or 1)
-  trueFalseScores: Record<number, number>; // auto-graded (0 or 1)
-  shortAnswerScores: Record<number, number>; // self-graded (0-6 or 0-8)
-  essayScore: number; // self-graded (0-20)
-  totalScore: number;
+  totalPoints: number; // 100
+  sections: {
+    terminology: {
+      items: TerminologyQuestion[];
+      pointsPerItem: number; // 3 pt
+      totalPoints: number; // 15 pt
+    };
+    fillIn: {
+      items: FillInQuestion[];
+      pointsPerItem: number; // 1 pt
+      totalPoints: number; // 15 pt
+    };
+    singleChoice: {
+      items: SingleChoiceQuestion[];
+      pointsPerItem: number; // 1 pt
+      totalPoints: number; // 15 pt
+    };
+    trueFalse: {
+      items: TrueFalseQuestion[];
+      pointsPerItem: number; // 1 pt
+      totalPoints: number; // 15 pt
+    };
+    shortAnswer: {
+      items: ShortAnswerQuestion[];
+      totalPoints: number; // 20 pt (6 + 6 + 8)
+    };
+    essay: {
+      items: EssayQuestion[];
+      totalPoints: number; // 20 pt
+    };
+  };
 }
 
 export interface ExamRecord {
   id: string;
-  date: string;
-  durationSecondsUsed: number;
-  scores: ExamUserScores;
+  timestamp: number;
+  durationMinutes: number;
+  score: number;
+  details: {
+    terminologyScore: number;
+    fillInScore: number;
+    singleChoiceScore: number;
+    trueFalseScore: number;
+    shortAnswerScore: number;
+    essayScore: number;
+  };
+}
+
+export interface SyncStatus {
+  account: string;
+  autoSyncEnabled: boolean;
+  isSyncing: boolean;
+  lastSyncedAt: number | null;
+  statusText: string;
 }

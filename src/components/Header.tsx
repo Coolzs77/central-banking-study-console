@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-white/75 dark:bg-slate-900/80 border-b border-slate-200/80 dark:border-slate-800 transition-colors">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div className="w-full px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Left: Mobile Menu Trigger + Brand Title (Strictly clean, zero marketing fluff) */}
         <div className="flex items-center gap-3">
           {onToggleMobileMenu && (

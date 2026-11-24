@@ -1,164 +1,289 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  X,
+  Smartphone,
   Copy,
   Check,
-  Download,
-  Upload,
-  AlertTriangle,
-  RotateCcw,
+  QrCode,
+  UserCheck,
+  LogOut,
+  X,
+  UploadCloud,
+  DownloadCloud,
+  Loader2,
+  AlertCircle,
   RefreshCw,
 } from 'lucide-react';
+import QRCode from 'qrcode';
+import { UserMasteryState } from '../data/types';
+import { syncService, SyncStatus } from '../services/syncService';
 
 interface SyncModalProps {
   isOpen: boolean;
   onClose: () => void;
-  exportBase64: () => string;
-  importBase64: (data: string) => boolean;
-  onResetAll: () => void;
+  state: UserMasteryState;
+  onImportState: (imported: UserMasteryState) => void;
 }
 
 export const SyncModal: React.FC<SyncModalProps> = ({
   isOpen,
   onClose,
-  exportBase64,
-  importBase64,
-  onResetAll,
+  state,
+  onImportState,
 }) => {
-  const [importText, setImportText] = useState<string>('');
-  const [copied, setCopied] = useState<boolean>(false);
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [accountInput, setAccountInput] = useState('');
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => syncService.getStatus());
+  const [notice, setNotice] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [pendingAction, setPendingAction] = useState<'backup' | 'pull' | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  useEffect(() => {
+    return syncService.subscribe((status) => {
+      setSyncStatus(status);
+    });
+  }, []);
+
+  const currentAccount = syncStatus.account;
+
+  useEffect(() => {
+    if (currentAccount) {
+      setAccountInput(currentAccount);
+    }
+  }, [currentAccount]);
+
+  // Construct direct QR URL
+  const directUrl = useMemo(() => {
+    if (!currentAccount) return '';
+    if (typeof window === 'undefined') return '';
+    const base = window.location.origin + window.location.pathname;
+    return `${base}?account=${encodeURIComponent(currentAccount)}&sync=pull`;
+  }, [currentAccount]);
+
+  useEffect(() => {
+    if (!directUrl) {
+      setQrDataUrl('');
+      return;
+    }
+    QRCode.toDataURL(directUrl, {
+      width: 220,
+      margin: 2,
+      color: { dark: '#1e293b', light: '#ffffff' },
+    })
+      .then((url) => setQrDataUrl(url))
+      .catch((err) => console.error('QR code generation failed:', err));
+  }, [directUrl]);
 
   if (!isOpen) return null;
 
-  const currentExportString = exportBase64();
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(currentExportString).then(() => {
-      setCopied(true);
-      setMessage({ text: '已成功复制备份代码到剪贴板！可发往手机或另一台电脑粘贴导入。', type: 'success' });
-      setTimeout(() => setCopied(false), 2500);
-    });
-  };
-
-  const handleImport = () => {
-    if (!importText.trim()) {
-      setMessage({ text: '请输入有效的备份字符串。', type: 'error' });
+  const handleBind = (e: React.FormEvent) => {
+    e.preventDefault();
+    const acc = accountInput.trim();
+    if (!acc) {
+      setNotice({ type: 'err', text: '请输入简短账号（如英文缩写或姓名拼音）' });
       return;
     }
-    const success = importBase64(importText);
-    if (success) {
-      setMessage({ text: '学习进度与做题记录导入成功！', type: 'success' });
-      setImportText('');
-      setTimeout(() => {
-        onClose();
-      }, 1500);
-    } else {
-      setMessage({ text: '备份字符串解析失败，请检查格式是否完整。', type: 'error' });
+    syncService.setAccount(acc);
+    setNotice({ type: 'ok', text: `账号已绑定为：${acc}` });
+  };
+
+  const handleUnbind = () => {
+    syncService.setAccount('');
+    setAccountInput('');
+    setNotice({ type: 'ok', text: '账号已解绑' });
+  };
+
+  const handleBackup = async () => {
+    if (!currentAccount) {
+      setNotice({ type: 'err', text: '请先绑定同步账号' });
+      return;
     }
+    setPendingAction('backup');
+    setNotice(null);
+    const res = await syncService.pushToCloud(state);
+    setPendingAction(null);
+    if (res.ok) {
+      setNotice({ type: 'ok', text: '背诵与做题记录已备份到云端' });
+    } else {
+      setNotice({ type: 'err', text: res.error || '备份失败，请检查网络' });
+    }
+  };
+
+  const handlePull = async () => {
+    if (!currentAccount) {
+      setNotice({ type: 'err', text: '请先绑定同步账号' });
+      return;
+    }
+    setPendingAction('pull');
+    setNotice(null);
+    const res = await syncService.pullFromCloud();
+    setPendingAction(null);
+    if (res.ok) {
+      if (res.found && res.state) {
+        onImportState(res.state as UserMasteryState);
+        setNotice({ type: 'ok', text: '已从云端拉取最新记录并覆盖到本地' });
+      } else {
+        setNotice({ type: 'err', text: '云端暂无此账号记录，请先在旧设备上传' });
+      }
+    } else {
+      setNotice({ type: 'err', text: res.error || '拉取失败，请检查网络' });
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (!directUrl) return;
+    navigator.clipboard.writeText(directUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-lg p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 clay-card-shadow shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col">
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
-              <RefreshCw className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-base text-slate-900 dark:text-white">
-                跨设备学习进度同步
-              </h3>
-              <p className="text-xs text-slate-400">
-                支持手机、电脑、平板间通过纯文本代码无缝同步
-              </p>
-            </div>
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div className="flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-blue-600" />
+            <h3 className="font-bold text-slate-800 text-base">跨设备云端同步 (短码直连)</h3>
           </div>
-
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Status Message */}
-        {message && (
-          <div
-            className={`p-3 rounded-xl text-xs mb-4 font-medium ${
-              message.type === 'success'
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50'
-                : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200/50'
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
-
-        {/* Section 1: Export */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <Download className="w-3.5 h-3.5 text-sky-500" />
-              导出当前设备学习进度
-            </span>
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 px-3 py-1 rounded-xl bg-sky-500 text-white text-xs font-medium clay-button-shadow clay-squash"
+        {/* Modal Body */}
+        <div className="p-6 space-y-5 overflow-y-auto max-h-[80vh]">
+          {/* Notification banner */}
+          {notice && (
+            <div
+              className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                notice.type === 'ok'
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                  : 'bg-rose-50 text-rose-800 border border-rose-200'
+              }`}
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? '已复制' : '一键复制备份码'}</span>
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{notice.text}</span>
+            </div>
+          )}
+
+          {/* Account Binding Card */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+            <div className="text-xs font-bold text-slate-700">1. 同步账号绑定</div>
+            {currentAccount ? (
+              <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm font-bold text-slate-800">{currentAccount}</span>
+                  <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium">已就绪</span>
+                </div>
+                <button
+                  onClick={handleUnbind}
+                  className="text-xs text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>换绑</span>
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleBind} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="输入简短账号（如：zsz 或学号）"
+                  value={accountInput}
+                  onChange={(e) => setAccountInput(e.target.value)}
+                  className="flex-1 px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 bg-white"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs"
+                >
+                  绑定
+                </button>
+              </form>
+            )}
+            <p className="text-[11px] text-slate-400">
+              提示：输入相同的简短账号，即可在手机、平板或另一台电脑上互相同步进度。
+            </p>
+          </div>
+
+          {/* Manual Push / Pull buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={handleBackup}
+              disabled={!currentAccount || pendingAction !== null}
+              className="p-3.5 rounded-2xl bg-blue-50 hover:bg-blue-100/80 disabled:opacity-40 border border-blue-200 text-blue-900 flex flex-col items-center justify-center gap-1.5 transition cursor-pointer"
+            >
+              {pendingAction === 'backup' ? (
+                <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+              ) : (
+                <UploadCloud className="w-5 h-5 text-blue-600" />
+              )}
+              <span className="text-xs font-bold">手动备份到云端</span>
+              <span className="text-[10px] text-blue-600/80">上传本机背诵与做题记录</span>
+            </button>
+
+            <button
+              onClick={handlePull}
+              disabled={!currentAccount || pendingAction !== null}
+              className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100/80 disabled:opacity-40 border border-emerald-200 text-emerald-900 flex flex-col items-center justify-center gap-1.5 transition cursor-pointer"
+            >
+              {pendingAction === 'pull' ? (
+                <Loader2 className="w-5 h-5 text-emerald-600 animate-spin" />
+              ) : (
+                <DownloadCloud className="w-5 h-5 text-emerald-600" />
+              )}
+              <span className="text-xs font-bold">从云端拉取记录</span>
+              <span className="text-[10px] text-emerald-600/80">覆盖更新本机做题进度</span>
             </button>
           </div>
 
-          <textarea
-            readOnly
-            value={currentExportString}
-            rows={3}
-            className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 text-[11px] font-mono text-slate-600 dark:text-slate-400 select-all focus:outline-none"
-          />
-        </div>
+          {/* QR Code Section for Mobile */}
+          {currentAccount && qrDataUrl && (
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col items-center space-y-3">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <QrCode className="w-4 h-4 text-purple-600" />
+                <span>手机微信/浏览器 扫码无缝接力</span>
+              </div>
+              <div className="p-2 bg-white rounded-2xl shadow-sm border border-slate-200">
+                <img src={qrDataUrl} alt="Sync QR Code" className="w-36 h-36 rounded-lg" />
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopyLink}
+                  className="flex items-center gap-1 px-3 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition cursor-pointer shadow-xs"
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedLink ? '已复制同步链接' : '复制直达链接'}</span>
+                </button>
+              </div>
+            </div>
+          )}
 
-        {/* Section 2: Import */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <Upload className="w-3.5 h-3.5 text-emerald-500" />
-              从备份码导入进度
-            </span>
+          {/* Auto Sync Toggle */}
+          <div className="flex items-center justify-between text-xs text-slate-600 px-1 pt-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={syncStatus.autoSyncEnabled}
+                onChange={(e) => syncService.setAutoSyncEnabled(e.target.checked)}
+                className="rounded text-blue-600 focus:ring-blue-500"
+              />
+              <span>做题或背诵时自动静默保存到云端</span>
+            </label>
+            <span className="text-slate-400 text-[11px]">{syncStatus.statusText}</span>
           </div>
-
-          <textarea
-            value={importText}
-            onChange={(e) => setImportText(e.target.value)}
-            placeholder="在此处粘贴从其他设备导出的备份码..."
-            rows={3}
-            className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 text-[11px] font-mono text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 mb-2"
-          />
-
-          <button
-            onClick={handleImport}
-            className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold clay-button-shadow clay-squash"
-          >
-            校验并导入进度覆盖
-          </button>
         </div>
 
-        {/* Section 3: Reset */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <span className="text-xs text-slate-400">重置所有刷题数据：</span>
+        {/* Modal Footer */}
+        <div className="px-6 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-end">
           <button
-            onClick={() => {
-              onResetAll();
-              onClose();
-            }}
-            className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 py-1 px-2.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+            onClick={onClose}
+            className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition cursor-pointer"
           >
-            <RotateCcw className="w-3 h-3" />
-            <span>清空本地全部进度</span>
+            完成
           </button>
         </div>
       </div>
