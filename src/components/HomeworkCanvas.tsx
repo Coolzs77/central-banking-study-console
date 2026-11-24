@@ -128,12 +128,10 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
           </div>
         </div>
 
-        {/* Question Title with Prominent Number */}
-        <h2 className="py-5 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-slate-100 flex items-start gap-2.5">
-          <span className="shrink-0 px-2.5 py-1 rounded-xl bg-blue-600 text-white font-mono font-bold text-sm sm:text-base shadow-xs">
-            第 {currentQ.questionNumber} 题
-          </span>
-          <span className="flex-1">{currentQ.questionTitle}</span>
+        {/* Question Title with Pure Text Color Highlighting */}
+        <h2 className="py-4 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-white">
+          <span className="text-blue-600 dark:text-blue-400 font-mono font-bold mr-2">第 {currentQ.questionNumber} 题 ·</span>
+          <span>{currentQ.questionTitle}</span>
         </h2>
 
         {/* 3. Solution Section (展开题解卡片) */}

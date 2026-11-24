@@ -78,11 +78,11 @@ async function runTests() {
     // 7. Check that "共 N 点" is RETAINED per user explicit demand!
     assert(mdViewerCode.includes('共 {badgeNum} 点'), 'MarkdownViewer RETAINS the "共 N 点" amber badge per user demand');
 
-    // 8. Check that outline subheadings like （一）/（二）have distinct colored style
-    assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('bg-indigo-50') && mdViewerCode.includes('背诵核心概括'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct indigo outline card');
+    // 8. Check that outline subheadings like （一）/（二）have distinct colored text style (NO background boxes!)
+    assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('text-indigo-600') && !mdViewerCode.includes('bg-indigo-50'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct indigo text color without background boxes');
 
-    // 9. Check that real keywords are scanned and highlighted from CENTRAL_BANKING_KEYWORDS
-    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('KEYWORD_REGEX'), 'MarkdownViewer scans and highlights actual financial keywords');
+    // 9. Check that real keywords are scanned and highlighted directly with text color (NO background boxes!)
+    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-blue-600') && !mdViewerCode.includes('bg-blue-50/90'), 'MarkdownViewer uses pure text color highlighting for keywords without background boxes');
 
     // 10. Check MockExamCanvas has vertical scrolling and pinned countdown bar
     const mockExamCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/MockExamCanvas.tsx'), 'utf-8');
