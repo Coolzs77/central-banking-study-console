@@ -39,6 +39,12 @@ interface RightSidebarProps {
   onSelectTermId: (id: number) => void;
   termMemorizedList: number[];
   practiceTab?: 'terms' | 'choice' | 'truefalse' | 'fill';
+  currentChoiceIndex?: number;
+  onSelectChoiceIndex?: (idx: number) => void;
+  currentTfIndex?: number;
+  onSelectTfIndex?: (idx: number) => void;
+  currentFillIndex?: number;
+  onSelectFillIndex?: (idx: number) => void;
   // Chapter metadata
   currentChapterId?: number;
   chapters?: ChapterMeta[];
@@ -65,6 +71,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onSelectTermId,
   termMemorizedList,
   practiceTab = 'terms',
+  currentChoiceIndex = 0,
+  onSelectChoiceIndex,
+  currentTfIndex = 0,
+  onSelectTfIndex,
+  currentFillIndex = 0,
+  onSelectFillIndex,
   currentChapterId,
   chapters = [],
   className = '',
@@ -365,34 +377,58 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   })}
 
                 {practiceTab === 'choice' &&
-                  Array.from({ length: 40 }, (_, i) => i + 1).map((num) => (
-                    <div
-                      key={num}
-                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-mono font-bold flex items-center justify-center"
-                    >
-                      {num}
-                    </div>
-                  ))}
+                  Array.from({ length: 40 }, (_, i) => i + 1).map((num) => {
+                    const isCurr = currentChoiceIndex === num - 1;
+                    return (
+                      <button
+                        key={num}
+                        onClick={() => onSelectChoiceIndex && onSelectChoiceIndex(num - 1)}
+                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${
+                          isCurr
+                            ? 'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
 
                 {practiceTab === 'truefalse' &&
-                  Array.from({ length: 30 }, (_, i) => i + 1).map((num) => (
-                    <div
-                      key={num}
-                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-mono font-bold flex items-center justify-center"
-                    >
-                      {num}
-                    </div>
-                  ))}
+                  Array.from({ length: 30 }, (_, i) => i + 1).map((num) => {
+                    const isCurr = currentTfIndex === num - 1;
+                    return (
+                      <button
+                        key={num}
+                        onClick={() => onSelectTfIndex && onSelectTfIndex(num - 1)}
+                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${
+                          isCurr
+                            ? 'bg-purple-600 text-white ring-2 ring-purple-400 font-bold shadow-md scale-105 z-10'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
 
                 {practiceTab === 'fill' &&
-                  Array.from({ length: 40 }, (_, i) => i + 1).map((num) => (
-                    <div
-                      key={num}
-                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-mono font-bold flex items-center justify-center"
-                    >
-                      {num}
-                    </div>
-                  ))}
+                  Array.from({ length: 40 }, (_, i) => i + 1).map((num) => {
+                    const isCurr = currentFillIndex === num - 1;
+                    return (
+                      <button
+                        key={num}
+                        onClick={() => onSelectFillIndex && onSelectFillIndex(num - 1)}
+                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${
+                          isCurr
+                            ? 'bg-emerald-600 text-white ring-2 ring-emerald-400 font-bold shadow-md scale-105 z-10'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
               </div>
             </div>
           )}

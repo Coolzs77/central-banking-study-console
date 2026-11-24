@@ -45,6 +45,9 @@ export function App() {
   const [recitationIndex, setRecitationIndex] = useState<number>(0);
   const [homeworkIndex, setHomeworkIndex] = useState<number>(0);
   const [practiceTermIndex, setPracticeTermIndex] = useState<number>(0);
+  const [practiceChoiceIndex, setPracticeChoiceIndex] = useState<number>(0);
+  const [practiceTfIndex, setPracticeTfIndex] = useState<number>(0);
+  const [practiceFillIndex, setPracticeFillIndex] = useState<number>(0);
 
   // Modals & UI state
   const [syncModalOpen, setSyncModalOpen] = useState<boolean>(false);
@@ -215,8 +218,14 @@ export function App() {
               currentTermIndex={practiceTermIndex}
               onJumpToTermIndex={setPracticeTermIndex}
               singleChoices={singleChoiceQuestions}
+              currentChoiceIndex={practiceChoiceIndex}
+              onJumpToChoiceIndex={setPracticeChoiceIndex}
               trueFalse={trueFalseQuestions}
+              currentTfIndex={practiceTfIndex}
+              onJumpToTfIndex={setPracticeTfIndex}
               fillIns={fillInQuestions}
+              currentFillIndex={practiceFillIndex}
+              onJumpToFillIndex={setPracticeFillIndex}
               termMemorized={state.termMemorized}
               onToggleTermMemorized={toggleTermMemorized}
               activePracticeTab={practiceTab}
@@ -264,6 +273,12 @@ export function App() {
           }}
           termMemorizedList={state.termMemorized}
           practiceTab={practiceTab}
+          currentChoiceIndex={practiceChoiceIndex}
+          onSelectChoiceIndex={setPracticeChoiceIndex}
+          currentTfIndex={practiceTfIndex}
+          onSelectTfIndex={setPracticeTfIndex}
+          currentFillIndex={practiceFillIndex}
+          onSelectFillIndex={setPracticeFillIndex}
           // Chapter metadata
           currentChapterId={
             currentMode === 'homework'

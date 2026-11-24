@@ -103,8 +103,8 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
         onToggleStar={() => onToggleStar(currentQ.id)}
         revealed={showAnswer}
         onToggleRevealed={() => setShowAnswer((p) => !p)}
-        revealLabel="查看参考解答"
-        hideLabel="收起参考解答"
+        revealLabel="查看答案"
+        hideLabel="收起答案"
         onCopy={handleCopyCurrent}
         isCopied={copied}
         modeBadge="平时作业本"
@@ -128,9 +128,12 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
           </div>
         </div>
 
-        {/* Question Title */}
-        <h2 className="py-5 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-slate-100">
-          {currentQ.questionTitle}
+        {/* Question Title with Prominent Number */}
+        <h2 className="py-5 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-slate-100 flex items-start gap-2.5">
+          <span className="shrink-0 px-2.5 py-1 rounded-xl bg-blue-600 text-white font-mono font-bold text-sm sm:text-base shadow-xs">
+            第 {currentQ.questionNumber} 题
+          </span>
+          <span className="flex-1">{currentQ.questionTitle}</span>
         </h2>
 
         {/* 3. Solution Section (展开题解卡片) */}

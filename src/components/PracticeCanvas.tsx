@@ -31,6 +31,12 @@ interface PracticeCanvasProps {
   onToggleTermMemorized: (id: number) => void;
   currentTermIndex?: number;
   onJumpToTermIndex?: (idx: number) => void;
+  currentChoiceIndex?: number;
+  onJumpToChoiceIndex?: (idx: number) => void;
+  currentTfIndex?: number;
+  onJumpToTfIndex?: (idx: number) => void;
+  currentFillIndex?: number;
+  onJumpToFillIndex?: (idx: number) => void;
   activePracticeTab?: 'terms' | 'choice' | 'truefalse' | 'fill';
   onPracticeTabChange?: (tab: 'terms' | 'choice' | 'truefalse' | 'fill') => void;
 }
@@ -44,6 +50,12 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   onToggleTermMemorized,
   currentTermIndex = 0,
   onJumpToTermIndex,
+  currentChoiceIndex,
+  onJumpToChoiceIndex,
+  currentTfIndex,
+  onJumpToTfIndex,
+  currentFillIndex,
+  onJumpToFillIndex,
   activePracticeTab,
   onPracticeTabChange,
 }) => {
@@ -73,21 +85,53 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   };
 
   // Choice drill state (40 questions)
-  const [choiceIdx, setChoiceIdx] = useState<number>(0);
+  const [internalChoiceIdx, setInternalChoiceIdx] = useState<number>(0);
+  const choiceIdx = currentChoiceIndex ?? internalChoiceIdx;
+  const setChoiceIdx = (fnOrVal: number | ((p: number) => number)) => {
+    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(choiceIdx) : fnOrVal;
+    if (onJumpToChoiceIndex) onJumpToChoiceIndex(nextVal);
+    else setInternalChoiceIdx(nextVal);
+  };
   const [selectedOption, setSelectedOption] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
   const [showChoiceExplanation, setShowChoiceExplanation] = useState<boolean>(false);
   const currentChoice = singleChoices[choiceIdx] || singleChoices[0];
 
+  useEffect(() => {
+    setSelectedOption(null);
+    setShowChoiceExplanation(false);
+  }, [choiceIdx]);
+
   // True/False drill state (30 questions)
-  const [tfIdx, setTfIdx] = useState<number>(0);
+  const [internalTfIdx, setInternalTfIdx] = useState<number>(0);
+  const tfIdx = currentTfIndex ?? internalTfIdx;
+  const setTfIdx = (fnOrVal: number | ((p: number) => number)) => {
+    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(tfIdx) : fnOrVal;
+    if (onJumpToTfIndex) onJumpToTfIndex(nextVal);
+    else setInternalTfIdx(nextVal);
+  };
   const [selectedTf, setSelectedTf] = useState<boolean | null>(null);
   const [showTfExplanation, setShowTfExplanation] = useState<boolean>(false);
   const currentTF = trueFalse[tfIdx] || trueFalse[0];
 
+  useEffect(() => {
+    setSelectedTf(null);
+    setShowTfExplanation(false);
+  }, [tfIdx]);
+
   // Fill drill state (40 questions)
-  const [fillIdx, setFillIdx] = useState<number>(0);
+  const [internalFillIdx, setInternalFillIdx] = useState<number>(0);
+  const fillIdx = currentFillIndex ?? internalFillIdx;
+  const setFillIdx = (fnOrVal: number | ((p: number) => number)) => {
+    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(fillIdx) : fnOrVal;
+    if (onJumpToFillIndex) onJumpToFillIndex(nextVal);
+    else setInternalFillIdx(nextVal);
+  };
   const [showFillAnswer, setShowFillAnswer] = useState<boolean>(false);
   const currentFill = fillIns[fillIdx] || fillIns[0];
+
+  useEffect(() => {
+    setShowFillAnswer(false);
+  }, [fillIdx]);
 
   // Keyboard navigation
   useEffect(() => {

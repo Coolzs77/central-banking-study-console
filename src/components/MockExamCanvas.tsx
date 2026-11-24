@@ -302,10 +302,9 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
   if (!paper) return null;
 
   return (
-    <div className="flex-1 w-full h-full overflow-y-auto px-4 py-6">
-      <div className="max-w-5xl mx-auto">
-      {/* Top Floating / Sticky Exam Header */}
-      <div className="sticky top-20 z-20 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/80 dark:border-slate-800 clay-card-shadow backdrop-blur-md mb-6 flex flex-wrap items-center justify-between gap-4">
+    <div className="flex-1 w-full h-full flex flex-col overflow-hidden bg-slate-50/50 dark:bg-[#0b0f17]">
+      {/* 1. Fixed Top Exam Header (Pinned permanently, zero floating overlap!) */}
+      <div className="bg-white/95 dark:bg-[#151b26]/95 border-b border-slate-200/80 dark:border-slate-800 px-6 py-3.5 shrink-0 flex items-center justify-between gap-4 shadow-xs z-10">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
             <Timer className="w-5 h-5" />
@@ -324,12 +323,23 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
           </div>
         </div>
 
+        {/* Section Indicators */}
+        <div className="hidden lg:flex items-center gap-1.5 text-xs">
+          <span className="font-semibold text-slate-400">试卷题型架构:</span>
+          <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">一·名词(15分)</span>
+          <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">二·填空(15分)</span>
+          <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">三·单选(15分)</span>
+          <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">四·判断(15分)</span>
+          <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">五·简答(20分)</span>
+          <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">六·论述(20分)</span>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
           {examStatus === 'testing' ? (
             <button
               onClick={handleSubmitExam}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs clay-button-shadow clay-squash"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs clay-button-shadow clay-squash cursor-pointer shadow-md"
             >
               <Send className="w-3.5 h-3.5" />
               <span>交卷评分</span>
@@ -337,7 +347,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
           ) : (
             <button
               onClick={generateNewPaper}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs clay-button-shadow clay-squash"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs clay-button-shadow clay-squash cursor-pointer shadow-md"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>再练一套新卷</span>
@@ -345,6 +355,10 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
           )}
         </div>
       </div>
+
+      {/* 2. Scrollable Exam Paper Body (Zero overlapping, smooth scrolling!) */}
+      <div className="flex-1 w-full overflow-y-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto space-y-8">
 
       {/* Submitted Score Summary Card */}
       {examStatus === 'submitted' && scoreResults && (
@@ -994,5 +1008,6 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
       </div>
     </div>
   </div>
+</div>
   );
 };

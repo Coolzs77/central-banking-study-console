@@ -89,7 +89,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   return (
     <aside
-      className={`w-72 flex-shrink-0 flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#151b26]/95 backdrop-blur-md p-4 overflow-y-auto clay-card-shadow gap-5 ${className}`}
+      className={`w-76 lg:w-80 flex-shrink-0 flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#151b26]/95 backdrop-blur-md p-4 overflow-y-auto clay-card-shadow gap-5 ${className}`}
     >
       {/* Top Header */}
       <div className="flex items-center gap-2 px-1">
@@ -150,6 +150,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             const isSelected = selectedChapterId === ch.id;
             const stats = getChapterStats(ch.id);
 
+            const cleanTitle = ch.title.replace(/^第[一二三四五六七八九十0-9]+章\s*/, '');
+
             return (
               <button
                 key={ch.id}
@@ -163,10 +165,12 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     : 'bg-slate-50/70 dark:bg-[#1a2232]/70 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#222c40] border border-slate-200/50 dark:border-slate-800'
                 }`}
               >
-                <div className="flex items-center justify-between gap-1 w-full">
+                <div className="flex items-center justify-between gap-1.5 w-full">
                   <div className="flex items-center gap-2 truncate">
-                    <span className="text-sm">{getChapterIcon(ch.id)}</span>
-                    <span className="truncate font-semibold">{ch.title}</span>
+                    <span className="text-sm shrink-0">{getChapterIcon(ch.id)}</span>
+                    <span className="truncate font-semibold">
+                      第{ch.id}章 {cleanTitle}
+                    </span>
                   </div>
                   <span
                     className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-bold flex-shrink-0 ${

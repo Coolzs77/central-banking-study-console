@@ -85,7 +85,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
             onClick={() => setJumpDrawerOpen(!jumpDrawerOpen)}
             className="clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 hover:text-blue-600 border border-slate-200 dark:border-slate-700 flex items-center gap-1 transition-all cursor-pointer"
           >
-            <span>题号 {currentIndex + 1}/{totalFiltered} ▾</span>
+            <span>第 {currentIndex + 1} / {totalFiltered} 题 ▾</span>
           </button>
 
           <button
