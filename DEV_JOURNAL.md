@@ -823,3 +823,71 @@ flowchart TD
    (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
    ```
    返回 `200 OK`，实机核验通过。
+
+
+---
+
+## 第 7 轮 [2026-11-24 18:06]：坚决清除卡片内部“背诵与参考解答”横幅与自动注入的“共 N 点”标签
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **用户反馈直击要害**：“根本就不需要那个北宋和参考解答的字，懂不懂？？？全删除冗余的字样”，附带截图高亮指出了卡片内部的 `💡 背诵与参考解答` 表头以及文本行内的 `共 2 点` 黄色标签；
+- **整改目标**：
+  1. 彻底剔除全书速记画板卡片内部的 `💡 背诵与参考解答` 及 `👁️ 完整答案已展示` 提示横幅，不留任何多余提示行；
+  2. 彻底剔除平时作业本卡片内部的 `💡 作业标准参考解答` 表头；
+  3. 彻底修改 `MarkdownViewer.tsx`，删除其针对 `==N==` 原始标记自动渲染的 `共 {badgeNum} 点` 黄色胶囊，使文本排版纯净自然，不出现任何人工拼凑的分值/点数标签。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+
+- [`src/components/RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)：
+  - **彻底移除内部表头横幅**：删除了 `💡 背诵与参考解答` 与 `👁️ 完整答案已展示 / 🙈 关键词已遮挡` 的多余内嵌状态行，卡片内部直接、大方地呈现背诵正文，视野完全通透；
+  - 容器样式优化为自然轻盈的 `bg-slate-50/80 dark:bg-[#18202e] border border-slate-200/80`，与顶层拟态卡片浑然一体。
+- [`src/components/HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)：
+  - **彻底移除内部作业表头**：删除了卡片内部内嵌的 `💡 作业标准参考解答` 和 `复制解答` 按钮（因顶部置顶导航栏已包含完整的 `[📋 复制]` 和 `[💡 查看题解]` 控件），消灭双重冗余。
+- [`src/components/common/MarkdownViewer.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)：
+  - **彻底剔除自动注入的“共 N 点”胶囊**：原代码在行尾检测到 `==N==` 标记时会自动生成 `<span className="...">共 {badgeNum} 点</span>`，现将其彻底移除，仅执行正则静默过滤清洗 (`text.replace(/\t*==\d+==/g, '')`)，杜绝任何人工杜撰的点数徽标被渲染到页面上。
+
+---
+
+### 3. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：中栏单题卡片深度极净化重构前后对比
+```mermaid
+flowchart TD
+    subgraph Dirty["❌ 改造前：层层嵌套冗余横幅与人工徽标"]
+        Title1["题目：中央银行业务的分类。(p12-15)"]
+        Title1 --> InnerBanner["⚠️ 冗余内嵌横幅：💡 背诵与参考解答 | 👁️ 完整答案已展示"]
+        InnerBanner --> InjectedTag["中央银行业务按性质和职能分为两大核心板块： ⚠️ [共 2 点]"]
+        InjectedTag --> Bullets1["- (一) 银行类业务..."]
+    end
+
+    subgraph Clean["✅ 改造后：纯净直观、零认知噪音排版"]
+        Title2["题目：中央银行业务的分类。(p12-15)"]
+        Title2 --> PureContent["中央银行业务按性质和职能分为两大核心板块："]
+        PureContent --> Bullets2["• (一) 银行类业务..."]
+        Bullets2 --> ClozeSpan["支持点击按需揭开核心采分关键词 (··· 揭开)"]
+    end
+```
+> **图 1 机制解析**：展示了从过度包装的“套娃式”卡片向高信噪比排版的蜕变。考生视线直达核心内容本身，没有任何虚浮标签干扰记忆专注度。
+
+---
+
+### 4. 验证结果与可复现方法 (Verification & Reproduction)
+1. **自动化测试套件回归验证**：
+   ```bash
+   cd e:\workspace\central-banking-study-console
+   npm test
+   ```
+   - **验证结果**：52 项断言 100% 全部通过（新增卡片内部无冗余横幅与无“共 N 点”注入断言）。
+2. **生产构建与部署**：
+   ```bash
+   npm run build
+   npm run deploy
+   ```
+   - **推送状态**：成功将提交 `dc71a7c` 推送到 `origin/gh-pages` 分支。
+3. **公网可用性核验**：
+   ```powershell
+   (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
+   ```
+   返回 `200 OK`，实机验证完全通过。
