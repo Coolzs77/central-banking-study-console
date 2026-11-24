@@ -72,22 +72,22 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
               type="button"
               onClick={(e) => toggleCloze(clozeId, e)}
               title="点击揭开关键词"
-              className="inline-flex items-center px-1.5 py-0.2 mx-0.5 rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 font-bold text-xs border border-blue-200 dark:border-blue-800 transition cursor-pointer select-none"
+              className="inline-flex items-center px-1.5 py-0.2 mx-0.5 rounded text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 font-bold text-xs border border-emerald-300 dark:border-emerald-700 transition cursor-pointer select-none"
             >
               ··· 揭开
             </button>
           );
         }
 
-        // Color highlight directly on text - ZERO background boxes!
+        // Color highlight directly on text in GREEN - ZERO background boxes!
         return (
           <strong
             key={`${keyPrefix}-${pIdx}`}
             onClick={(e) => maskKeywords && toggleCloze(clozeId, e)}
             className={`font-bold transition-colors ${
               maskKeywords
-                ? 'text-emerald-600 dark:text-emerald-400 cursor-pointer'
-                : 'text-blue-600 dark:text-blue-400'
+                ? 'text-teal-600 dark:text-teal-400 cursor-pointer'
+                : 'text-emerald-600 dark:text-emerald-400'
             }`}
             title={maskKeywords ? '点击重新遮挡' : undefined}
           >
@@ -151,22 +151,22 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
                     type="button"
                     onClick={(e) => toggleCloze(clozeId, e)}
                     title="点击揭开关键词"
-                    className="inline-flex items-center px-1.5 py-0.2 mx-0.5 rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 font-bold text-xs border border-blue-200 dark:border-blue-800 transition cursor-pointer select-none"
+                    className="inline-flex items-center px-1.5 py-0.2 mx-0.5 rounded text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 font-bold text-xs border border-emerald-300 dark:border-emerald-700 transition cursor-pointer select-none"
                   >
                     ··· 揭开
                   </button>
                 );
               }
 
-              // Color highlight directly on text - ZERO background boxes!
+              // Color highlight directly on text in GREEN - ZERO background boxes!
               return (
                 <strong
                   key={i}
                   onClick={(e) => maskKeywords && toggleCloze(clozeId, e)}
                   className={`font-bold transition-colors ${
                     maskKeywords
-                      ? 'text-emerald-600 dark:text-emerald-400 cursor-pointer'
-                      : 'text-blue-600 dark:text-blue-400'
+                      ? 'text-teal-600 dark:text-teal-400 cursor-pointer'
+                      : 'text-emerald-600 dark:text-emerald-400'
                   }`}
                   title={maskKeywords ? '点击重新遮挡' : undefined}
                 >
@@ -240,7 +240,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         }
 
         // Subheading style: lines like *（一）市场经济的迅速发展* or （二）统一银行券发行的需要
-        // Directly color the text in prominent indigo/violet! ZERO background box!
+        // Directly color the text in GREEN! ZERO background box!
         const isSubheading =
           /^[\\*]*[（\(][一二三四五六七八九十0-9]+[）\)][^\\*]*[\\*]*/.test(cleanText) ||
           (/^\*[^*]+\*$/.test(cleanText) && !cleanText.includes('**'));
@@ -249,7 +249,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
           const subTitle = cleanText.replace(/^\*+|\*+$/g, '');
           return (
             <div key={lineIdx} className="mt-4 mb-1 pt-1 first:mt-0 first:pt-0">
-              <h4 className="font-extrabold text-[15.5px] text-indigo-600 dark:text-indigo-400 tracking-wide">
+              <h4 className="font-extrabold text-[15.5px] text-emerald-600 dark:text-emerald-400 tracking-wide">
                 {subTitle}
               </h4>
             </div>

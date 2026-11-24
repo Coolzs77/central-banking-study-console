@@ -78,11 +78,11 @@ async function runTests() {
     // 7. Check that "共 N 点" is RETAINED per user explicit demand!
     assert(mdViewerCode.includes('共 {badgeNum} 点'), 'MarkdownViewer RETAINS the "共 N 点" amber badge per user demand');
 
-    // 8. Check that outline subheadings like （一）/（二）have distinct colored text style (NO background boxes!)
-    assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('text-indigo-600') && !mdViewerCode.includes('bg-indigo-50'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct indigo text color without background boxes');
+    // 8. Check that outline subheadings like （一）/（二）use green text color (NO background boxes!)
+    assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('text-emerald-600') && !mdViewerCode.includes('bg-indigo-50'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct green text color without background boxes');
 
-    // 9. Check that real keywords are scanned and highlighted directly with text color (NO background boxes!)
-    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-blue-600') && !mdViewerCode.includes('bg-blue-50/90'), 'MarkdownViewer uses pure text color highlighting for keywords without background boxes');
+    // 9. Check that real keywords are scanned and highlighted directly with green text color (NO background boxes!)
+    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-emerald-600') && !mdViewerCode.includes('bg-blue-50/90'), 'MarkdownViewer uses pure green text color highlighting for keywords without background boxes');
 
     // 10. Check MockExamCanvas has vertical scrolling and pinned countdown bar
     const mockExamCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/MockExamCanvas.tsx'), 'utf-8');
@@ -94,12 +94,12 @@ async function runTests() {
     const recitationCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RecitationCanvas.tsx'), 'utf-8');
     assert(!recitationCode.includes('标准答案与采分要点'), 'RecitationCanvas does NOT contain "标准答案与采分要点"');
     assert(!recitationCode.includes('背诵与参考解答'), 'RecitationCanvas does NOT contain "背诵与参考解答" (redundant banner removed)');
-    assert(recitationCode.includes('第 {currentQ.id} 题'), 'RecitationCanvas prominently displays question number in title heading');
+    assert(recitationCode.includes('{currentQ.id}.'), 'RecitationCanvas displays question number with 1. style in title heading');
 
     // 12. Check HomeworkCanvas does NOT contain "作业标准参考解答" and displays question number
     const homeworkCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/HomeworkCanvas.tsx'), 'utf-8');
     assert(!homeworkCode.includes('作业标准参考解答'), 'HomeworkCanvas does NOT contain "作业标准参考解答"');
-    assert(homeworkCode.includes('第 {currentQ.questionNumber} 题'), 'HomeworkCanvas prominently displays question number in title heading');
+    assert(homeworkCode.includes('{currentQ.questionNumber}.'), 'HomeworkCanvas displays question number with 1. style in title heading');
 
     // 13. Check RightSidebar does NOT contain "考点分值："
     const rightSidebarCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RightSidebar.tsx'), 'utf-8');

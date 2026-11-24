@@ -128,9 +128,9 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
           </div>
         </div>
 
-        {/* Question Title with Pure Text Color Highlighting */}
+        {/* Question Title with 1. style */}
         <h2 className="py-4 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-white">
-          <span className="text-blue-600 dark:text-blue-400 font-mono font-bold mr-2">第 {currentQ.questionNumber} 题 ·</span>
+          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold mr-1.5">{currentQ.questionNumber}.</span>
           <span>{currentQ.questionTitle}</span>
         </h2>
 
