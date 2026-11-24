@@ -26,8 +26,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   // Memoize active keywords and regex if custom keywords provided
   const activeKeywords = React.useMemo(() => {
     if (keywords && keywords.length > 0) {
-      const set = new Set([...keywords, ...CENTRAL_BANKING_KEYWORDS]);
-      return Array.from(set).sort((a, b) => b.length - a.length);
+      return keywords.slice().sort((a, b) => b.length - a.length);
     }
     return CENTRAL_BANKING_KEYWORDS;
   }, [keywords]);

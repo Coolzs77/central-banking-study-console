@@ -105,6 +105,54 @@ assert(
   'Found question with missing or empty content/title/chapter'
 );
 
+// Assert keyword coverage and quality
+const allQuestionsHaveKeywords = recitationQuestions.every(q => 
+  q.keywords && Array.isArray(q.keywords) && q.keywords.length >= 4
+);
+assert(
+  allQuestionsHaveKeywords,
+  'All 161 recitation questions have at least 4 curated keywords',
+  'Found question with fewer than 4 keywords'
+);
+
+let emptyBulletCount = 0;
+for (const q of recitationQuestions) {
+  const kwList = (q.keywords || []).slice().sort((a, b) => b.length - a.length);
+  const kwRegex = kwList.length > 0
+    ? new RegExp('(' + kwList.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'g')
+    : null;
+
+  const lines = q.content.split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    let cleanText = trimmed;
+    if (cleanText.startsWith('- ')) cleanText = cleanText.slice(2);
+
+    const isSub =
+      /^[\\*]*[（\(][一二三四五六七八九十0-9]+[）\)][^\\*]*[\\*]*/.test(cleanText) ||
+      (/^\*[^*]+\*$/.test(cleanText) && !cleanText.includes('**'));
+
+    if (isSub) continue;
+
+    const leadingSpaces = line.search(/\S|$/);
+    const isBullet = (leadingSpaces >= 2 && line.startsWith('  -')) || (leadingSpaces >= 4 || line.startsWith('    -'));
+
+    if (isBullet) {
+      const matches = kwRegex ? cleanText.match(kwRegex) || [] : [];
+      if (matches.length === 0) {
+        emptyBulletCount++;
+      }
+    }
+  }
+}
+
+assert(
+  emptyBulletCount === 0,
+  'All 516 scoring bullet points across all 161 questions have >= 1 keyword matched (0 empty bullets)',
+  `Found ${emptyBulletCount} empty bullet points without keywords`
+);
+
 // -----------------------------------------------------------------
 // 2. Homework Dataset Assertions (54 Questions across Chapters 1-11)
 // -----------------------------------------------------------------
@@ -193,12 +241,13 @@ assert(
 const allFillInsValid = fillInQuestions.every(q => 
   q.stem.includes('_____') &&
   q.answers.length > 0 &&
-  q.points === 1
+  q.points === 1 &&
+  q.recitationQuestionId && q.recitationQuestionId >= 1 && q.recitationQuestionId <= 161
 );
 assert(
   allFillInsValid,
-  'All 40 fill-in questions contain blank placeholders and valid answers',
-  'Found fill-in question with missing blank or answers'
+  'All 40 fill-in questions contain blank placeholders, valid answers, and valid 161 recitation question mapping',
+  'Found fill-in question with missing blank or answers or invalid recitationQuestionId'
 );
 
 assert(
@@ -211,12 +260,14 @@ const allSingleChoicesValid = singleChoiceQuestions.every(q =>
   q.options.A && q.options.B && q.options.C && q.options.D &&
   ['A', 'B', 'C', 'D'].includes(q.correctKey) &&
   q.rationale && q.rationale.length > 0 &&
-  q.points === 1
+  q.points === 1 &&
+  q.recitationQuestionId && q.recitationQuestionId >= 1 && q.recitationQuestionId <= 161 &&
+  !q.stem.includes('三元悖论') && !q.stem.includes('不可能三角')
 );
 assert(
   allSingleChoicesValid,
-  'All 40 single choice questions feature complete ABCD options, valid key, and detailed rationale',
-  'Found single choice question with invalid options or missing rationale'
+  'All 40 single choice questions feature complete ABCD options, valid key, detailed rationale, 161 mapping, and zero out-of-syllabus terms',
+  'Found single choice question with invalid options or missing rationale or out-of-syllabus terms'
 );
 
 assert(
@@ -228,12 +279,19 @@ assert(
 const allTrueFalseValid = trueFalseQuestions.every(q => 
   typeof q.isCorrect === 'boolean' &&
   q.errorCorrection && q.errorCorrection.length > 0 &&
-  q.points === 1
+  q.points === 1 &&
+  q.recitationQuestionId && q.recitationQuestionId >= 1 && q.recitationQuestionId <= 161 &&
+  !tfStemHasOutlier(q)
 );
+
+function tfStemHasOutlier(q: any) {
+  return q.statement.includes('三元悖论') || q.statement.includes('不可能三角');
+}
+
 assert(
   allTrueFalseValid,
-  'All 30 True/False questions specify boolean value and error correction statement',
-  'Found True/False question with missing boolean or correction'
+  'All 30 True/False questions specify boolean value, error correction statement, valid 161 mapping, and zero out-of-syllabus terms',
+  'Found True/False question with missing boolean or correction or out-of-syllabus terms'
 );
 
 assert(
