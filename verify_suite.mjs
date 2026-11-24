@@ -154,9 +154,17 @@ async function runTests() {
     assert(mockExamCode.includes('overflow-y-auto'), 'MockExamCanvas includes overflow-y-auto for smooth paper scrolling');
     assert(!mockExamCode.includes('规范3分答题法：定义1.5分+性质1分+职能0.5分'), 'MockExamCanvas removes artificial 3-pt formula text');
 
-    // Check RecitationCanvas does NOT contain "标准答案与采分要点"
+    // Check RecitationCanvas does NOT contain "标准答案与采分要点" or "背诵与参考解答"
     const recitationCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RecitationCanvas.tsx'), 'utf-8');
     assert(!recitationCode.includes('标准答案与采分要点'), 'RecitationCanvas does NOT contain "标准答案与采分要点"');
+    assert(!recitationCode.includes('背诵与参考解答'), 'RecitationCanvas does NOT contain "背诵与参考解答" (redundant banner removed)');
+
+    // Check HomeworkCanvas does NOT contain "作业标准参考解答"
+    const homeworkCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/HomeworkCanvas.tsx'), 'utf-8');
+    assert(!homeworkCode.includes('作业标准参考解答'), 'HomeworkCanvas does NOT contain "作业标准参考解答"');
+
+    // Check MarkdownViewer does NOT inject "共 N 点" badges
+    assert(!mdViewerCode.includes('共 {badgeNum} 点'), 'MarkdownViewer does NOT inject redundant "共 N 点" score badges');
 
     // Check RightSidebar does NOT contain "考点分值："
     const rightSidebarCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RightSidebar.tsx'), 'utf-8');

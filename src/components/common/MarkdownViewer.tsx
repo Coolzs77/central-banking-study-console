@@ -36,14 +36,8 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   };
 
   const renderInlineFormatted = (text: string) => {
-    // Check for ==N== tags at the end of line
-    const tagMatch = text.match(/\t*==(\d+)==/);
-    let mainText = text;
-    let badgeNum: string | null = null;
-    if (tagMatch) {
-      mainText = text.replace(/\t*==(\d+)==/, '');
-      badgeNum = tagMatch[1];
-    }
+    // Strip ==N== tags if present
+    let mainText = text.replace(/\t*==\d+==/g, '');
 
     // Split by **bold** or *italic*
     // First, split by **...**
@@ -107,12 +101,6 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             </React.Fragment>
           );
         })}
-
-        {badgeNum && (
-          <span className="ml-2.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 shadow-sm align-middle">
-            共 {badgeNum} 点
-          </span>
-        )}
       </span>
     );
   };

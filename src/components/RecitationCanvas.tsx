@@ -144,19 +144,7 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
         </h2>
 
         {/* 3. Question Content / Answer Area */}
-        <div className="mt-2 p-5 rounded-2xl bg-gradient-to-tr from-slate-50 to-blue-50/30 dark:from-[#192233] dark:to-[#161c28] border border-blue-200/80 dark:border-blue-900/60 clay-card-shadow">
-          <div className="flex items-center justify-between pb-3 border-b border-blue-100 dark:border-blue-900/40 mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-base">💡</span>
-              <span className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100">
-                背诵与参考解答
-              </span>
-            </div>
-            <div className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-              {isMasking ? '🙈 关键词已遮挡 (点击填空可揭开)' : '👁️ 完整答案已展示'}
-            </div>
-          </div>
-
+        <div className="mt-2 p-5 sm:p-6 rounded-2xl bg-slate-50/80 dark:bg-[#18202e] border border-slate-200/80 dark:border-slate-800/80 clay-card-shadow">
           <MarkdownViewer content={currentQ.content} maskKeywords={isMasking} />
         </div>
       </div>

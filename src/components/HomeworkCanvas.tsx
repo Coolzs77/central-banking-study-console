@@ -135,23 +135,7 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
 
         {/* 3. Solution Section (展开题解卡片) */}
         {showAnswer && (
-          <div className="mt-2 p-5 rounded-2xl bg-gradient-to-tr from-slate-50 to-blue-50/30 dark:from-[#192233] dark:to-[#161c28] border border-blue-200/80 dark:border-blue-900/60 clay-card-shadow">
-            <div className="flex items-center justify-between pb-3 border-b border-blue-100 dark:border-blue-900/40 mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-base">💡</span>
-                <span className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100">
-                  作业标准参考解答
-                </span>
-              </div>
-              <button
-                onClick={handleCopyCurrent}
-                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer font-medium"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                <span>复制解答</span>
-              </button>
-            </div>
-
+          <div className="mt-2 p-5 sm:p-6 rounded-2xl bg-slate-50/80 dark:bg-[#18202e] border border-slate-200/80 dark:border-slate-800/80 clay-card-shadow">
             <MarkdownViewer content={currentQ.answer} maskKeywords={false} />
           </div>
         )}
