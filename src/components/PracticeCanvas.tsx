@@ -265,14 +265,12 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             completedItemIds={termMemorized}
             isMemorized={termMemorized.includes(currentTerm.id)}
             onToggleMemorized={() => onToggleTermMemorized(currentTerm.id)}
-            memorizedLabel="已掌握"
-            unmemorizedLabel="标为掌握"
+            actionLabel="掌握"
             isStarred={false}
             onToggleStar={() => {}}
             revealed={isFlipped}
             onToggleRevealed={() => setIsFlipped((p) => !p)}
-            revealLabel="翻看定义"
-            hideLabel="翻回正面"
+            toggleLabel="定义"
             onCopy={() => {
               navigator.clipboard.writeText(`【${currentTerm.term}】\n${currentTerm.definition}`);
             }}
@@ -340,16 +338,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     }`}
                   >
                     {termMemorized.includes(currentTerm.id) ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>已掌握概念</span>
-                      </>
+                      <CheckCircle2 className="w-4 h-4" />
                     ) : (
-                      <>
-                        <Circle className="w-4 h-4 text-slate-400" />
-                        <span>标为已掌握</span>
-                      </>
+                      <Circle className="w-4 h-4 text-slate-400" />
                     )}
+                    <span>掌握</span>
                   </button>
                 </div>
               </div>
@@ -395,9 +388,13 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
             <button
               onClick={() => setShowChoiceExplanation((p) => !p)}
-              className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition cursor-pointer"
+              className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition cursor-pointer ${
+                showChoiceExplanation
+                  ? 'bg-blue-600 text-white border-blue-700 shadow-xs'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+              }`}
             >
-              {showChoiceExplanation ? '收起解析' : '💡 查看答案与解析'}
+              解析
             </button>
           </div>
 
@@ -501,9 +498,13 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
             <button
               onClick={() => setShowTfExplanation((p) => !p)}
-              className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition cursor-pointer"
+              className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition cursor-pointer ${
+                showTfExplanation
+                  ? 'bg-purple-600 text-white border-purple-700 shadow-xs'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+              }`}
             >
-              {showTfExplanation ? '收起解析' : '💡 查看答案与改错'}
+              解析
             </button>
           </div>
 
@@ -604,9 +605,13 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
             <button
               onClick={() => setShowFillAnswer((prev) => !prev)}
-              className="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition cursor-pointer"
+              className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition cursor-pointer ${
+                showFillAnswer
+                  ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+              }`}
             >
-              {showFillAnswer ? '隐藏参考关键词' : '👁️ 揭开参考关键词 (Space)'}
+              答案
             </button>
           </div>
 

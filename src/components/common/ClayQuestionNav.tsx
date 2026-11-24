@@ -21,14 +21,12 @@ interface ClayQuestionNavProps {
   starredItemIds?: number[];
   isMemorized: boolean;
   onToggleMemorized: () => void;
-  memorizedLabel?: string;
-  unmemorizedLabel?: string;
+  actionLabel?: string;
   isStarred: boolean;
   onToggleStar: () => void;
   revealed?: boolean;
   onToggleRevealed?: () => void;
-  revealLabel?: string;
-  hideLabel?: string;
+  toggleLabel?: string;
   onCopy: () => void;
   isCopied: boolean;
   modeBadge?: string;
@@ -45,14 +43,12 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
   starredItemIds = [],
   isMemorized,
   onToggleMemorized,
-  memorizedLabel = '已背会',
-  unmemorizedLabel = '背会',
+  actionLabel = '背会',
   isStarred,
   onToggleStar,
   revealed,
   onToggleRevealed,
-  revealLabel = '查看题解',
-  hideLabel = '收起题解',
+  toggleLabel = '遮挡',
   onCopy,
   isCopied,
   modeBadge,
@@ -75,7 +71,6 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
             onClick={onPrev}
             disabled={currentIndex <= 0}
             className="clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 hover:bg-slate-50 border border-slate-200 dark:border-slate-700 disabled:opacity-30 transition-all flex items-center gap-1 cursor-pointer"
-            title="快捷键: J 或 左箭头"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>上一题</span>
@@ -92,66 +87,67 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
             onClick={onNext}
             disabled={currentIndex >= totalFiltered - 1}
             className="clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 hover:bg-slate-50 border border-slate-200 dark:border-slate-700 disabled:opacity-30 transition-all flex items-center gap-1 cursor-pointer"
-            title="快捷键: K 或 右箭头"
           >
             <span>下一题</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Right: Reveal Solution / Memorized Toggle / Star Toggle / Copy */}
+        {/* Right: Reveal Solution / Memorized Toggle / Star Toggle / Copy - Fixed text, state by color! */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Solution / Mask Toggle Button */}
           {onToggleRevealed && (
             <button
               onClick={onToggleRevealed}
-              className={`clay-button-shadow clay-squash px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
                 revealed
-                  ? 'bg-amber-500 text-white border-amber-600 shadow-md'
-                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500 shadow-md hover:from-blue-700 hover:to-indigo-700'
+                  ? 'bg-emerald-600 text-white border-emerald-700 shadow-md'
+                  : 'bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
               }`}
             >
               <HelpCircle className="w-3.5 h-3.5" />
-              <span>{revealed ? hideLabel : revealLabel}</span>
+              <span>{toggleLabel || '遮挡'}</span>
             </button>
           )}
 
-          {/* Memorized / Completed Button (✓) */}
+          {/* Memorized / Completed Button (✓) - Fixed label, state by color! */}
           <button
             onClick={onToggleMemorized}
             className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-all flex items-center gap-1 text-xs font-bold cursor-pointer ${
               isMemorized
-                ? 'bg-emerald-600 text-white border-emerald-700 shadow-md hover:bg-emerald-700'
-                : 'bg-white dark:bg-[#1a2232] text-slate-500 dark:text-slate-400 hover:text-emerald-600 border-slate-200 dark:border-slate-700'
+                ? 'bg-emerald-600 text-white border-emerald-700 shadow-md'
+                : 'bg-white dark:bg-[#1a2232] text-slate-600 dark:text-slate-400 hover:text-emerald-600 border-slate-200 dark:border-slate-700'
             }`}
-            title={isMemorized ? '点击取消标记' : '标记已背会/已完成'}
           >
             <Check className={`w-3.5 h-3.5 ${isMemorized ? 'stroke-[3]' : ''}`} />
-            <span>{isMemorized ? memorizedLabel : unmemorizedLabel}</span>
+            <span>{actionLabel || '背会'}</span>
           </button>
 
-          {/* Star Button */}
+          {/* Star Button - Fixed label, state by color! */}
           <button
             onClick={onToggleStar}
-            className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-all flex items-center gap-1 text-xs font-semibold cursor-pointer ${
+            className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-all flex items-center gap-1 text-xs font-bold cursor-pointer ${
               isStarred
-                ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 border-amber-300 dark:border-amber-700'
-                : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+                ? 'bg-amber-500 text-white border-amber-600 shadow-md'
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-amber-500 border-slate-200 dark:border-slate-700'
             }`}
-            title="收藏重点"
           >
-            <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-500 text-amber-500' : ''}`} />
-            <span>{isStarred ? '已收藏' : '收藏'}</span>
+            <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-white text-white' : ''}`} />
+            <span>收藏</span>
           </button>
 
-          {/* Copy Button */}
+          {/* Copy Button - Fixed label! */}
           <button
             onClick={onCopy}
-            className="clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 text-slate-500 hover:text-blue-600 border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1 text-xs font-semibold cursor-pointer"
-            title="复制本题内容"
+            className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-all flex items-center gap-1 text-xs font-bold cursor-pointer ${
+              isCopied
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border-emerald-300 dark:border-emerald-700'
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 border-slate-200 dark:border-slate-700'
+            }`}
           >
-            {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{isCopied ? '已复制' : '复制'}</span>
+            <Check className={`w-3.5 h-3.5 ${isCopied ? 'text-emerald-600' : 'hidden'}`} />
+            {!isCopied && <Copy className="w-3.5 h-3.5" />}
+            <span>复制</span>
           </button>
         </div>
       </div>

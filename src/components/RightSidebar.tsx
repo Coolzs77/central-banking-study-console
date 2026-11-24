@@ -313,7 +313,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                         <button
                           key={q.id}
                           onClick={() => onSelectHomeworkQuestionId(q.id)}
-                          title={`第 ${q.chapterId} 章 第 ${q.questionNumber} 题: ${q.questionTitle}`}
+                          title={`第 ${q.chapterId} 章 第 ${q.id} 题: ${q.question}`}
                           className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition-all relative cursor-pointer ${cellStyle}`}
                         >
                           <span>{q.id}</span>

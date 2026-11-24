@@ -76,7 +76,7 @@ export function App() {
       if (selectedChapterId && q.chapterId !== selectedChapterId) return false;
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchTitle = q.questionTitle.toLowerCase().includes(query);
+        const matchTitle = q.question.toLowerCase().includes(query);
         const matchAns = q.answer.toLowerCase().includes(query);
         if (!matchTitle && !matchAns) return false;
       }

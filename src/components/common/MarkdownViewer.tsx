@@ -44,7 +44,9 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   };
 
   /**
-   * Scans a piece of text for financial keywords and gives them color highlighting (NO background boxes!)
+   * Scans a piece of text for financial keywords.
+   * - Paragraph keywords use NORMAL high-contrast font (NOT green).
+   * - In cloze masking mode, applies a soft shadow/blur mask directly over the keyword (NO text replacement like ...揭开).
    */
   const renderTextSegmentWithKeywords = (
     text: string,
@@ -65,29 +67,28 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         const clozeId = globalClozeIdx++;
         const isRevealed = !maskKeywords || onToggleClozeAll || revealedSet.has(clozeId);
 
+        // When masked: apply a soft shadow/blur layer directly over the word (no ...揭开 text replacement!)
         if (!isRevealed) {
           return (
-            <button
+            <span
               key={`${keyPrefix}-${pIdx}`}
-              type="button"
               onClick={(e) => toggleCloze(clozeId, e)}
-              title="点击揭开关键词"
-              className="inline-flex items-center px-1.5 py-0.2 mx-0.5 rounded text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 font-bold text-xs border border-emerald-300 dark:border-emerald-700 transition cursor-pointer select-none"
+              style={{ filter: 'blur(4px)' }}
+              className="inline-block cursor-pointer select-none transition-all rounded px-0.5 bg-slate-400/40 dark:bg-slate-600/50 text-transparent"
+              title="点击揭开"
             >
-              ··· 揭开
-            </button>
+              {part}
+            </span>
           );
         }
 
-        // Color highlight directly on text in GREEN - ZERO background boxes!
+        // When revealed / normal: standard high-contrast text (NOT green!)
         return (
           <strong
             key={`${keyPrefix}-${pIdx}`}
             onClick={(e) => maskKeywords && toggleCloze(clozeId, e)}
-            className={`font-bold transition-colors ${
-              maskKeywords
-                ? 'text-teal-600 dark:text-teal-400 cursor-pointer'
-                : 'text-emerald-600 dark:text-emerald-400'
+            className={`font-bold text-slate-900 dark:text-slate-100 ${
+              maskKeywords ? 'cursor-pointer hover:opacity-75' : ''
             }`}
             title={maskKeywords ? '点击重新遮挡' : undefined}
           >
@@ -144,29 +145,28 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
               const clozeId = globalClozeIdx++;
               const isRevealed = !maskKeywords || onToggleClozeAll || revealedSet.has(clozeId);
 
+              // When masked: apply soft shadow/blur over the keyword
               if (!isRevealed) {
                 return (
-                  <button
+                  <span
                     key={i}
-                    type="button"
                     onClick={(e) => toggleCloze(clozeId, e)}
-                    title="点击揭开关键词"
-                    className="inline-flex items-center px-1.5 py-0.2 mx-0.5 rounded text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 font-bold text-xs border border-emerald-300 dark:border-emerald-700 transition cursor-pointer select-none"
+                    style={{ filter: 'blur(4px)' }}
+                    className="inline-block cursor-pointer select-none transition-all rounded px-0.5 bg-slate-400/40 dark:bg-slate-600/50 text-transparent"
+                    title="点击揭开"
                   >
-                    ··· 揭开
-                  </button>
+                    {rawWord}
+                  </span>
                 );
               }
 
-              // Color highlight directly on text in GREEN - ZERO background boxes!
+              // When revealed / normal: standard high-contrast text (NOT green!)
               return (
                 <strong
                   key={i}
                   onClick={(e) => maskKeywords && toggleCloze(clozeId, e)}
-                  className={`font-bold transition-colors ${
-                    maskKeywords
-                      ? 'text-teal-600 dark:text-teal-400 cursor-pointer'
-                      : 'text-emerald-600 dark:text-emerald-400'
+                  className={`font-bold text-slate-900 dark:text-slate-100 ${
+                    maskKeywords ? 'cursor-pointer hover:opacity-75' : ''
                   }`}
                   title={maskKeywords ? '点击重新遮挡' : undefined}
                 >
@@ -240,7 +240,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         }
 
         // Subheading style: lines like *（一）市场经济的迅速发展* or （二）统一银行券发行的需要
-        // Directly color the text in GREEN! ZERO background box!
+        // The summary subheadings stay in vibrant emerald green! ZERO background box!
         const isSubheading =
           /^[\\*]*[（\(][一二三四五六七八九十0-9]+[）\)][^\\*]*[\\*]*/.test(cleanText) ||
           (/^\*[^*]+\*$/.test(cleanText) && !cleanText.includes('**'));

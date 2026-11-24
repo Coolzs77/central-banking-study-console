@@ -104,14 +104,12 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
         starredItemIds={starredList}
         isMemorized={isMemorized}
         onToggleMemorized={() => onToggleMemorized(currentQ.id)}
-        memorizedLabel="已背会"
-        unmemorizedLabel="背会"
+        actionLabel="背会"
         isStarred={isStarred}
         onToggleStar={() => onToggleStar(currentQ.id)}
         revealed={isMasking}
         onToggleRevealed={() => setIsMasking((p) => !p)}
-        revealLabel="关键词遮挡"
-        hideLabel="显示完整"
+        toggleLabel="遮挡"
         onCopy={handleCopyCurrent}
         isCopied={copied}
         modeBadge="全书速记"
@@ -138,9 +136,9 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
           </div>
         </div>
 
-        {/* Question Title with 1. style */}
+        {/* Question Title with 1. style (Black font) */}
         <h2 className="py-4 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-white">
-          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold mr-1.5">{currentQ.id}.</span>
+          <span className="font-mono font-bold mr-1.5 text-slate-900 dark:text-white">{currentQ.id}.</span>
           <span>{currentQ.title}</span>
         </h2>
 

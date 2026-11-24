@@ -71,9 +71,9 @@ async function runTests() {
     const syncCode = fs.readFileSync(path.join(ROOT_DIR, 'src/services/syncService.ts'), 'utf-8');
     assert(syncCode.includes('textdb.online') && syncCode.includes('SHA-256'), 'SyncService uses textdb.online SHA-256 cloud KV sync');
 
-    // 6. Check MarkdownViewer supports keyword-only cloze masking and reveal
+    // 6. Check MarkdownViewer supports blurred shadow cloze masking (NO ...揭开 text replacement!)
     const mdViewerCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/common/MarkdownViewer.tsx'), 'utf-8');
-    assert(mdViewerCode.includes('maskKeywords') && mdViewerCode.includes('··· 揭开'), 'MarkdownViewer supports keyword-only cloze masking and reveal');
+    assert(mdViewerCode.includes('maskKeywords') && mdViewerCode.includes("filter: 'blur(4px)'"), 'MarkdownViewer applies soft blurred shadow layer directly over keyword without ...揭开 replacement');
 
     // 7. Check that "共 N 点" is RETAINED per user explicit demand!
     assert(mdViewerCode.includes('共 {badgeNum} 点'), 'MarkdownViewer RETAINS the "共 N 点" amber badge per user demand');
@@ -81,8 +81,8 @@ async function runTests() {
     // 8. Check that outline subheadings like （一）/（二）use green text color (NO background boxes!)
     assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('text-emerald-600') && !mdViewerCode.includes('bg-indigo-50'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct green text color without background boxes');
 
-    // 9. Check that real keywords are scanned and highlighted directly with green text color (NO background boxes!)
-    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-emerald-600') && !mdViewerCode.includes('bg-blue-50/90'), 'MarkdownViewer uses pure green text color highlighting for keywords without background boxes');
+    // 9. Check that body keywords do NOT use green text color (normal high-contrast bold font per user requirement)
+    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-slate-900 dark:text-slate-100'), 'MarkdownViewer renders paragraph body keywords in standard high-contrast font (NOT green)');
 
     // 10. Check MockExamCanvas has vertical scrolling and pinned countdown bar
     const mockExamCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/MockExamCanvas.tsx'), 'utf-8');
@@ -94,12 +94,12 @@ async function runTests() {
     const recitationCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RecitationCanvas.tsx'), 'utf-8');
     assert(!recitationCode.includes('标准答案与采分要点'), 'RecitationCanvas does NOT contain "标准答案与采分要点"');
     assert(!recitationCode.includes('背诵与参考解答'), 'RecitationCanvas does NOT contain "背诵与参考解答" (redundant banner removed)');
-    assert(recitationCode.includes('{currentQ.id}.'), 'RecitationCanvas displays question number with 1. style in title heading');
+    assert(recitationCode.includes('{currentQ.id}.') && recitationCode.includes('text-slate-900 dark:text-white'), 'RecitationCanvas displays question number in pure black font');
 
-    // 12. Check HomeworkCanvas does NOT contain "作业标准参考解答" and displays question number
+    // 12. Check HomeworkCanvas restores question title and black 1. question number
     const homeworkCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/HomeworkCanvas.tsx'), 'utf-8');
     assert(!homeworkCode.includes('作业标准参考解答'), 'HomeworkCanvas does NOT contain "作业标准参考解答"');
-    assert(homeworkCode.includes('{currentQ.questionNumber}.'), 'HomeworkCanvas displays question number with 1. style in title heading');
+    assert(homeworkCode.includes('{currentQ.id}.') && homeworkCode.includes('{currentQ.question}'), 'HomeworkCanvas correctly renders question stem and id');
 
     // 13. Check RightSidebar does NOT contain "考点分值："
     const rightSidebarCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RightSidebar.tsx'), 'utf-8');
@@ -110,14 +110,19 @@ async function runTests() {
     assert(leftSidebarCode.includes('w-76 lg:w-80'), 'LeftSidebar has widened width w-76 lg:w-80');
     assert(leftSidebarCode.includes('cleanTitle'), 'LeftSidebar formats clean chapter title without redundant prefix');
 
-    // 15. Check PracticeCanvas properly accesses single choice and true-false fields
+    // 15. Check PracticeCanvas properly accesses single choice and true-false fields, and avoids flapping verbose buttons
     const practiceCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/PracticeCanvas.tsx'), 'utf-8');
     assert(practiceCode.includes('currentChoice.options[key]') && practiceCode.includes('currentChoice.rationale'), 'PracticeCanvas accesses singleChoice options and rationale correctly');
     assert(practiceCode.includes('currentTF.statement') && practiceCode.includes('currentTF.errorCorrection'), 'PracticeCanvas accesses trueFalse statement and errorCorrection correctly');
     assert(practiceCode.includes('currentChoiceIndex') && practiceCode.includes('currentTfIndex'), 'PracticeCanvas supports external question index jumping');
+    assert(!practiceCode.includes('揭开参考关键词 (Space)'), 'PracticeCanvas eliminated verbose 揭开参考关键词 (Space) button');
 
     // 16. Check RightSidebar has clickable buttons for choice, truefalse, fill
     assert(rightSidebarCode.includes('onSelectChoiceIndex') && rightSidebarCode.includes('onSelectTfIndex'), 'RightSidebar has clickable buttons for choice and truefalse drills');
+
+    // 17. Check ClayQuestionNav has fixed concise button labels and zero hover tooltips
+    const navCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/common/ClayQuestionNav.tsx'), 'utf-8');
+    assert(navCode.includes('actionLabel') && !navCode.includes('title='), 'ClayQuestionNav uses invariant concise labels and zero noisy title tooltips');
   } catch (err) {
     console.error('Error checking layout & features:', err.message);
     failedAssertions++;

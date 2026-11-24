@@ -38,7 +38,7 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
 
   const handleCopyCurrent = () => {
     if (!currentQ) return;
-    const text = `【第 ${currentQ.chapterId} 章 · 第 ${currentQ.questionNumber} 题】${currentQ.questionTitle}\n\n参考答案：\n${currentQ.answer}`;
+    const text = `【第 ${currentQ.chapterId} 章 · 第 ${currentQ.id} 题】${currentQ.question}\n\n参考答案：\n${currentQ.answer}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -97,14 +97,12 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
         starredItemIds={starredList}
         isMemorized={isCompleted}
         onToggleMemorized={() => onToggleCompleted(currentQ.id)}
-        memorizedLabel="已完成"
-        unmemorizedLabel="标为已做"
+        actionLabel="已做"
         isStarred={isStarred}
         onToggleStar={() => onToggleStar(currentQ.id)}
         revealed={showAnswer}
         onToggleRevealed={() => setShowAnswer((p) => !p)}
-        revealLabel="查看答案"
-        hideLabel="收起答案"
+        toggleLabel="答案"
         onCopy={handleCopyCurrent}
         isCopied={copied}
         modeBadge="平时作业本"
@@ -118,9 +116,6 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
               第 {currentQ.chapterId} 章 · {currentQ.chapterTitle || '中央银行学'}
             </span>
-            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-              {currentQ.questionType}
-            </span>
           </div>
 
           <div className="text-xs text-slate-500 font-medium">
@@ -128,10 +123,10 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
           </div>
         </div>
 
-        {/* Question Title with 1. style */}
+        {/* Question Title with 1. style (Black font) */}
         <h2 className="py-4 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-white">
-          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold mr-1.5">{currentQ.questionNumber}.</span>
-          <span>{currentQ.questionTitle}</span>
+          <span className="font-mono font-bold mr-1.5 text-slate-900 dark:text-white">{currentQ.id}.</span>
+          <span>{currentQ.question}</span>
         </h2>
 
         {/* 3. Solution Section (展开题解卡片) */}
