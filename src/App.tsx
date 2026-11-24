@@ -127,6 +127,8 @@ export function App() {
               questions={homeworkQuestions || []}
               completedList={state.homeworkCompleted}
               onToggleCompleted={toggleHomeworkCompleted}
+              starredList={state.starred}
+              onToggleStar={toggleStarred}
               selectedChapterId={selectedChapterId}
               onSelectChapter={setSelectedChapterId}
               selectedQuestionId={selectedHomeworkId}

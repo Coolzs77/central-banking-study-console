@@ -33,6 +33,7 @@ async function runTests() {
     'src/data/examData.ts',
     'src/services/syncService.ts',
     'src/components/common/MarkdownViewer.tsx',
+    'src/components/common/ClayQuestionNav.tsx',
     'src/components/MiddleNav.tsx',
     'src/components/Header.tsx',
     'src/components/LeftSidebar.tsx',

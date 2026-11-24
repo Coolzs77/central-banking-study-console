@@ -20,7 +20,7 @@ import {
   FillInQuestion,
 } from '../data/types';
 import { MarkdownViewer } from './common/MarkdownViewer';
-import { MiddleNav } from './MiddleNav';
+import { ClayQuestionNav } from './common/ClayQuestionNav';
 
 interface PracticeCanvasProps {
   terms: TerminologyQuestion[];
@@ -170,16 +170,10 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
       {/* Tab 1: Terminology Flashcards */}
       {activeTab === 'terms' && currentTerm && (
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Middle Nav */}
-          <MiddleNav
+          {/* FRM-Style Navigation Bar */}
+          <ClayQuestionNav
             currentIndex={currentTermIdx}
-            totalCount={terms.length}
-            chapterTitle={currentTerm.chapterTitle}
-            sectionTitle={currentTerm.source}
-            isMasking={isMasking}
-            onToggleMask={() => setIsMasking((prev) => !prev)}
-            isAllRevealed={isAllRevealed}
-            onToggleRevealAll={() => setIsAllRevealed((prev) => !prev)}
+            totalFiltered={terms.length}
             onPrev={() => {
               setCurrentTermIdx((prev) => Math.max(0, prev - 1));
               setIsFlipped(false);
@@ -188,16 +182,27 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
               setCurrentTermIdx((prev) => Math.min(terms.length - 1, prev + 1));
               setIsFlipped(false);
             }}
-            onRandom={() => {
-              const r = Math.floor(Math.random() * terms.length);
-              setCurrentTermIdx(r);
-              setIsFlipped(false);
-            }}
             onJumpToIndex={(idx) => {
               setCurrentTermIdx(idx);
               setIsFlipped(false);
             }}
-            modeTitle="名词概念"
+            allItemIds={terms.map((t) => t.id)}
+            completedItemIds={termMemorized}
+            isMemorized={termMemorized.includes(currentTerm.id)}
+            onToggleMemorized={() => onToggleTermMemorized(currentTerm.id)}
+            memorizedLabel="已掌握"
+            unmemorizedLabel="标为掌握"
+            isStarred={false}
+            onToggleStar={() => {}}
+            revealed={isFlipped}
+            onToggleRevealed={() => setIsFlipped((p) => !p)}
+            revealLabel="翻看定义"
+            hideLabel="翻回正面"
+            onCopy={() => {
+              navigator.clipboard.writeText(`【${currentTerm.term}】\n${currentTerm.definition}`);
+            }}
+            isCopied={false}
+            modeBadge="名词抽背"
           />
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center justify-center">

@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Star,
-  CheckCircle2,
-  Circle,
   Award,
   Zap,
-  BookmarkCheck,
   BookOpen,
 } from 'lucide-react';
 import { RecitationQuestion } from '../data/types';
-import { MiddleNav } from './MiddleNav';
+import { ClayQuestionNav } from './common/ClayQuestionNav';
 import { MarkdownViewer } from './common/MarkdownViewer';
 
 interface RecitationCanvasProps {
@@ -57,10 +53,9 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
     });
   }, [questions, selectedChapterId, pointFilter, searchQuery, activeFilter, memorizedList, starredList]);
 
-  // Current active index in filtered list
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isMasking, setIsMasking] = useState<boolean>(true);
-  const [isAllRevealed, setIsAllRevealed] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
 
   // Sync selectedQuestionId if passed from right or left sidebar
   useEffect(() => {
@@ -81,46 +76,37 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
 
   const currentQ = filteredQuestions[currentIndex] || filteredQuestions[0];
 
-  // Notify parent of active question change
   useEffect(() => {
     if (currentQ && onSelectQuestion && selectedQuestionId !== currentQ.id) {
       onSelectQuestion(currentQ.id);
     }
   }, [currentQ, onSelectQuestion, selectedQuestionId]);
 
-  // Steppers
   const handlePrev = useCallback(() => {
     setCurrentIndex((prev) => Math.max(0, prev - 1));
-    setIsAllRevealed(false);
   }, []);
 
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => Math.min(filteredQuestions.length - 1, prev + 1));
-    setIsAllRevealed(false);
   }, [filteredQuestions.length]);
 
-  const handleRandom = useCallback(() => {
-    if (filteredQuestions.length <= 1) return;
-    let nextIdx = Math.floor(Math.random() * filteredQuestions.length);
-    if (nextIdx === currentIndex) {
-      nextIdx = (nextIdx + 1) % filteredQuestions.length;
-    }
-    setCurrentIndex(nextIdx);
-    setIsAllRevealed(false);
-  }, [filteredQuestions.length, currentIndex]);
-
-  const handleJump = useCallback((idx: number) => {
+  const handleJumpToIndex = useCallback((idx: number) => {
     setCurrentIndex(idx);
-    setIsAllRevealed(false);
   }, []);
+
+  const handleCopyCurrent = () => {
+    if (!currentQ) return;
+    const text = `【第 ${currentQ.id} 题】${currentQ.title} (${currentQ.points}点)\n\n${currentQ.content}`;
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept if inside input / textarea
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) {
-        return;
-      }
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+
       if (e.code === 'Space') {
         e.preventDefault();
         setIsMasking((prev) => !prev);
@@ -159,117 +145,104 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
 
   const isMemorized = memorizedList.includes(currentQ.id);
   const isStarred = starredList.includes(currentQ.id);
+  const allItemIds = filteredQuestions.map((q) => q.id);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50/50 overflow-hidden select-text">
-      {/* Middle Top Navigation Bar */}
-      <MiddleNav
+    <div className="flex-1 min-w-0 flex flex-col gap-4 p-3 sm:p-5 lg:p-6 overflow-y-auto max-h-[calc(100vh-4rem)] select-text">
+      {/* 1. FRM-Style Sticky Navigation Bar */}
+      <ClayQuestionNav
         currentIndex={currentIndex}
-        totalCount={filteredQuestions.length}
-        chapterTitle={currentQ.chapterTitle}
-        sectionTitle={currentQ.sectionTitle}
-        isMasking={isMasking}
-        onToggleMask={() => setIsMasking((prev) => !prev)}
-        isAllRevealed={isAllRevealed}
-        onToggleRevealAll={() => setIsAllRevealed((prev) => !prev)}
+        totalFiltered={filteredQuestions.length}
         onPrev={handlePrev}
         onNext={handleNext}
-        onRandom={handleRandom}
-        onJumpToIndex={handleJump}
-        modeTitle="全书背诵"
+        onJumpToIndex={handleJumpToIndex}
+        allItemIds={allItemIds}
+        completedItemIds={memorizedList}
+        starredItemIds={starredList}
+        isMemorized={isMemorized}
+        onToggleMemorized={() => onToggleMemorized(currentQ.id)}
+        memorizedLabel="已背会"
+        unmemorizedLabel="背会"
+        isStarred={isStarred}
+        onToggleStar={() => onToggleStar(currentQ.id)}
+        revealed={isMasking}
+        onToggleRevealed={() => setIsMasking((p) => !p)}
+        revealLabel="关键词遮挡"
+        hideLabel="显示完整"
+        onCopy={handleCopyCurrent}
+        isCopied={copied}
+        modeBadge="全书速记"
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-4">
-        {/* Question Header Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 md:p-6 transition-all">
-          <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-slate-100">
-            <div className="space-y-1.5 flex-1 min-w-[280px]">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-md bg-blue-600 text-white font-mono text-xs font-bold shadow-xs">
-                  第 {currentQ.id} 题
-                </span>
-                <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-semibold text-xs flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5 text-amber-600" />
-                  {currentQ.points} 个考点
-                </span>
-                {currentQ.isCore && (
-                  <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-semibold text-xs flex items-center gap-1">
-                    <Zap className="w-3.5 h-3.5 text-rose-500" />
-                    高频核心
-                  </span>
-                )}
-                <span className="text-xs text-slate-500 font-medium">
-                  {currentQ.sectionTitle}
-                </span>
-              </div>
-              <h2 className="text-lg md:text-xl font-bold text-slate-900 leading-snug tracking-tight pt-1">
-                {currentQ.title}
-              </h2>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onToggleStar(currentQ.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition shadow-xs cursor-pointer ${
-                  isStarred
-                    ? 'bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}
-                title="快捷键: S"
-              >
-                <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400 text-amber-500' : 'text-slate-400'}`} />
-                <span>{isStarred ? '已收藏' : '收藏'}</span>
-              </button>
-
-              <button
-                onClick={() => onToggleMemorized(currentQ.id)}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold border transition shadow-xs cursor-pointer ${
-                  isMemorized
-                    ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 shadow-emerald-200'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                }`}
-                title="快捷键: M"
-              >
-                {isMemorized ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-white" />
-                    <span>已背会</span>
-                  </>
-                ) : (
-                  <>
-                    <Circle className="w-4 h-4 text-slate-400" />
-                    <span>标为已背会</span>
-                  </>
-                )}
-              </button>
-            </div>
+      {/* 2. Main Question Card */}
+      <div className="clay-card-shadow bg-white dark:bg-[#151b26] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800/80 transition-all">
+        {/* Top Badges */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
+              第 {currentQ.id} 题 · {currentQ.chapterTitle.split(' ')[0]}
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              第 {currentIndex + 1} / {filteredQuestions.length} 题
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
+              <Award className="w-3.5 h-3.5 text-amber-600" />
+              {currentQ.points} 个考点
+            </span>
+            {currentQ.isCore && (
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+                <Zap className="w-3.5 h-3.5 text-rose-500" />
+                高频核心
+              </span>
+            )}
+            <span className="text-xs text-slate-400 font-medium">
+              {currentQ.sectionTitle}
+            </span>
           </div>
 
-          {/* Render Markdown Content */}
-          <div className="mt-5">
-            <MarkdownViewer
-              content={currentQ.content}
-              maskKeywords={isMasking}
-              onToggleClozeAll={isAllRevealed}
-            />
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>全书掌握率:</span>
+            <span className="font-bold text-blue-600">
+              {Math.round((memorizedList.length / questions.length) * 100)}%
+            </span>
           </div>
         </div>
 
-        {/* Footer shortcuts hint */}
-        <div className="flex items-center justify-between text-xs text-slate-400 px-2 py-1">
-          <div className="flex items-center gap-3">
-            <span>快捷键提示：</span>
-            <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">Space</kbd> 切换关键词遮挡</span>
-            <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">J</kbd> 上一题</span>
-            <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">K</kbd> 下一题</span>
-            <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">M</kbd> 标为已背</span>
-            <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">S</kbd> 收藏</span>
+        {/* Question Title */}
+        <div className="py-5 text-base sm:text-lg font-bold leading-relaxed text-slate-900 dark:text-slate-100">
+          {currentQ.title}
+        </div>
+
+        {/* 3. Question Content / Answer Area */}
+        <div className="mt-2 p-5 rounded-2xl bg-gradient-to-tr from-slate-50 to-blue-50/30 dark:from-[#192233] dark:to-[#161c28] border border-blue-200/80 dark:border-blue-900/60 clay-card-shadow animate-in fade-in duration-150">
+          <div className="flex items-center justify-between pb-3 border-b border-blue-100 dark:border-blue-900/40 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-base">💡</span>
+              <span className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100">
+                权威背诵要点与采分拆解
+              </span>
+            </div>
+            <div className="text-xs text-slate-500 font-medium">
+              {isMasking ? '🙈 关键词遮挡中（点击空缺处揭开）' : '👁️ 完整要点已展示'}
+            </div>
           </div>
-          <div>
-            已背掌握率: <span className="font-bold text-blue-600">{Math.round((memorizedList.length / questions.length) * 100)}%</span>
-          </div>
+
+          <MarkdownViewer content={currentQ.content} maskKeywords={isMasking} />
+        </div>
+      </div>
+
+      {/* Footer shortcut hints */}
+      <div className="flex items-center justify-between text-xs text-slate-400 px-2 py-1">
+        <div className="flex items-center gap-3">
+          <span>快捷键：</span>
+          <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">Space</kbd> 切换关键词遮挡</span>
+          <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">J</kbd> 上一题</span>
+          <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">K</kbd> 下一题</span>
+          <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">M</kbd> 标为已背会</span>
+          <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">S</kbd> 收藏</span>
+        </div>
+        <div>
+          已背掌握: <span className="font-bold text-blue-600">{memorizedList.length}</span> / {questions.length} 题
         </div>
       </div>
     </div>

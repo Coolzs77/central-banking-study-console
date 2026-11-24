@@ -1,21 +1,27 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Edit3,
-  Copy,
+  BookOpen,
+  Award,
   Check,
+  Copy,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
+  HelpCircle,
   CheckCircle2,
   Circle,
-  BookOpen,
-  Filter,
-  Layers,
+  Star,
 } from 'lucide-react';
 import { HomeworkQuestion } from '../data/types';
+import { ClayQuestionNav } from './common/ClayQuestionNav';
 import { MarkdownViewer } from './common/MarkdownViewer';
 
 interface HomeworkCanvasProps {
   questions: HomeworkQuestion[];
   completedList: number[];
   onToggleCompleted: (id: number) => void;
+  starredList?: number[];
+  onToggleStar?: (id: number) => void;
   selectedChapterId?: number | null;
   onSelectChapter?: (id: number | null) => void;
   selectedQuestionId?: number | null;
@@ -26,183 +32,205 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
   questions,
   completedList,
   onToggleCompleted,
+  starredList = [],
+  onToggleStar = () => {},
   selectedChapterId = null,
-  onSelectChapter,
   selectedQuestionId = null,
   onSelectQuestion,
 }) => {
-  const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [copiedAll, setCopiedAll] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
+  // Filter questions by chapter
   const filteredQuestions = useMemo(() => {
-    return questions.filter((q) => {
-      if (selectedChapterId && q.chapterId !== selectedChapterId) return false;
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchTitle = q.questionTitle.toLowerCase().includes(query);
-        const matchAns = q.answer.toLowerCase().includes(query);
-        if (!matchTitle && !matchAns) return false;
+    if (!selectedChapterId) return questions;
+    return questions.filter((q) => q.chapterId === selectedChapterId);
+  }, [questions, selectedChapterId]);
+
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [showAnswer, setShowAnswer] = useState<boolean>(true);
+  const [copied, setCopied] = useState<boolean>(false);
+
+  // Sync selectedQuestionId if passed from RightSidebar or LeftSidebar
+  useEffect(() => {
+    if (selectedQuestionId !== null) {
+      const idx = filteredQuestions.findIndex((q) => q.id === selectedQuestionId);
+      if (idx !== -1) {
+        setCurrentIndex(idx);
       }
-      return true;
-    });
-  }, [questions, selectedChapterId, searchQuery]);
+    }
+  }, [selectedQuestionId, filteredQuestions]);
 
-  const totalQuestions = questions.length;
-  const completedCount = completedList.length;
-  const percentCompleted = totalQuestions > 0 ? Math.round((completedCount / totalQuestions) * 100) : 0;
+  // Bound index safely
+  useEffect(() => {
+    if (currentIndex >= filteredQuestions.length && filteredQuestions.length > 0) {
+      setCurrentIndex(filteredQuestions.length - 1);
+    }
+  }, [filteredQuestions.length, currentIndex]);
 
-  const handleCopySingle = (id: number, text: string) => {
+  const currentQ = filteredQuestions[currentIndex] || filteredQuestions[0];
+
+  useEffect(() => {
+    if (currentQ && onSelectQuestion && selectedQuestionId !== currentQ.id) {
+      onSelectQuestion(currentQ.id);
+    }
+  }, [currentQ, onSelectQuestion, selectedQuestionId]);
+
+  const handlePrev = useCallback(() => {
+    setCurrentIndex((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setCurrentIndex((prev) => Math.min(filteredQuestions.length - 1, prev + 1));
+  }, [filteredQuestions.length]);
+
+  const handleJumpToIndex = useCallback((idx: number) => {
+    setCurrentIndex(idx);
+  }, []);
+
+  const handleCopyCurrent = () => {
+    if (!currentQ) return;
+    const text = `【第 ${currentQ.chapterId} 章 · 第 ${currentQ.questionNumber} 题】${currentQ.questionTitle}\n\n参考答案：\n${currentQ.answer}`;
     navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleCopyChapter = () => {
-    if (filteredQuestions.length === 0) return;
-    const formatted = filteredQuestions
-      .map((q) => `【第 ${q.questionNumber} 题】${q.questionTitle}\n\n答案：\n${q.answer}\n\n------------------------\n`)
-      .join('\n');
-    navigator.clipboard.writeText(formatted);
-    setCopiedAll(true);
-    setTimeout(() => setCopiedAll(false), 2000);
-  };
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setShowAnswer((prev) => !prev);
+      } else if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrev();
+      } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === 'm' || e.key === 'M') {
+        if (currentQ) {
+          e.preventDefault();
+          onToggleCompleted(currentQ.id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrev, handleNext, currentQ, onToggleCompleted]);
+
+  if (!currentQ) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400">
+        <BookOpen className="w-12 h-12 mb-3 text-slate-300" />
+        <p className="text-base font-medium">当前章节暂无作业题</p>
+      </div>
+    );
+  }
+
+  const isCompleted = completedList.includes(currentQ.id);
+  const isStarred = starredList.includes(currentQ.id);
+  const allItemIds = filteredQuestions.map((q) => q.id);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50/50 overflow-hidden select-text">
-      {/* Top Controls Bar */}
-      <div className="sticky top-0 z-20 backdrop-blur-md bg-white/90 border-b border-slate-200/80 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div className="flex items-center gap-2 flex-wrap text-xs">
-          <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-            平时作业本
-          </span>
-          <span className="text-slate-400">|</span>
-          <span className="text-slate-600">
-            共 {totalQuestions} 道作业题 · 已完成 <span className="font-bold text-emerald-600">{completedCount}</span> 道 ({percentCompleted}%)
-          </span>
+    <div className="flex-1 min-w-0 flex flex-col gap-4 p-3 sm:p-5 lg:p-6 overflow-y-auto max-h-[calc(100vh-4rem)] select-text">
+      {/* 1. FRM-Style Sticky Navigation Bar */}
+      <ClayQuestionNav
+        currentIndex={currentIndex}
+        totalFiltered={filteredQuestions.length}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onJumpToIndex={handleJumpToIndex}
+        allItemIds={allItemIds}
+        completedItemIds={completedList}
+        starredItemIds={starredList}
+        isMemorized={isCompleted}
+        onToggleMemorized={() => onToggleCompleted(currentQ.id)}
+        memorizedLabel="已完成"
+        unmemorizedLabel="标为已做"
+        isStarred={isStarred}
+        onToggleStar={() => onToggleStar(currentQ.id)}
+        revealed={showAnswer}
+        onToggleRevealed={() => setShowAnswer((p) => !p)}
+        revealLabel="查看参考解答"
+        hideLabel="收起参考解答"
+        onCopy={handleCopyCurrent}
+        isCopied={copied}
+        modeBadge="平时作业本"
+      />
+
+      {/* 2. Main Question Card */}
+      <div className="clay-card-shadow bg-white dark:bg-[#151b26] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800/80 transition-all">
+        {/* Top Badges */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
+              第 {currentQ.chapterId} 章 · {currentQ.chapterTitle || '中央银行学'}
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              第 {currentIndex + 1} / {filteredQuestions.length} 题
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              {currentQ.questionType}
+            </span>
+            {currentQ.sourceRef && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-mono text-slate-400">
+                来源: {currentQ.sourceRef}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>总进度:</span>
+            <span className="font-bold text-emerald-600">{completedList.length}</span>
+            <span>/ {questions.length} 道</span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Search */}
-          <input
-            type="text"
-            placeholder="搜索作业题干或答案..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="text-xs bg-slate-100 hover:bg-slate-200/70 border border-slate-300 rounded-lg px-2.5 py-1 text-slate-700 outline-none w-44 transition focus:w-60 focus:bg-white focus:border-blue-500"
-          />
-
-          {/* Copy Current View / Chapter */}
-          <button
-            onClick={handleCopyChapter}
-            className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg transition cursor-pointer shadow-xs"
-          >
-            {copiedAll ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copiedAll ? '已复制全章作业' : '复制当前作业'}</span>
-          </button>
+        {/* Question Title / Stem */}
+        <div className="py-5 text-base sm:text-lg font-bold leading-relaxed text-slate-900 dark:text-slate-100">
+          {currentQ.questionTitle}
         </div>
+
+        {/* 3. Solution Section (展开题解卡片) */}
+        {showAnswer && (
+          <div className="mt-4 p-5 rounded-2xl bg-gradient-to-tr from-slate-50 to-blue-50/30 dark:from-[#192233] dark:to-[#161c28] border border-blue-200/80 dark:border-blue-900/60 clay-card-shadow animate-in fade-in duration-150 flex flex-col gap-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-blue-100 dark:border-blue-900/40">
+              <div className="flex items-center gap-2">
+                <span className="text-base">💡</span>
+                <span className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100">
+                  作业标准参考解答与采分要点
+                </span>
+              </div>
+              <button
+                onClick={handleCopyCurrent}
+                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer font-medium"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>复制解答</span>
+              </button>
+            </div>
+
+            {/* Answer Content rendered cleanly with MarkdownViewer */}
+            <div className="pt-1">
+              <MarkdownViewer content={currentQ.answer} maskKeywords={false} />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Questions Scrollable List */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-5">
-        {filteredQuestions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 text-slate-400">
-            <BookOpen className="w-12 h-12 mb-3 text-slate-300" />
-            <p className="text-base font-medium">未找到符合条件的作业题</p>
-          </div>
-        ) : (
-          filteredQuestions.map((q) => {
-            const isCompleted = completedList.includes(q.id);
-            const isSelected = selectedQuestionId === q.id;
-
-            return (
-              <div
-                key={q.id}
-                id={`homework-card-${q.id}`}
-                onClick={() => onSelectQuestion?.(q.id)}
-                className={`bg-white rounded-2xl border transition-all p-5 md:p-6 shadow-sm hover:shadow-md ${
-                  isSelected
-                    ? 'border-blue-500 ring-2 ring-blue-100'
-                    : isCompleted
-                    ? 'border-emerald-200 bg-emerald-50/10'
-                    : 'border-slate-200/90'
-                }`}
-              >
-                {/* Header */}
-                <div className="flex flex-wrap items-start justify-between gap-3 pb-3 border-b border-slate-100">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-mono text-xs font-bold">
-                        第 {q.chapterId} 章 · 第 {q.questionNumber} 题
-                      </span>
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs font-medium">
-                        {q.questionType}
-                      </span>
-                      {q.sourceRef && (
-                        <span className="text-xs text-slate-400">
-                          来源: {q.sourceRef}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-base font-bold text-slate-900 leading-snug pt-1">
-                      {q.questionTitle}
-                    </h3>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCopySingle(q.id, q.answer);
-                      }}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 transition cursor-pointer"
-                      title="复制本题答案"
-                    >
-                      {copiedId === q.id ? (
-                        <Check className="w-4 h-4 text-emerald-600" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleCompleted(q.id);
-                      }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
-                        isCompleted
-                          ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 shadow-emerald-200'
-                          : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      {isCompleted ? (
-                        <>
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>已完成</span>
-                        </>
-                      ) : (
-                        <>
-                          <Circle className="w-3.5 h-3.5 text-slate-400" />
-                          <span>标为已做</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Answer Area */}
-                <div className="mt-4 pt-1">
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    参考解答
-                  </div>
-                  <MarkdownViewer content={q.answer} maskKeywords={false} />
-                </div>
-              </div>
-            );
-          })
-        )}
+      {/* Footer shortcut hints */}
+      <div className="flex items-center justify-between text-xs text-slate-400 px-2 py-1">
+        <div className="flex items-center gap-3">
+          <span>快捷键提示：</span>
+          <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">Space</kbd> 展开/收起参考解答</span>
+          <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">J</kbd> 上一题</span>
+          <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">K</kbd> 下一题</span>
+          <span><kbd className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded font-mono text-[10px]">M</kbd> 标记已做</span>
+        </div>
+        <div>
+          作业完成率: <span className="font-bold text-emerald-600">{Math.round((completedList.length / questions.length) * 100)}%</span>
+        </div>
       </div>
     </div>
   );
