@@ -29,8 +29,8 @@ interface PracticeCanvasProps {
   fillIns: FillInQuestion[];
   termMemorized: number[];
   onToggleTermMemorized: (id: number) => void;
-  selectedTermId?: number | null;
-  onSelectTerm?: (id: number) => void;
+  currentTermIndex?: number;
+  onJumpToTermIndex?: (idx: number) => void;
 }
 
 export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
@@ -40,35 +40,28 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   fillIns,
   termMemorized,
   onToggleTermMemorized,
-  selectedTermId = null,
-  onSelectTerm,
+  currentTermIndex = 0,
+  onJumpToTermIndex,
 }) => {
   const [activeTab, setActiveTab] = useState<'terms' | 'choice' | 'truefalse' | 'fill'>('terms');
 
   // Term Flashcards State
-  const [currentTermIdx, setCurrentTermIdx] = useState<number>(0);
+  const [internalTermIdx, setInternalTermIdx] = useState<number>(0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [isMasking, setIsMasking] = useState<boolean>(false);
   const [isAllRevealed, setIsAllRevealed] = useState<boolean>(false);
 
-  // Sync selectedTermId from RightSidebar
-  useEffect(() => {
-    if (selectedTermId !== null) {
-      const idx = terms.findIndex((t) => t.id === selectedTermId);
-      if (idx !== -1) {
-        setCurrentTermIdx(idx);
-        setIsFlipped(false);
-      }
-    }
-  }, [selectedTermId, terms]);
+  const activeTermIdx = currentTermIndex ?? internalTermIdx;
+  const currentTerm = terms[activeTermIdx] || terms[0];
 
-  const currentTerm = terms[currentTermIdx] || terms[0];
-
-  useEffect(() => {
-    if (currentTerm && onSelectTerm && selectedTermId !== currentTerm.id) {
-      onSelectTerm(currentTerm.id);
+  const handleSetTermIdx = (idx: number) => {
+    if (onJumpToTermIndex) {
+      onJumpToTermIndex(idx);
+    } else {
+      setInternalTermIdx(idx);
     }
-  }, [currentTerm, onSelectTerm, selectedTermId]);
+    setIsFlipped(false);
+  };
 
   // Choice drill state
   const [choiceIdx, setChoiceIdx] = useState<number>(0);
@@ -95,12 +88,10 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
         setIsFlipped((prev) => !prev);
       } else if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
         e.preventDefault();
-        setCurrentTermIdx((prev) => Math.max(0, prev - 1));
-        setIsFlipped(false);
+        handleSetTermIdx(Math.max(0, activeTermIdx - 1));
       } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
         e.preventDefault();
-        setCurrentTermIdx((prev) => Math.min(terms.length - 1, prev + 1));
-        setIsFlipped(false);
+        handleSetTermIdx(Math.min(terms.length - 1, activeTermIdx + 1));
       } else if (e.key === 'm' || e.key === 'M') {
         if (currentTerm) {
           e.preventDefault();
@@ -172,20 +163,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* FRM-Style Navigation Bar */}
           <ClayQuestionNav
-            currentIndex={currentTermIdx}
+            currentIndex={activeTermIdx}
             totalFiltered={terms.length}
-            onPrev={() => {
-              setCurrentTermIdx((prev) => Math.max(0, prev - 1));
-              setIsFlipped(false);
-            }}
-            onNext={() => {
-              setCurrentTermIdx((prev) => Math.min(terms.length - 1, prev + 1));
-              setIsFlipped(false);
-            }}
-            onJumpToIndex={(idx) => {
-              setCurrentTermIdx(idx);
-              setIsFlipped(false);
-            }}
+            onPrev={() => handleSetTermIdx(Math.max(0, activeTermIdx - 1))}
+            onNext={() => handleSetTermIdx(Math.min(terms.length - 1, activeTermIdx + 1))}
+            onJumpToIndex={handleSetTermIdx}
             allItemIds={terms.map((t) => t.id)}
             completedItemIds={termMemorized}
             isMemorized={termMemorized.includes(currentTerm.id)}
@@ -290,7 +272,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
               {/* Hints */}
               <div className="flex items-center justify-between text-xs text-slate-400 px-2">
                 <span>快捷键：Space 翻面/遮挡 · J 上一个 · K 下一个 · M 标记掌握</span>
-                <span>进度：{currentTermIdx + 1} / {terms.length}</span>
+                <span>进度：{activeTermIdx + 1} / {terms.length}</span>
               </div>
             </div>
           </div>

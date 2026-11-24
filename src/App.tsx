@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Header } from './components/Header';
 import { LeftSidebar, AppMode } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
@@ -41,14 +41,90 @@ export function App() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'memorized' | 'unmemorized' | 'starred'>('all');
   const [pointFilter, setPointFilter] = useState<number | null>(null);
 
-  // Selected question/term IDs across canvases & right sidebar
-  const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(1);
-  const [selectedHomeworkId, setSelectedHomeworkId] = useState<number | null>(1);
-  const [selectedTermId, setSelectedTermId] = useState<number | null>(1);
+  // Single Source of Truth for question navigation indices (0-based)
+  const [recitationIndex, setRecitationIndex] = useState<number>(0);
+  const [homeworkIndex, setHomeworkIndex] = useState<number>(0);
+  const [practiceTermIndex, setPracticeTermIndex] = useState<number>(0);
 
   // Modals & UI state
   const [syncModalOpen, setSyncModalOpen] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+
+  // Filtered Recitation Questions
+  const filteredRecitationQuestions = useMemo(() => {
+    return recitationQuestions.filter((q) => {
+      if (selectedChapterId && q.chapterId !== selectedChapterId) return false;
+      if (pointFilter && q.points !== pointFilter) return false;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesTitle = q.title.toLowerCase().includes(query);
+        const matchesContent = q.content.toLowerCase().includes(query);
+        if (!matchesTitle && !matchesContent) return false;
+      }
+      if (activeFilter === 'memorized' && !state.memorized.includes(q.id)) return false;
+      if (activeFilter === 'unmemorized' && state.memorized.includes(q.id)) return false;
+      if (activeFilter === 'starred' && !state.starred.includes(q.id)) return false;
+      return true;
+    });
+  }, [selectedChapterId, pointFilter, searchQuery, activeFilter, state.memorized, state.starred]);
+
+  // Filtered Homework Questions
+  const filteredHomeworkQuestions = useMemo(() => {
+    return homeworkQuestions.filter((q) => {
+      if (selectedChapterId && q.chapterId !== selectedChapterId) return false;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchTitle = q.questionTitle.toLowerCase().includes(query);
+        const matchAns = q.answer.toLowerCase().includes(query);
+        if (!matchTitle && !matchAns) return false;
+      }
+      return true;
+    });
+  }, [selectedChapterId, searchQuery]);
+
+  // Handle Chapter selection from LeftSidebar
+  const handleSelectChapter = useCallback((chId: number | null) => {
+    setSelectedChapterId(chId);
+    if (chId !== null) {
+      // Find first question of this chapter in recitation
+      const recIdx = recitationQuestions.findIndex((q) => q.chapterId === chId);
+      if (recIdx !== -1) setRecitationIndex(recIdx);
+
+      // Find first question of this chapter in homework
+      const hwIdx = homeworkQuestions.findIndex((q) => q.chapterId === chId);
+      if (hwIdx !== -1) setHomeworkIndex(hwIdx);
+    }
+  }, []);
+
+  // Jump to specific recitation question by absolute question id
+  const handleJumpToRecitationId = useCallback((qId: number) => {
+    const idx = recitationQuestions.findIndex((q) => q.id === qId);
+    if (idx !== -1) {
+      // If chapter filter excludes it, clear chapter filter to show target
+      const targetQ = recitationQuestions[idx];
+      if (selectedChapterId && targetQ.chapterId !== selectedChapterId) {
+        setSelectedChapterId(null);
+      }
+      setRecitationIndex(idx);
+    }
+  }, [selectedChapterId]);
+
+  // Jump to specific homework question by absolute question id
+  const handleJumpToHomeworkId = useCallback((qId: number) => {
+    const idx = homeworkQuestions.findIndex((q) => q.id === qId);
+    if (idx !== -1) {
+      const targetQ = homeworkQuestions[idx];
+      if (selectedChapterId && targetQ.chapterId !== selectedChapterId) {
+        setSelectedChapterId(null);
+      }
+      setHomeworkIndex(idx);
+    }
+  }, [selectedChapterId]);
+
+  // Current active questions
+  const currentRecitationQ = filteredRecitationQuestions[recitationIndex] || filteredRecitationQuestions[0];
+  const currentHomeworkQ = filteredHomeworkQuestions[homeworkIndex] || filteredHomeworkQuestions[0];
+  const currentTerm = terminologyList[practiceTermIndex] || terminologyList[0];
 
   // Check URL query parameters for QR code sync handoff (?account=xxx&sync=pull)
   useEffect(() => {
@@ -87,7 +163,7 @@ export function App() {
           onSelectMode={setCurrentMode}
           chapters={chaptersMeta || []}
           selectedChapterId={selectedChapterId}
-          onSelectChapter={setSelectedChapterId}
+          onSelectChapter={handleSelectChapter}
           memorizedList={state.memorized}
           recitationQuestions={recitationQuestions || []}
           homeworkCompleted={state.homeworkCompleted}
@@ -104,48 +180,46 @@ export function App() {
           />
         )}
 
-        {/* Middle Canvas (Edge-to-edge flexible layout) */}
+        {/* Middle Canvas (Edge-to-edge controlled canvas) */}
         <main className="flex-1 min-w-0 h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
           {currentMode === 'recitation' && (
             <RecitationCanvas
-              questions={recitationQuestions || []}
+              questions={filteredRecitationQuestions}
+              currentIndex={recitationIndex}
+              onPrev={() => setRecitationIndex((p) => Math.max(0, p - 1))}
+              onNext={() => setRecitationIndex((p) => Math.min(filteredRecitationQuestions.length - 1, p + 1))}
+              onJumpToIndex={setRecitationIndex}
               memorizedList={state.memorized}
               starredList={state.starred}
               onToggleMemorized={toggleMemorized}
               onToggleStar={toggleStarred}
-              searchQuery={searchQuery}
-              selectedChapterId={selectedChapterId}
-              activeFilter={activeFilter}
-              pointFilter={pointFilter}
-              selectedQuestionId={selectedQuestionId}
-              onSelectQuestion={setSelectedQuestionId}
             />
           )}
 
           {currentMode === 'homework' && (
             <HomeworkCanvas
-              questions={homeworkQuestions || []}
+              questions={filteredHomeworkQuestions}
+              currentIndex={homeworkIndex}
+              onPrev={() => setHomeworkIndex((p) => Math.max(0, p - 1))}
+              onNext={() => setHomeworkIndex((p) => Math.min(filteredHomeworkQuestions.length - 1, p + 1))}
+              onJumpToIndex={setHomeworkIndex}
               completedList={state.homeworkCompleted}
               onToggleCompleted={toggleHomeworkCompleted}
               starredList={state.starred}
               onToggleStar={toggleStarred}
-              selectedChapterId={selectedChapterId}
-              onSelectChapter={setSelectedChapterId}
-              selectedQuestionId={selectedHomeworkId}
-              onSelectQuestion={setSelectedHomeworkId}
             />
           )}
 
           {currentMode === 'practice' && (
             <PracticeCanvas
               terms={terminologyList}
+              currentTermIndex={practiceTermIndex}
+              onJumpToTermIndex={setPracticeTermIndex}
               singleChoices={singleChoiceQuestions}
               trueFalse={trueFalseQuestions}
               fillIns={fillInQuestions}
               termMemorized={state.termMemorized}
               onToggleTermMemorized={toggleTermMemorized}
-              selectedTermId={selectedTermId}
-              onSelectTerm={setSelectedTermId}
             />
           )}
 
@@ -165,25 +239,38 @@ export function App() {
         {/* Right Sidebar (Tri-column present across ALL 4 modes) */}
         <RightSidebar
           currentMode={currentMode === 'mock-exam' ? 'exam' : currentMode}
-          recitationQuestions={recitationQuestions || []}
+          // Recitation props
+          recitationQuestions={recitationQuestions}
+          currentRecitationQuestionId={currentRecitationQ?.id || 1}
+          onSelectRecitationQuestionId={handleJumpToRecitationId}
           memorizedList={state.memorized}
           starredList={state.starred}
-          selectedQuestionId={selectedQuestionId}
-          onSelectRecitationQuestion={setSelectedQuestionId}
           activeFilter={activeFilter}
           onSelectFilter={setActiveFilter}
           pointFilter={pointFilter}
           onSelectPointFilter={setPointFilter}
-          homeworkQuestions={homeworkQuestions || []}
+          // Homework props
+          homeworkQuestions={homeworkQuestions}
+          currentHomeworkQuestionId={currentHomeworkQ?.id || 1}
+          onSelectHomeworkQuestionId={handleJumpToHomeworkId}
           homeworkCompletedList={state.homeworkCompleted}
-          selectedHomeworkId={selectedHomeworkId}
-          onSelectHomeworkQuestion={setSelectedHomeworkId}
           selectedHomeworkChapter={selectedChapterId}
-          onSelectHomeworkChapter={setSelectedChapterId}
+          onSelectHomeworkChapter={handleSelectChapter}
+          // Terminology props
           terminologyList={terminologyList}
+          currentTermId={currentTerm?.id || 1}
+          onSelectTermId={(termId) => {
+            const tIdx = terminologyList.findIndex((t) => t.id === termId);
+            if (tIdx !== -1) setPracticeTermIndex(tIdx);
+          }}
           termMemorizedList={state.termMemorized}
-          selectedTermId={selectedTermId}
-          onSelectTerm={setSelectedTermId}
+          // Chapter metadata
+          currentChapterId={
+            currentMode === 'homework'
+              ? currentHomeworkQ?.chapterId || 1
+              : currentRecitationQ?.chapterId || 1
+          }
+          chapters={chaptersMeta}
           className="hidden lg:flex"
         />
       </div>
