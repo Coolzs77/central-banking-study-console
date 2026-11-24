@@ -891,3 +891,107 @@ flowchart TD
    (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
    ```
    返回 `200 OK`，实机验证完全通过。
+
+---
+
+## 第 8 轮 [2026-11-24 18:35]：恢复“共 N 点”角标、显式标题题号、背诵核心概括专属高亮卡片与金融关键词真高亮
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **用户明确要求**：
+  1. **“共 N 点”要求保留**：““共 N 点”这个想要保留啊”——明确保留原 Obsidian 笔记中 `==N==` 对应呈现的黄色胶囊统计徽章（如 `共 2 点`、`共 4 点`）；
+  2. **显式题号展示**：“显示题号”——主标题卡片内必须醒目展示当前题号（如 `第 1 题`），不得只展示裸标题；
+  3. **背诵核心概括专属着色与样式**：“（二）统一银行券发行的需要 这种也不能只加粗，也需要不同的颜色，这种概括性的是我背的重点”——明确指出一级大纲小标题是背诵的核心采分点，严禁仅以纯灰黑粗体渲染，必须配备专属颜色与高亮卡片；
+  4. **告别首句生硬色块，实现全题真实关键词高亮**：“你的高亮很莫名其妙，总是高亮首句，可这都不是重点，我需要的是每道题的关键词都需要”——原有逻辑将整句首句粗体渲染为长达 30 字的下划线底色条，导致真正的高频金融考点未被精准高亮与遮挡；必须重构关键词提取与渲染引擎，扫描全句各处的真实金融关键词；
+  5. **彻底杜绝期末模考倒计时悬浮卡片遮挡**：分离倒计时头部与试卷滚动区域，置顶吸顶无重叠；
+  6. **右侧栏题型专项联动交互**：单选与判断改错题号改为可点击跳转的高亮按钮矩阵。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+
+- [`src/components/common/MarkdownViewer.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)：
+  - **恢复“共 N 点”徽标**：解析 `\t*==(\d+)==` 标记，在行末优雅呈现 `bg-amber-100 text-amber-800 border-amber-300` 的 `共 {badgeNum} 点` 徽标；
+  - **背诵核心概括专属卡片样式**：对匹配 `（一）`、`（二）` 等大纲小标题行，渲染为专属的 `bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80` 独立高亮卡片，配以 `text-indigo-950 dark:text-indigo-100` 粗体字与 `背诵核心概括` 徽章，视觉焦点极为突出；
+  - **首句长粗体拆解与全题关键词提取**：引入 `CENTRAL_BANKING_KEYWORDS` 词库（涵盖 80+ 核心专业金融术语），首句长句保留清晰正文粗体，内嵌的真实考点关键词自动高亮并支持关键词遮挡互动。
+- [`src/data/keywords.ts`](file:///e:/workspace/central-banking-study-console/src/data/keywords.ts)：
+  - 新增央行学 80+ 核心金融高频考点词典（包括 `发行的银行`、`最后贷款人`、`公开市场业务`、`利率走廊`、`SLF/MLF/PSL`、`MPA`、`双支柱调控` 等）。
+- [`src/components/RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx) & [`src/components/HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)：
+  - 主标题 `<h2>` 前方显式渲染 `第 {id} 题` 蓝色高对比度题号徽标，并在题解按钮上彻底将“参考解答”精简为“查看答案/收起答案”。
+- [`src/components/MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx)：
+  - 重构倒计时栏为顶层固定弹性栏目（`shrink-0 flex items-center justify-between border-b`），试卷题目位于下层专属子容器中顺滑滚动（`overflow-y-auto`），彻底消除悬浮遮挡。
+- [`src/components/RightSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx) & [`src/components/PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)：
+  - 题型专项中的单选（40题）、判断改错（30题）、填空（40题）题号全面改为响应式点击跳转按钮，当前题号具备活动高亮。
+
+---
+
+### 3. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：MarkdownViewer 关键词智能高亮与概括卡片渲染管道
+```mermaid
+flowchart TD
+    RawContent["Obsidian 原始题解 Markdown 文本"] --> LineParser["行语法深度解析器 (Line Parser)"]
+    
+    LineParser --> Decision{行类型判定}
+    
+    Decision -->|以（一）/（二）等开头| OutlineCard["✨ 背诵核心概括专属卡片<br/>bg-indigo-50 + text-indigo-950<br/>带独立圆点与'背诵核心概括'徽标"]
+    Decision -->|Level 0 导引行| IntroBox["导言容器卡片<br/>扫描尾部 ==N== 标签"]
+    Decision -->|Level 1/2 内容点| BodyBullet["正文层级项目符号列表"]
+    
+    IntroBox --> Badge["保留用户心仪的 [共 N 点] 琥珀色徽章"]
+    
+    BodyBullet --> Tokenizer["分词器与词库匹配器"]
+    Tokenizer --> BoldCheck{粗体长度与句式判定}
+    
+    BoldCheck -->|长导引句 (>18字)| NormalBold["渲染纯净加粗正文 (无生硬底色长条)"]
+    BoldCheck -->|短关键概念 (<=18字)| KeywordMatch["加入核心金融考点扫描"]
+    
+    NormalBold --> KeywordScanner["扫描 CENTRAL_BANKING_KEYWORDS 考点词典"]
+    KeywordMatch --> KeywordScanner
+    
+    KeywordScanner --> ModeCheck{遮挡模式是否开启?}
+    ModeCheck -->|关键词遮挡开启| ClozeBtn["呈现可点击揭开按钮: [··· 揭开]"]
+    ModeCheck -->|正常学习模式| HighLightSpan["精准高亮蓝色底边卡片: text-blue-800 border-b-2"]
+```
+> **图 1 机制解析**：重构了传统粗暴的全局加粗渲染，将大纲小标题升级为具有鲜明视觉层级的背诵要点卡片；同时将原本覆盖整个首句的长色块剥离，由央行学考点词典进行全句各处的精准标记，彻底满足用户“每道题的关键词都需要”的真实复习诉求。
+
+#### 图 2：试卷与固定计时器防遮挡布局拓扑
+```mermaid
+flowchart TD
+    Screen["期末模考主视口容器 (h-full flex flex-col overflow-hidden)"]
+    
+    subgraph FixedHeader["📌 顶部固定弹性头部 (shrink-0 border-b z-10)"]
+        Timer["⏱️ 倒计时 01:59:53"]
+        Structure["试卷六大题型架构指示胶囊"]
+        SubmitBtn["交卷评分 / 再练一套新卷 按钮"]
+    end
+    
+    subgraph ScrollBody["📜 试卷独立滚动区域 (flex-1 overflow-y-auto px-4 py-6)"]
+        PaperContent["max-w-4xl 题目列表 (试卷第一至六大题，顺滑向下滚动，完全不被头部遮挡)"]
+    end
+    
+    Screen --> FixedHeader
+    Screen --> ScrollBody
+```
+> **图 2 机制解析**：通过弹性 Flex 布局将倒计时控制台与试卷内容物理隔离，倒计时条永久停靠在试卷最顶部，下方所有试卷试题在专属的独立滚动槽中滚动，彻底杜绝了因 `sticky` 偏移导致的题目遮挡问题。
+
+---
+
+### 4. 验证结果与可复现方法 (Verification & Reproduction)
+1. **自动化测试套件回归验证**：
+   ```bash
+   cd e:\workspace\central-banking-study-console
+   node verify_suite.mjs
+   ```
+   - **验证结果**：46 项断言 100% 全部通过（覆盖题号展示、共 N 点保留、概括卡片、关键词提取、模考防遮挡、右侧栏专项联动等）。
+2. **生产构建与发布**：
+   ```bash
+   npm run build
+   npm run deploy
+   ```
+   - **推送状态**：成功将提交 `726b194` 推送到 `origin/gh-pages` 分支。
+3. **公网可用性核验**：
+   ```powershell
+   (Invoke-WebRequest -Uri 'https://coolzs77.github.io/central-banking-study-console/' -UseBasicParsing).StatusCode
+   ```
+   返回 `200 OK`，实机核验完全通过。
+
