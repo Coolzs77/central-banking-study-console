@@ -284,16 +284,43 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         // Subheading style: lines like *（一）市场经济的迅速发展* or （二）统一银行券发行的需要
         // The summary subheadings stay in vibrant emerald green per user requirement!
         const isSubheading =
-          /^[\\*]*[（\(][一二三四五六七八九十0-9]+[）\)][^\\*]*[\\*]*/.test(cleanText) ||
-          (/^\*[^*]+\*$/.test(cleanText) && !cleanText.includes('**'));
+          /^[\\*]*[（\(][一二三四五六七八九十0-9]+[）\)][^\\*]*[\\*]*[:：]?$/.test(cleanText) ||
+          /^[\\*]*[一二三四五六七八九十]+[、.][^\\*]*[\\*]*[:：]?$/.test(cleanText) ||
+          (/^\*[^*]+\*[:：]?$/.test(cleanText) && !cleanText.includes('**')) ||
+          (/^\*\*[^*]+\*\*[:：]?$/.test(cleanText) && cleanText.length <= 40) ||
+          (/^\d+[\.、][^。；\n]{1,30}[:：]?$/.test(cleanText) && !cleanText.includes('。') && !cleanText.includes('；'));
 
         if (isSubheading) {
-          const subTitle = cleanText.replace(/^\*+|\*+$/g, '');
+          const subTitle = cleanText.replace(/[:：]$/, '').replace(/^\*+|\*+$/g, '').trim();
           return (
             <div key={lineIdx} className="mt-4 mb-1 pt-1 first:mt-0 first:pt-0">
               <h4 className="font-extrabold text-[15.5px] text-emerald-600 dark:text-emerald-400 tracking-wide">
                 {subTitle}
               </h4>
+            </div>
+          );
+        }
+
+        // Inline Summary Pattern: lines like "1. **概括要点**：详细解释..." or "（一）概括：详细解释..."
+        // Split summary heading (EMERALD GREEN) and subsequent content as child bullet list item (ROSE RED keywords)
+        const inlineSummaryMatch = cleanText.match(
+          /^([（\(][一二三四五六七八九十0-9]+[）\)][^：:]{1,30}|\d+[\.、]\s*\*\*[^*]+\*\*|\d+[\.、]\s*[^：:]{1,30}|[一二三四五六七八九十]+[、.][^：:]{1,30}|\*[^*]+\*|\*\*[^*]+\*\*)[：:]([\s\S]+)$/
+        );
+
+        if (inlineSummaryMatch) {
+          const rawHeader = inlineSummaryMatch[1].replace(/[:：]$/, '').replace(/^\*+|\*+$/g, '').trim();
+          const rawBody = inlineSummaryMatch[2].trim();
+          return (
+            <div key={lineIdx} className="mt-3 mb-1 pt-0.5 first:mt-0 first:pt-0 space-y-1">
+              <h4 className="font-extrabold text-[15.5px] text-emerald-600 dark:text-emerald-400 tracking-wide">
+                {rawHeader}
+              </h4>
+              <div className="flex items-start gap-2 text-[14px] leading-relaxed pl-4 py-0.5 text-slate-700 dark:text-slate-300">
+                <span className="text-slate-400 mt-1 select-none text-xs font-mono shrink-0">
+                  •
+                </span>
+                <div className="flex-1 min-w-0">{renderInlineFormatted(rawBody)}</div>
+              </div>
             </div>
           );
         }

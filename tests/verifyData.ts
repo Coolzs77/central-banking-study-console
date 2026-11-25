@@ -199,6 +199,29 @@ assert(
   'Found homework question with missing question or answer'
 );
 
+const allHwHaveHierarchy = homeworkQuestions.every(q => {
+  const lines = q.answer.split('\n');
+  const hasSubheading = lines.some(l => /^\s*-\s*\*.*\*|^\s*\*.*\*/.test(l));
+  const hasChildBullet = lines.some(l => /^\s{2,}-\s/.test(l));
+  return hasSubheading && hasChildBullet;
+});
+assert(
+  allHwHaveHierarchy,
+  'All 54 homework questions feature hierarchical structure with green summary subheadings and child bullets',
+  'Found homework question without hierarchical subheadings or child bullets'
+);
+
+const hwQ7 = homeworkQuestions.find(q => q.id === 7)!;
+assert(
+  hwQ7 && 
+  hwQ7.answer.includes('稳定货币，稳定经济') &&
+  hwQ7.answer.includes('调节信用，调节经济') &&
+  hwQ7.answer.includes('集中清算，加速资金周转') &&
+  hwQ7.answer.includes('推进国际金融的合作和交流'),
+  'Homework question 7 strictly follows Chapter 2 PPT 4-point structure',
+  'Question 7 does not match Chapter 2 PPT roles'
+);
+
 // -----------------------------------------------------------------
 // 3. Exam Question Bank Assertions (28 Terms, 40 Fill-In, 40 Choice, 30 T/F, 20 Short, 6 Essay)
 // -----------------------------------------------------------------
