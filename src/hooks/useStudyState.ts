@@ -9,22 +9,40 @@ const defaultState: UserMasteryState = {
   starred: [],
   homeworkCompleted: [],
   termMemorized: [],
+  termStarred: [],
+  choiceMemorized: [],
+  choiceStarred: [],
+  tfMemorized: [],
+  tfStarred: [],
+  fillMemorized: [],
+  fillStarred: [],
   examHistory: [],
 };
+
+function normalizeState(parsed: Partial<UserMasteryState> | null | undefined): UserMasteryState {
+  if (!parsed) return defaultState;
+  return {
+    memorized: Array.isArray(parsed.memorized) ? parsed.memorized : [],
+    starred: Array.isArray(parsed.starred) ? parsed.starred : [],
+    homeworkCompleted: Array.isArray(parsed.homeworkCompleted) ? parsed.homeworkCompleted : [],
+    termMemorized: Array.isArray(parsed.termMemorized) ? parsed.termMemorized : [],
+    termStarred: Array.isArray(parsed.termStarred) ? parsed.termStarred : [],
+    choiceMemorized: Array.isArray(parsed.choiceMemorized) ? parsed.choiceMemorized : [],
+    choiceStarred: Array.isArray(parsed.choiceStarred) ? parsed.choiceStarred : [],
+    tfMemorized: Array.isArray(parsed.tfMemorized) ? parsed.tfMemorized : [],
+    tfStarred: Array.isArray(parsed.tfStarred) ? parsed.tfStarred : [],
+    fillMemorized: Array.isArray(parsed.fillMemorized) ? parsed.fillMemorized : [],
+    fillStarred: Array.isArray(parsed.fillStarred) ? parsed.fillStarred : [],
+    examHistory: Array.isArray(parsed.examHistory) ? parsed.examHistory : [],
+  };
+}
 
 export function useStudyState() {
   const [state, setState] = useState<UserMasteryState>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        return {
-          memorized: Array.isArray(parsed.memorized) ? parsed.memorized : [],
-          starred: Array.isArray(parsed.starred) ? parsed.starred : [],
-          homeworkCompleted: Array.isArray(parsed.homeworkCompleted) ? parsed.homeworkCompleted : [],
-          termMemorized: Array.isArray(parsed.termMemorized) ? parsed.termMemorized : [],
-          examHistory: Array.isArray(parsed.examHistory) ? parsed.examHistory : [],
-        };
+        return normalizeState(JSON.parse(stored));
       }
     } catch (e) {
       console.error('Failed to load study state:', e);
@@ -101,6 +119,38 @@ export function useStudyState() {
     });
   }, []);
 
+  const toggleIdInField = useCallback(
+    (
+      field:
+        | 'termStarred'
+        | 'choiceMemorized'
+        | 'choiceStarred'
+        | 'tfMemorized'
+        | 'tfStarred'
+        | 'fillMemorized'
+        | 'fillStarred',
+      id: number
+    ) => {
+      setState((prev) => {
+        const list = Array.isArray(prev[field]) ? (prev[field] as number[]) : [];
+        const exists = list.includes(id);
+        return {
+          ...prev,
+          [field]: exists ? list.filter((item) => item !== id) : [...list, id],
+        };
+      });
+    },
+    []
+  );
+
+  const toggleTermStarred = useCallback((id: number) => toggleIdInField('termStarred', id), [toggleIdInField]);
+  const toggleChoiceMemorized = useCallback((id: number) => toggleIdInField('choiceMemorized', id), [toggleIdInField]);
+  const toggleChoiceStarred = useCallback((id: number) => toggleIdInField('choiceStarred', id), [toggleIdInField]);
+  const toggleTfMemorized = useCallback((id: number) => toggleIdInField('tfMemorized', id), [toggleIdInField]);
+  const toggleTfStarred = useCallback((id: number) => toggleIdInField('tfStarred', id), [toggleIdInField]);
+  const toggleFillMemorized = useCallback((id: number) => toggleIdInField('fillMemorized', id), [toggleIdInField]);
+  const toggleFillStarred = useCallback((id: number) => toggleIdInField('fillStarred', id), [toggleIdInField]);
+
   const addExamRecord = useCallback((record: ExamRecord) => {
     setState((prev) => ({
       ...prev,
@@ -109,7 +159,7 @@ export function useStudyState() {
   }, []);
 
   const importState = useCallback((newState: UserMasteryState) => {
-    setState(newState);
+    setState(normalizeState(newState));
   }, []);
 
   const resetAllProgress = useCallback(() => {
@@ -124,6 +174,13 @@ export function useStudyState() {
     toggleStarred,
     toggleHomeworkCompleted,
     toggleTermMemorized,
+    toggleTermStarred,
+    toggleChoiceMemorized,
+    toggleChoiceStarred,
+    toggleTfMemorized,
+    toggleTfStarred,
+    toggleFillMemorized,
+    toggleFillStarred,
     addExamRecord,
     importState,
     resetAllProgress,

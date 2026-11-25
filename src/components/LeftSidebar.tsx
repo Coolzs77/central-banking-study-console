@@ -4,8 +4,8 @@ import {
   Edit3,
   Award,
   Layers,
-  CheckCircle2,
-  RotateCcw,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { ChapterMeta } from '../data/types';
 
@@ -23,6 +23,8 @@ interface LeftSidebarProps {
   homeworkQuestions: { id: number; chapterId: number }[];
   className?: string;
   onCloseMobile?: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -37,6 +39,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   homeworkQuestions,
   className = '',
   onCloseMobile,
+  isCollapsed = false,
+  onToggleCollapse,
 }) => {
   const modes = [
     {
@@ -87,16 +91,71 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     return icons[chId - 1] || '📌';
   };
 
+  if (isCollapsed) {
+    return (
+      <aside
+        className={`w-16 flex-shrink-0 flex flex-col items-center h-[calc(100vh-4rem)] sticky top-16 border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#151b26]/95 backdrop-blur-md py-4 px-2 clay-card-shadow gap-4 transition-all duration-200 ${className}`}
+      >
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            aria-label="展开左侧导航栏"
+            title="展开左侧栏"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          >
+            <PanelLeftOpen className="w-5 h-5" />
+          </button>
+        )}
+
+        <div className="w-8 h-px bg-slate-200 dark:bg-slate-800" />
+
+        <div className="flex flex-col gap-2">
+          {modes.map((mode) => {
+            const Icon = mode.icon;
+            const isActive = currentMode === mode.id;
+            return (
+              <button
+                key={mode.id}
+                onClick={() => onSelectMode(mode.id)}
+                aria-label={mode.name}
+                title={mode.name}
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center clay-squash transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white clay-button-shadow shadow-md'
+                    : 'bg-slate-50 dark:bg-[#1c2333] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#252f44]'
+                }`}
+              >
+                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : mode.color}`} />
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside
-      className={`w-76 lg:w-80 flex-shrink-0 flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#151b26]/95 backdrop-blur-md p-4 overflow-y-auto clay-card-shadow gap-5 ${className}`}
+      className={`w-76 lg:w-80 flex-shrink-0 flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#151b26]/95 backdrop-blur-md p-4 overflow-y-auto clay-card-shadow gap-5 transition-all duration-200 ${className}`}
     >
       {/* Top Header */}
-      <div className="flex items-center gap-2 px-1">
-        <Layers className="w-4 h-4 text-blue-600" />
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-          学习模式与章节
-        </span>
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+          <Layers className="w-4 h-4 text-blue-600" />
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            学习模式与章节
+          </span>
+        </div>
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            aria-label="折叠左侧导航栏"
+            title="折叠左侧栏"
+            className="hidden md:inline-flex p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          >
+            <PanelLeftClose className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* 4 Core Modes */}

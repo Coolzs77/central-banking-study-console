@@ -30,6 +30,13 @@ export function App() {
     toggleStarred,
     toggleHomeworkCompleted,
     toggleTermMemorized,
+    toggleTermStarred,
+    toggleChoiceMemorized,
+    toggleChoiceStarred,
+    toggleTfMemorized,
+    toggleTfStarred,
+    toggleFillMemorized,
+    toggleFillStarred,
     addExamRecord,
     importState,
   } = useStudyState();
@@ -52,6 +59,25 @@ export function App() {
   // Modals & UI state
   const [syncModalOpen, setSyncModalOpen] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('cb_left_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleLeftSidebarCollapsed = useCallback(() => {
+    setLeftSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('cb_left_sidebar_collapsed', String(next));
+      } catch {
+        // Ignore storage errors
+      }
+      return next;
+    });
+  }, []);
 
   // Filtered Recitation Questions
   const filteredRecitationQuestions = useMemo(() => {
@@ -154,6 +180,8 @@ export function App() {
         onSearchChange={setSearchQuery}
         onOpenSync={() => setSyncModalOpen(true)}
         onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+        isLeftCollapsed={leftSidebarCollapsed}
+        onToggleLeftCollapsed={toggleLeftSidebarCollapsed}
         activeMode={currentMode}
       />
 
@@ -172,6 +200,8 @@ export function App() {
           homeworkQuestions={homeworkQuestions || []}
           className={`${mobileMenuOpen ? 'fixed inset-y-0 left-0 z-40 block shadow-2xl' : 'hidden md:flex'}`}
           onCloseMobile={() => setMobileMenuOpen(false)}
+          isCollapsed={mobileMenuOpen ? false : leftSidebarCollapsed}
+          onToggleCollapse={toggleLeftSidebarCollapsed}
         />
 
         {/* Backdrop for Mobile Sidebar */}
@@ -228,6 +258,20 @@ export function App() {
               onJumpToFillIndex={setPracticeFillIndex}
               termMemorized={state.termMemorized}
               onToggleTermMemorized={toggleTermMemorized}
+              termStarred={state.termStarred || []}
+              onToggleTermStarred={toggleTermStarred}
+              choiceMemorized={state.choiceMemorized || []}
+              onToggleChoiceMemorized={toggleChoiceMemorized}
+              choiceStarred={state.choiceStarred || []}
+              onToggleChoiceStarred={toggleChoiceStarred}
+              tfMemorized={state.tfMemorized || []}
+              onToggleTfMemorized={toggleTfMemorized}
+              tfStarred={state.tfStarred || []}
+              onToggleTfStarred={toggleTfStarred}
+              fillMemorized={state.fillMemorized || []}
+              onToggleFillMemorized={toggleFillMemorized}
+              fillStarred={state.fillStarred || []}
+              onToggleFillStarred={toggleFillStarred}
               activePracticeTab={practiceTab}
               onPracticeTabChange={setPracticeTab}
             />
@@ -272,6 +316,13 @@ export function App() {
             if (tIdx !== -1) setPracticeTermIndex(tIdx);
           }}
           termMemorizedList={state.termMemorized}
+          termStarredList={state.termStarred || []}
+          choiceMemorizedList={state.choiceMemorized || []}
+          choiceStarredList={state.choiceStarred || []}
+          tfMemorizedList={state.tfMemorized || []}
+          tfStarredList={state.tfStarred || []}
+          fillMemorizedList={state.fillMemorized || []}
+          fillStarredList={state.fillStarred || []}
           practiceTab={practiceTab}
           currentChoiceIndex={practiceChoiceIndex}
           onSelectChoiceIndex={setPracticeChoiceIndex}

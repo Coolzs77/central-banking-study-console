@@ -2529,3 +2529,145 @@ stateDiagram-v2
   - `tests/verifyData.ts`：40 项全景数据断言 100% 通过（40 PASSED, 0 FAILED）；
   - `tests/verifyHomeworkHierarchy.ts`：21 项层级与关键词断言 100% 通过（21 PASSED, 0 FAILED）；
   - `npm run build`：打包 1657 个模块，0 错误，打包耗时 38.9s。
+
+
+---
+
+## 第 18 轮 [2026-11-25 13:50]：修复题型专项页码抽屉崩溃缺陷、全题型 UI 对齐、客观题库 100% 回归《全书速记》与左侧导航栏折叠支持
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：
+  1. **页面崩溃修复**：用户反馈在“题型专项”模块点击顶部导航栏的 `第 X / Y 题 ▾` 按钮时，整个页面直接崩溃白屏；
+  2. **UI 对齐与按钮补全**：题型专项下的“单选专项”、“判断改错”、“填空专项”需要向“名词抽背”的 UI 布局与交互完全对齐，均需提供顶部粘性导航栏及 **掌握**、**收藏** 按钮并真实持久化状态；
+  3. **题库严格去 AI 化**：单选、判断改错、填空三类专项练习题必须严格基于《全书速记》（161 道背诵题库）中的原始内容出题，清除脱离背诵手册的超纲或 AI 自行发挥内容；
+  4. **左侧导航栏折叠**：桌面端左侧“学习模式与章节”导航栏需要支持一键折叠与展开，释放主学习画布横向阅读空间。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- **涉及文件**：
+  - [`src/components/common/ClayQuestionNav.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/ClayQuestionNav.tsx)：修复点击 `第 X / Y 题 ▾` 展开抽屉时的变量未定义崩溃错误；
+  - [`src/data/types.ts`](file:///e:/workspace/central-banking-study-console/src/data/types.ts)：为 `UserMasteryState` 补充 `termStarred`、`choiceMemorized`、`choiceStarred`、`tfMemorized`、`tfStarred`、`fillMemorized`、`fillStarred`，并为客观题类型补充 `recitationQuestionId?: number`；
+  - [`src/hooks/useStudyState.ts`](file:///e:/workspace/central-banking-study-console/src/hooks/useStudyState.ts)：新增各专项题型的掌握/收藏持久化切换方法及旧版 `localStorage` 存档兼容归一化；
+  - [`src/services/syncService.ts`](file:///e:/workspace/central-banking-study-console/src/services/syncService.ts)：将专项练习的掌握与收藏数组纳入云同步变更摘要指纹计算；
+  - [`src/components/PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)：将“单选专项”、“判断改错”、“填空专项”全面接入 `ClayQuestionNav` 与统一的卡片头部/底部操作区，补齐“名词抽背”原本占位未实现的 `收藏`/`复制` 状态，支持 `J`/`K`/`Space`/`M`/`S` 全键盘快捷键；
+  - [`src/components/RightSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx)：右侧专项题号矩阵同步支持显示 4 个子模式的 `已掌握 X / Y` 统计及绿色（掌握）/琥珀色（收藏）状态着色；
+  - [`src/components/Header.tsx`](file:///e:/workspace/central-banking-study-console/src/components/Header.tsx) & [`src/components/LeftSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/LeftSidebar.tsx)：新增桌面端左侧导航栏折叠/展开按钮，折叠后收敛为 `w-16` 紧凑图标导轨（保留 4 大复习模式一键切换，持久化至 `localStorage.cb_left_sidebar_collapsed`），移动端抽屉保持完整展开；
+  - [`src/App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)：打通 `useStudyState`、`PracticeCanvas`、`RightSidebar` 的专项状态传递以及 `leftSidebarCollapsed` 折叠状态联动；
+  - [`src/data/examData.ts`](file:///e:/workspace/central-banking-study-console/src/data/examData.ts)：逐题对照 [`centralBankingData.ts`](file:///e:/workspace/central-banking-study-console/src/data/centralBankingData.ts) 161 题原文，重写并校验全部 40 道填空题、40 道单选题、30 道判断改错题；
+  - [`scripts/audit_exam_accuracy.ts`](file:///e:/workspace/central-banking-study-console/scripts/audit_exam_accuracy.ts)：升级审计规则，增加 `chapterId` 一致性校验与超纲词黑名单扫描；
+  - [`tests/verifyPracticeUI.tsx`](file:///e:/workspace/central-banking-study-console/tests/verifyPracticeUI.tsx) & [`verify_suite.mjs`](file:///e:/workspace/central-banking-study-console/verify_suite.mjs)：新增专项练习 4 模式渲染、`ClayQuestionNav` 防崩溃及左侧栏折叠断言。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+
+#### 问题 1：点击 `第 X / Y 题 ▾` 引发页面崩溃
+- **问题现象**：在包含 `ClayQuestionNav` 的界面点击 `第 X / Y 题 ▾` 按钮后，页面立刻白屏崩溃。
+- **根本原因 (RCA)**：[`ClayQuestionNav.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/ClayQuestionNav.tsx#L163) 在 `jumpDrawerOpen` 为 `true` 时渲染的快速定位图例中引用了未声明的标识符 `{memorizedLabel}`（`ReferenceError: memorizedLabel is not defined`）。由于之前仅运行静态构建 `vite build` 而未运行 `tsc --noEmit` 与点击抽屉的动态测试，该运行时错误未被提前拦截。
+- **具体解法**：将 `{memorizedLabel}` 修复为基于 `actionLabel` 推导的安全图例文本 `{actionLabel?.startsWith('已') ? actionLabel : \`已${actionLabel || '背会'}\`}`，使“已背会 / 已掌握 / 已做”三种场景均正常渲染且零引用错误。
+
+#### 问题 2：客观题库残留 AI 扩充内容与错误映射
+- **问题现象**：审查 `examData.ts` 与 `centralBankingData.ts` 对比发现，题库仍存在未在《全书速记》161 题中出现的概念与算例（如“巨斧”、“巴杰特法则”、“2008年次级抵押贷款/MBS/CDO”、“M0/M1/M3”、“CCyB 0~2.5%”、“q>1 / q<1”、“存款派生乘数算例 10%+2%+8%”、“第二十九条”、“马斯特里赫特条约”、“非营利性/安全性”原则等），且部分题目 `recitationQuestionId` 与 `chapterId` 错位（如将《央行职责分类》第 27 题映射为负债/资产项目）。
+- **根本原因 (RCA)**：旧版题库由通用金融常识辅助生成，且 `audit_exam_accuracy.ts` 此前仅检验了填空题答案和少数关键词，未对单选题、判断改错题及 `chapterId` 匹配度执行严格把关。
+- **具体解法**：对照《全书速记》161 题原文逐题重构并修正了 40 道填空、40 道单选、30 道判断改错的题干、选项、答案、解析及 `recitationQuestionId`/`chapterId` 映射，确保 110 道客观题 100% 立足于 161 题正文表述。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：题型专项 4 模式统一导航与持久化数据流图
+```mermaid
+flowchart LR
+    State["useStudyState (localStorage cb_study_state_v2)"] --> App["App.tsx 状态中枢"]
+    App --> PC["PracticeCanvas (4 模式统一视图)"]
+    App --> RS["RightSidebar (专项题号矩阵)"]
+
+    subgraph PracticeTabs["题型专项 4 个子模式"]
+        T1["名词抽背 (28词)"]
+        T2["单选专项 (40题)"]
+        T3["判断改错 (30题)"]
+        T4["填空专项 (40题)"]
+    end
+
+    PC --> PracticeTabs
+    PracticeTabs --> Nav["ClayQuestionNav (统一顶栏 + 快速定位抽屉)"]
+    PracticeTabs --> Card["统一卡片 (源自全书速记 #N + 收藏/掌握按钮)"]
+    Nav -. 双向联动 .-> State
+    Card -. 双向联动 .-> State
+    State -. 同步摘要 .-> Sync["syncService (textdb.online)"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **核心流向**：`useStudyState` 作为单一状态源管理 4 种专项练习的 `Memorized` 与 `Starred` 数组，通过 `App.tsx` 同时驱动中栏 `PracticeCanvas` 与右栏 `RightSidebar`。
+- **交互闭环**：无论是点击顶部 `ClayQuestionNav`、卡片底栏的 `掌握`/`收藏`，还是使用 `M`/`S` 快捷键，均会即时更新主状态、顶部进度统计与右侧题号矩阵颜色，并写入 `localStorage` 与云端同步指纹。
+
+#### 图 2：快速定位抽屉防崩溃渲染与状态切换流程
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 学习者
+    participant Nav as ClayQuestionNav
+    participant Drawer as 快速定位抽屉 (jumpDrawerOpen)
+    participant Canvas as PracticeCanvas
+
+    User->>Nav: 点击 "第 X / Y 题 ▾"
+    Nav->>Drawer: 切换 jumpDrawerOpen = true
+    Note over Drawer: 读取 actionLabel 生成图例 ("已掌握")<br/>按 completedItemIds / starredItemIds 着色
+    Drawer-->>User: 展示题号网格 (无未定义变量异常)
+    User->>Drawer: 点击目标题号 N
+    Drawer->>Canvas: 调用 onJumpToIndex(N - 1)
+    Drawer->>Nav: 自动收起抽屉 (jumpDrawerOpen = false)
+    Canvas-->>User: 切换题目并重置作答/解析展开态
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **防故障机制**：每个子模式挂载独立的 `key={activeTab}` 到 `ClayQuestionNav`，确保切换子模式时抽屉状态自动复位，同时在 `ClayQuestionNav` 内部消除了未声明变量引用，杜绝点击页码按钮引发的组件树崩溃。
+
+#### 图 3：110 道客观题严格溯源《全书速记》161 题校验管道
+```mermaid
+flowchart TD
+    Source["centralBankingData.ts (161 题全书速记原文)"] --> Audit["audit_exam_accuracy.ts 校验脚本"]
+    Bank["examData.ts (40填空 + 40单选 + 30判断)"] --> Audit
+
+    Audit --> CheckId{"recitationQuestionId ∈ 1..161<br/>且 chapterId 严格一致?"}
+    CheckId -- 否 --> Fail["报错退出"]
+    CheckId -- 是 --> CheckAns{"填空答案是否包含于对应背诵题原文?"}
+    CheckAns -- 否 --> Fail
+    CheckAns -- 是 --> CheckBanned{"是否包含超纲/AI自造词黑名单?"}
+    CheckBanned -- 是 --> Fail
+    CheckBanned -- 否 --> Pass["校验通过 (110/110 严格闭环)"]
+```
+
+**【图 3 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **三层门禁**：审计脚本不仅校验题目编号与章节归属的物理一致性，还核验填空题答案在对应背诵题中的原文出现情况，并拦截超纲词黑名单，防止后续修改再次引入脱离教材的内容。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+1. **统一四合一交互体验**：单选、判断改错、填空专项与名词抽背实现 100% 一致的粘性顶栏、快速跳题抽屉、解析/答案开关、掌握/收藏双态按钮及一键复制反馈；
+2. **补全名词抽背历史空实现**：修复“名词抽背”原本顶栏 `收藏` 按钮与 `复制` 成功状态为空操作的遗留问题；
+3. **左侧导航栏支持折叠**：支持从顶部栏和左侧栏头部一键折叠为 `w-16` 紧凑图标导轨（支持刷新持久保留与一键展开），同时在折叠态下仍可点击切换 4 大复习模式；
+4. **浏览器端到端回归覆盖**：使用无头 Chrome（Selenium）实际点击测试左侧栏折叠/展开及刷新保留、全部 4 个专项子模式及全书速记/平时作业本的 `第 X / Y 题 ▾` 抽屉跳转、掌握/收藏持久化及控制台零 `SEVERE` 报错验证。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console
+  npx tsx scripts/audit_exam_accuracy.ts
+  npx tsx tests/verifyData.ts
+  npx tsx tests/verifyHomeworkHierarchy.ts
+  npx tsx tests/verifyPracticeUI.tsx
+  node verify_suite.mjs
+  npm run build
+  ```
+- **实际输出断言**：
+  - `audit_exam_accuracy.ts`：Fill-in `0/40` 错误，Choice `0/40` 错误，TF `0/30` 错误；
+  - `verifyData.ts`：`40 PASSED, 0 FAILED`；
+  - `verifyHomeworkHierarchy.ts`：`21 PASSED, 0 FAILED`；
+  - `verifyPracticeUI.tsx`：`22 PASSED, 0 FAILED`；
+  - `verify_suite.mjs`：`50 PASSED, 0 FAILED`；
+  - `npm run build`：`vite build` 顺利打包 1657 个模块生成 `dist/` 产物，无报错；
+  - Selenium 无头浏览器实测：左侧导航栏折叠/展开/刷新保留正常；全书速记、平时作业本及专项练习 4 个子模式点击 `第 X / Y 题 ▾` 抽屉均正常打开与跳转；掌握/收藏刷新页面持久保留；零浏览器 `SEVERE` 控制台报错。

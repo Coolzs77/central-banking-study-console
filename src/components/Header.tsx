@@ -10,6 +10,8 @@ import {
   RefreshCw,
   X,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -17,6 +19,8 @@ interface HeaderProps {
   onSearchChange: (q: string) => void;
   onOpenSync: () => void;
   onToggleMobileMenu?: () => void;
+  isLeftCollapsed?: boolean;
+  onToggleLeftCollapsed?: () => void;
   activeMode: string;
 }
 
@@ -25,6 +29,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   onOpenSync,
   onToggleMobileMenu,
+  isLeftCollapsed = false,
+  onToggleLeftCollapsed,
 }) => {
   // Theme state
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -97,6 +103,17 @@ export const Header: React.FC<HeaderProps> = ({
               title="切换章节导航"
             >
               <Menu className="w-5 h-5" />
+            </button>
+          )}
+
+          {onToggleLeftCollapsed && (
+            <button
+              onClick={onToggleLeftCollapsed}
+              aria-label={isLeftCollapsed ? '展开左侧导航栏' : '折叠左侧导航栏'}
+              title={isLeftCollapsed ? '展开左侧栏' : '折叠左侧栏'}
+              className="hidden md:inline-flex p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+            >
+              {isLeftCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
             </button>
           )}
 

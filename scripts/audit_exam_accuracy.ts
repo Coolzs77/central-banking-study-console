@@ -3,6 +3,35 @@ import { recitationQuestions } from '../src/data/centralBankingData';
 
 const qMap = new Map(recitationQuestions.map(q => [q.id, q]));
 
+const BANNED_OUT_OF_BOOK_TERMS = [
+  '三元悖论',
+  '不可能三角',
+  '巨斧',
+  '巴杰特',
+  '次级抵押贷款',
+  'MBS',
+  'CDO',
+  'M0',
+  'M1',
+  'M3',
+  'HVPS',
+  'CCyB',
+  '第二十九条',
+  '马斯特里赫特',
+  'q>1',
+  'q < 1',
+  '高能货币',
+  '现金漏损',
+  '名义总支出',
+];
+
+function findBannedTerm(text: string): string | null {
+  for (const term of BANNED_OUT_OF_BOOK_TERMS) {
+    if (text.includes(term)) return term;
+  }
+  return null;
+}
+
 console.log('=== 1. Checking Fill-In Questions ===');
 let fillInErrors = 0;
 for (const f of fillInQuestions) {
@@ -12,10 +41,19 @@ for (const f of fillInQuestions) {
     continue;
   }
   const rq = qMap.get(f.recitationQuestionId)!;
+  if (f.chapterId !== rq.chapterId) {
+    console.error(`[FAIL] FillIn ${f.id}: chapterId ${f.chapterId} !== Recitation #${rq.id} chapterId ${rq.chapterId}`);
+    fillInErrors++;
+  }
   const fullText = rq.title + ' ' + rq.content;
   const match = f.answers.some(ans => fullText.includes(ans) || (ans.length > 4 && fullText.includes(ans.slice(0, 3))));
   if (!match) {
     console.error(`[FAIL] FillIn ${f.id}: answers [${f.answers.join(', ')}] not found in Recitation #${f.recitationQuestionId} (${rq.title})`);
+    fillInErrors++;
+  }
+  const banned = findBannedTerm(`${f.stem} ${f.answers.join(' ')} ${f.explanation || ''}`);
+  if (banned) {
+    console.error(`[FAIL] FillIn ${f.id} contains out-of-book term "${banned}"`);
     fillInErrors++;
   }
 }
@@ -30,11 +68,14 @@ for (const c of singleChoiceQuestions) {
     continue;
   }
   const rq = qMap.get(c.recitationQuestionId)!;
-  const fullText = rq.title + ' ' + rq.content;
-  const correctOption = c.options[c.correctKey];
-  // Check if stem or rationale has out of syllabus term
-  if (c.stem.includes('三元悖论') || c.stem.includes('不可能三角') || c.rationale.includes('三元悖论') || c.rationale.includes('不可能三角')) {
-    console.error(`[FAIL] Choice ${c.id} contains out-of-syllabus term 三元悖论/不可能三角!`);
+  if (c.chapterId !== rq.chapterId) {
+    console.error(`[FAIL] Choice ${c.id}: chapterId ${c.chapterId} !== Recitation #${rq.id} chapterId ${rq.chapterId}`);
+    choiceErrors++;
+  }
+  const combined = `${c.stem} ${c.options.A} ${c.options.B} ${c.options.C} ${c.options.D} ${c.rationale}`;
+  const banned = findBannedTerm(combined);
+  if (banned) {
+    console.error(`[FAIL] Choice ${c.id} contains out-of-book term "${banned}"`);
     choiceErrors++;
   }
 }
@@ -49,8 +90,13 @@ for (const tf of trueFalseQuestions) {
     continue;
   }
   const rq = qMap.get(tf.recitationQuestionId)!;
-  if (tf.statement.includes('三元悖论') || tf.statement.includes('不可能三角') || tf.errorCorrection.includes('三元悖论') || tf.errorCorrection.includes('不可能三角')) {
-    console.error(`[FAIL] TF ${tf.id} contains out-of-syllabus term 三元悖论/不可能三角!`);
+  if (tf.chapterId !== rq.chapterId) {
+    console.error(`[FAIL] TF ${tf.id}: chapterId ${tf.chapterId} !== Recitation #${rq.id} chapterId ${rq.chapterId}`);
+    tfErrors++;
+  }
+  const banned = findBannedTerm(`${tf.statement} ${tf.errorCorrection}`);
+  if (banned) {
+    console.error(`[FAIL] TF ${tf.id} contains out-of-book term "${banned}"`);
     tfErrors++;
   }
 }

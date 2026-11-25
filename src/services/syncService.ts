@@ -135,6 +135,13 @@ class CloudSyncManager {
       s: state.starred,
       h: state.homeworkCompleted,
       t: state.termMemorized,
+      ts: state.termStarred || [],
+      cm: state.choiceMemorized || [],
+      cs: state.choiceStarred || [],
+      tm: state.tfMemorized || [],
+      tfs: state.tfStarred || [],
+      fm: state.fillMemorized || [],
+      fs: state.fillStarred || [],
       e: state.examHistory.length
     });
 

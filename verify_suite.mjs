@@ -105,10 +105,11 @@ async function runTests() {
     const rightSidebarCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RightSidebar.tsx'), 'utf-8');
     assert(!rightSidebarCode.includes('考点分值：') && !rightSidebarCode.includes('pointFilter'), 'RightSidebar does NOT divide questions by score or pointFilter');
 
-    // 14. Check LeftSidebar has wider width and clean chapter title
+    // 14. Check LeftSidebar has wider width, clean chapter title, and supports collapsing
     const leftSidebarCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/LeftSidebar.tsx'), 'utf-8');
     assert(leftSidebarCode.includes('w-76 lg:w-80'), 'LeftSidebar has widened width w-76 lg:w-80');
     assert(leftSidebarCode.includes('cleanTitle'), 'LeftSidebar formats clean chapter title without redundant prefix');
+    assert(leftSidebarCode.includes('isCollapsed') && leftSidebarCode.includes('onToggleCollapse'), 'LeftSidebar supports collapsing and expanding');
 
     // 15. Check PracticeCanvas properly accesses single choice and true-false fields, and avoids flapping verbose buttons
     const practiceCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/PracticeCanvas.tsx'), 'utf-8');
@@ -120,9 +121,24 @@ async function runTests() {
     // 16. Check RightSidebar has clickable buttons for choice, truefalse, fill
     assert(rightSidebarCode.includes('onSelectChoiceIndex') && rightSidebarCode.includes('onSelectTfIndex'), 'RightSidebar has clickable buttons for choice and truefalse drills');
 
-    // 17. Check ClayQuestionNav has fixed concise button labels and zero hover tooltips
+    // 17. Check ClayQuestionNav has fixed concise button labels, zero hover tooltips, and NO undefined memorizedLabel
     const navCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/common/ClayQuestionNav.tsx'), 'utf-8');
-    assert(navCode.includes('actionLabel') && !navCode.includes('title='), 'ClayQuestionNav uses invariant concise labels and zero noisy title tooltips');
+    assert(navCode.includes('actionLabel') && !navCode.includes('title=') && !navCode.includes('memorizedLabel'), 'ClayQuestionNav uses invariant concise labels, zero title tooltips, and zero undefined memorizedLabel crash');
+
+    // 18. Check PracticeCanvas aligns choice/truefalse/fill UI with terminology tab (ClayQuestionNav + 掌握/收藏)
+    assert(
+      practiceCode.includes('key="terms"') &&
+      practiceCode.includes('key="choice"') &&
+      practiceCode.includes('key="truefalse"') &&
+      practiceCode.includes('key="fill"') &&
+      practiceCode.includes('onToggleChoiceMemorized') &&
+      practiceCode.includes('onToggleChoiceStarred') &&
+      practiceCode.includes('onToggleTfMemorized') &&
+      practiceCode.includes('onToggleTfStarred') &&
+      practiceCode.includes('onToggleFillMemorized') &&
+      practiceCode.includes('onToggleFillStarred'),
+      'PracticeCanvas unifies ClayQuestionNav, 掌握, and 收藏 across all 4 practice modes'
+    );
   } catch (err) {
     console.error('Error checking layout & features:', err.message);
     failedAssertions++;

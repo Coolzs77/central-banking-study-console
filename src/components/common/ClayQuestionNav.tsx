@@ -160,7 +160,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
             <div className="flex items-center gap-3 text-[11px] text-slate-500">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-                {memorizedLabel}
+                {actionLabel?.startsWith('已') ? actionLabel : `已${actionLabel || '背会'}`}
               </span>
               {starredItemIds.length > 0 && (
                 <span className="flex items-center gap-1">

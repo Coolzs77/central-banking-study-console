@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Layers,
-  RotateCcw,
   CheckCircle2,
   Circle,
-  HelpCircle,
   Check,
   X,
-  BookOpen,
-  Eye,
-  EyeOff,
-  ChevronLeft,
-  ChevronRight,
+  Star,
 } from 'lucide-react';
 import {
   TerminologyQuestion,
@@ -19,6 +12,7 @@ import {
   TrueFalseQuestion,
   FillInQuestion,
 } from '../data/types';
+import { chaptersMeta } from '../data/chapters';
 import { MarkdownViewer } from './common/MarkdownViewer';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
 
@@ -29,6 +23,20 @@ interface PracticeCanvasProps {
   fillIns: FillInQuestion[];
   termMemorized: number[];
   onToggleTermMemorized: (id: number) => void;
+  termStarred?: number[];
+  onToggleTermStarred?: (id: number) => void;
+  choiceMemorized?: number[];
+  onToggleChoiceMemorized?: (id: number) => void;
+  choiceStarred?: number[];
+  onToggleChoiceStarred?: (id: number) => void;
+  tfMemorized?: number[];
+  onToggleTfMemorized?: (id: number) => void;
+  tfStarred?: number[];
+  onToggleTfStarred?: (id: number) => void;
+  fillMemorized?: number[];
+  onToggleFillMemorized?: (id: number) => void;
+  fillStarred?: number[];
+  onToggleFillStarred?: (id: number) => void;
   currentTermIndex?: number;
   onJumpToTermIndex?: (idx: number) => void;
   currentChoiceIndex?: number;
@@ -48,6 +56,20 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   fillIns,
   termMemorized,
   onToggleTermMemorized,
+  termStarred = [],
+  onToggleTermStarred = () => {},
+  choiceMemorized = [],
+  onToggleChoiceMemorized = () => {},
+  choiceStarred = [],
+  onToggleChoiceStarred = () => {},
+  tfMemorized = [],
+  onToggleTfMemorized = () => {},
+  tfStarred = [],
+  onToggleTfStarred = () => {},
+  fillMemorized = [],
+  onToggleFillMemorized = () => {},
+  fillStarred = [],
+  onToggleFillStarred = () => {},
   currentTermIndex = 0,
   onJumpToTermIndex,
   currentChoiceIndex,
@@ -67,12 +89,23 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     setInternalTab(tab);
   };
 
+  const [copied, setCopied] = useState<boolean>(false);
+  const triggerCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const getChapterTitle = (chapterId: number) => {
+    return chaptersMeta.find((c) => c.id === chapterId)?.title || `第 ${chapterId} 章`;
+  };
+
   // Term Flashcards State
   const [internalTermIdx, setInternalTermIdx] = useState<number>(0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
-  const [isMasking, setIsMasking] = useState<boolean>(false);
+  const [isMasking] = useState<boolean>(false);
 
-  const activeTermIdx = currentTermIndex ?? internalTermIdx;
+  const activeTermIdx = Math.min(Math.max(0, currentTermIndex ?? internalTermIdx), Math.max(0, terms.length - 1));
   const currentTerm = terms[activeTermIdx] || terms[0];
 
   const handleSetTermIdx = (idx: number) => {
@@ -86,7 +119,8 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
   // Choice drill state (40 questions)
   const [internalChoiceIdx, setInternalChoiceIdx] = useState<number>(0);
-  const choiceIdx = currentChoiceIndex ?? internalChoiceIdx;
+  const rawChoiceIdx = currentChoiceIndex ?? internalChoiceIdx;
+  const choiceIdx = Math.min(Math.max(0, rawChoiceIdx), Math.max(0, singleChoices.length - 1));
   const setChoiceIdx = (fnOrVal: number | ((p: number) => number)) => {
     const nextVal = typeof fnOrVal === 'function' ? fnOrVal(choiceIdx) : fnOrVal;
     if (onJumpToChoiceIndex) onJumpToChoiceIndex(nextVal);
@@ -103,7 +137,8 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
   // True/False drill state (30 questions)
   const [internalTfIdx, setInternalTfIdx] = useState<number>(0);
-  const tfIdx = currentTfIndex ?? internalTfIdx;
+  const rawTfIdx = currentTfIndex ?? internalTfIdx;
+  const tfIdx = Math.min(Math.max(0, rawTfIdx), Math.max(0, trueFalse.length - 1));
   const setTfIdx = (fnOrVal: number | ((p: number) => number)) => {
     const nextVal = typeof fnOrVal === 'function' ? fnOrVal(tfIdx) : fnOrVal;
     if (onJumpToTfIndex) onJumpToTfIndex(nextVal);
@@ -120,7 +155,8 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
   // Fill drill state (40 questions)
   const [internalFillIdx, setInternalFillIdx] = useState<number>(0);
-  const fillIdx = currentFillIndex ?? internalFillIdx;
+  const rawFillIdx = currentFillIndex ?? internalFillIdx;
+  const fillIdx = Math.min(Math.max(0, rawFillIdx), Math.max(0, fillIns.length - 1));
   const setFillIdx = (fnOrVal: number | ((p: number) => number)) => {
     const nextVal = typeof fnOrVal === 'function' ? fnOrVal(fillIdx) : fnOrVal;
     if (onJumpToFillIndex) onJumpToFillIndex(nextVal);
@@ -133,7 +169,12 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     setShowFillAnswer(false);
   }, [fillIdx]);
 
-  // Keyboard navigation
+  // Reset copied badge on item or tab change
+  useEffect(() => {
+    setCopied(false);
+  }, [activeTab, activeTermIdx, choiceIdx, tfIdx, fillIdx]);
+
+  // Keyboard navigation across all 4 tabs
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
@@ -153,56 +194,167 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             e.preventDefault();
             onToggleTermMemorized(currentTerm.id);
           }
+        } else if (e.key === 's' || e.key === 'S') {
+          if (currentTerm) {
+            e.preventDefault();
+            onToggleTermStarred(currentTerm.id);
+          }
         }
       } else if (activeTab === 'choice') {
         if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
           e.preventDefault();
           setChoiceIdx((p) => Math.max(0, p - 1));
-          setSelectedOption(null);
-          setShowChoiceExplanation(false);
         } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
           e.preventDefault();
           setChoiceIdx((p) => Math.min(singleChoices.length - 1, p + 1));
-          setSelectedOption(null);
-          setShowChoiceExplanation(false);
+        } else if (e.code === 'Space') {
+          e.preventDefault();
+          setShowChoiceExplanation((p) => !p);
+        } else if (e.key === 'm' || e.key === 'M') {
+          if (currentChoice) {
+            e.preventDefault();
+            onToggleChoiceMemorized(currentChoice.id);
+          }
+        } else if (e.key === 's' || e.key === 'S') {
+          if (currentChoice) {
+            e.preventDefault();
+            onToggleChoiceStarred(currentChoice.id);
+          }
         }
       } else if (activeTab === 'truefalse') {
         if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
           e.preventDefault();
           setTfIdx((p) => Math.max(0, p - 1));
-          setSelectedTf(null);
-          setShowTfExplanation(false);
         } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
           e.preventDefault();
           setTfIdx((p) => Math.min(trueFalse.length - 1, p + 1));
-          setSelectedTf(null);
-          setShowTfExplanation(false);
+        } else if (e.code === 'Space') {
+          e.preventDefault();
+          setShowTfExplanation((p) => !p);
+        } else if (e.key === 'm' || e.key === 'M') {
+          if (currentTF) {
+            e.preventDefault();
+            onToggleTfMemorized(currentTF.id);
+          }
+        } else if (e.key === 's' || e.key === 'S') {
+          if (currentTF) {
+            e.preventDefault();
+            onToggleTfStarred(currentTF.id);
+          }
         }
       } else if (activeTab === 'fill') {
         if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
           e.preventDefault();
           setFillIdx((p) => Math.max(0, p - 1));
-          setShowFillAnswer(false);
         } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
           e.preventDefault();
           setFillIdx((p) => Math.min(fillIns.length - 1, p + 1));
-          setShowFillAnswer(false);
         } else if (e.code === 'Space') {
           e.preventDefault();
           setShowFillAnswer((p) => !p);
+        } else if (e.key === 'm' || e.key === 'M') {
+          if (currentFill) {
+            e.preventDefault();
+            onToggleFillMemorized(currentFill.id);
+          }
+        } else if (e.key === 's' || e.key === 'S') {
+          if (currentFill) {
+            e.preventDefault();
+            onToggleFillStarred(currentFill.id);
+          }
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeTab, terms.length, currentTerm, activeTermIdx, singleChoices.length, trueFalse.length, fillIns.length]);
+  }, [
+    activeTab,
+    terms.length,
+    currentTerm,
+    activeTermIdx,
+    singleChoices.length,
+    currentChoice,
+    trueFalse.length,
+    currentTF,
+    fillIns.length,
+    currentFill,
+    onToggleTermMemorized,
+    onToggleTermStarred,
+    onToggleChoiceMemorized,
+    onToggleChoiceStarred,
+    onToggleTfMemorized,
+    onToggleTfStarred,
+    onToggleFillMemorized,
+    onToggleFillStarred,
+  ]);
+
+  // Active tab summary stats
+  const activeStats =
+    activeTab === 'terms'
+      ? { mastered: termMemorized.length, starred: termStarred.length, total: terms.length }
+      : activeTab === 'choice'
+      ? { mastered: choiceMemorized.length, starred: choiceStarred.length, total: singleChoices.length }
+      : activeTab === 'truefalse'
+      ? { mastered: tfMemorized.length, starred: tfStarred.length, total: trueFalse.length }
+      : { mastered: fillMemorized.length, starred: fillStarred.length, total: fillIns.length };
+
+  const renderCardFooterActions = (
+    isMemorized: boolean,
+    onToggleMemorized: () => void,
+    isStarred: boolean,
+    onToggleStar: () => void,
+    chapterId: number,
+    chapterTitleOverride?: string
+  ) => (
+    <div className="flex flex-wrap items-center justify-between gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+      <span className="text-xs text-slate-400">
+        {chapterTitleOverride || getChapterTitle(chapterId)}
+      </span>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleStar();
+          }}
+          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition cursor-pointer ${
+            isStarred
+              ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-50 hover:text-amber-500'
+          }`}
+        >
+          <Star className={`w-4 h-4 ${isStarred ? 'fill-white text-white' : 'text-slate-400'}`} />
+          <span>收藏</span>
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleMemorized();
+          }}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition cursor-pointer ${
+            isMemorized
+              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-50 hover:text-emerald-600'
+          }`}
+        >
+          {isMemorized ? (
+            <CheckCircle2 className="w-4 h-4" />
+          ) : (
+            <Circle className="w-4 h-4 text-slate-400" />
+          )}
+          <span>掌握</span>
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50/50 dark:bg-[#0b0f17] overflow-hidden select-text">
       {/* Top Mode Sub-Tabs */}
-      <div className="bg-white dark:bg-[#151b26] border-b border-slate-200/80 dark:border-slate-800 px-4 py-2.5 flex items-center justify-between gap-3 shadow-xs shrink-0">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-2xl">
+      <div className="bg-white dark:bg-[#151b26] border-b border-slate-200/80 dark:border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-xs shrink-0">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-2xl flex-wrap">
           <button
             onClick={() => setActiveTab('terms')}
             className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
@@ -245,51 +397,58 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </button>
         </div>
 
-        {activeTab === 'terms' && (
-          <div className="text-xs text-slate-500 font-medium">
-            已掌握: <span className="font-bold text-emerald-600">{termMemorized.length}</span> / {terms.length}
-          </div>
-        )}
+        <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+          <span>
+            已掌握: <span className="font-bold text-emerald-600">{activeStats.mastered}</span> / {activeStats.total}
+          </span>
+          <span>
+            已收藏: <span className="font-bold text-amber-500">{activeStats.starred}</span>
+          </span>
+        </div>
       </div>
 
       {/* Tab 1: Terminology Flashcards */}
       {activeTab === 'terms' && currentTerm && (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <ClayQuestionNav
-            currentIndex={activeTermIdx}
-            totalFiltered={terms.length}
-            onPrev={() => handleSetTermIdx(Math.max(0, activeTermIdx - 1))}
-            onNext={() => handleSetTermIdx(Math.min(terms.length - 1, activeTermIdx + 1))}
-            onJumpToIndex={handleSetTermIdx}
-            allItemIds={terms.map((t) => t.id)}
-            completedItemIds={termMemorized}
-            isMemorized={termMemorized.includes(currentTerm.id)}
-            onToggleMemorized={() => onToggleTermMemorized(currentTerm.id)}
-            actionLabel="掌握"
-            isStarred={false}
-            onToggleStar={() => {}}
-            revealed={isFlipped}
-            onToggleRevealed={() => setIsFlipped((p) => !p)}
-            toggleLabel="定义"
-            onCopy={() => {
-              navigator.clipboard.writeText(`【${currentTerm.term}】\n${currentTerm.definition}`);
-            }}
-            isCopied={false}
-            modeBadge="名词抽背"
-          />
+          <div className="px-3 pt-3 sm:px-5 sm:pt-4 shrink-0">
+            <ClayQuestionNav
+              key="terms"
+              currentIndex={activeTermIdx}
+              totalFiltered={terms.length}
+              onPrev={() => handleSetTermIdx(Math.max(0, activeTermIdx - 1))}
+              onNext={() => handleSetTermIdx(Math.min(terms.length - 1, activeTermIdx + 1))}
+              onJumpToIndex={handleSetTermIdx}
+              allItemIds={terms.map((t) => t.id)}
+              completedItemIds={termMemorized}
+              starredItemIds={termStarred}
+              isMemorized={termMemorized.includes(currentTerm.id)}
+              onToggleMemorized={() => onToggleTermMemorized(currentTerm.id)}
+              actionLabel="掌握"
+              isStarred={termStarred.includes(currentTerm.id)}
+              onToggleStar={() => onToggleTermStarred(currentTerm.id)}
+              revealed={isFlipped}
+              onToggleRevealed={() => setIsFlipped((p) => !p)}
+              toggleLabel="定义"
+              onCopy={() => {
+                triggerCopy(`【${currentTerm.term}】\n${currentTerm.definition}`);
+              }}
+              isCopied={copied}
+              modeBadge="名词抽背"
+            />
+          </div>
 
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center justify-center">
-            <div className="w-full max-w-3xl space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
+            <div className="w-full max-w-3xl my-auto space-y-4">
               <div
                 onClick={() => setIsFlipped((prev) => !prev)}
-                className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-8 flex flex-col justify-between cursor-pointer select-none group"
+                className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between cursor-pointer select-none group"
               >
                 <div className="flex items-center justify-between text-xs text-slate-400">
                   <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
                     核心名词 #{currentTerm.id}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-500">{currentTerm.source}</span>
+                    {currentTerm.source && <span className="text-slate-500">{currentTerm.source}</span>}
                     <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
                       {isFlipped ? '点击翻回正面' : '点击翻转看定义'}
                     </span>
@@ -321,30 +480,14 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-xs text-slate-400">
-                    {currentTerm.chapterTitle}
-                  </span>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleTermMemorized(currentTerm.id);
-                    }}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition cursor-pointer ${
-                      termMemorized.includes(currentTerm.id)
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    {termMemorized.includes(currentTerm.id) ? (
-                      <CheckCircle2 className="w-4 h-4" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-slate-400" />
-                    )}
-                    <span>掌握</span>
-                  </button>
-                </div>
+                {renderCardFooterActions(
+                  termMemorized.includes(currentTerm.id),
+                  () => onToggleTermMemorized(currentTerm.id),
+                  termStarred.includes(currentTerm.id),
+                  () => onToggleTermStarred(currentTerm.id),
+                  currentTerm.chapterId,
+                  currentTerm.chapterTitle
+                )}
               </div>
             </div>
           </div>
@@ -354,113 +497,125 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
       {/* Tab 2: Single Choice Drill */}
       {activeTab === 'choice' && currentChoice && (
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* FRM-style Sticky Stepper Nav */}
-          <div className="bg-white dark:bg-[#151b26] border-b border-slate-200/80 dark:border-slate-800 px-4 py-2 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setChoiceIdx((p) => Math.max(0, p - 1));
-                  setSelectedOption(null);
-                  setShowChoiceExplanation(false);
-                }}
-                disabled={choiceIdx === 0}
-                className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
-                title="上一题 (J)"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-800">
-                单选题 第 {choiceIdx + 1} / {singleChoices.length} 题
-              </span>
-              {currentChoice.recitationQuestionId && (
-                <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
-                  源自背诵 #{currentChoice.recitationQuestionId}
-                </span>
-              )}
-              <button
-                onClick={() => {
-                  setChoiceIdx((p) => Math.min(singleChoices.length - 1, p + 1));
-                  setSelectedOption(null);
-                  setShowChoiceExplanation(false);
-                }}
-                disabled={choiceIdx === singleChoices.length - 1}
-                className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
-                title="下一题 (K)"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowChoiceExplanation((p) => !p)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition cursor-pointer ${
-                showChoiceExplanation
-                  ? 'bg-blue-600 text-white border-blue-700 shadow-xs'
-                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              解析
-            </button>
+          <div className="px-3 pt-3 sm:px-5 sm:pt-4 shrink-0">
+            <ClayQuestionNav
+              key="choice"
+              currentIndex={choiceIdx}
+              totalFiltered={singleChoices.length}
+              onPrev={() => setChoiceIdx((p) => Math.max(0, p - 1))}
+              onNext={() => setChoiceIdx((p) => Math.min(singleChoices.length - 1, p + 1))}
+              onJumpToIndex={(idx) => setChoiceIdx(idx)}
+              allItemIds={singleChoices.map((q) => q.id)}
+              completedItemIds={choiceMemorized}
+              starredItemIds={choiceStarred}
+              isMemorized={choiceMemorized.includes(currentChoice.id)}
+              onToggleMemorized={() => onToggleChoiceMemorized(currentChoice.id)}
+              actionLabel="掌握"
+              isStarred={choiceStarred.includes(currentChoice.id)}
+              onToggleStar={() => onToggleChoiceStarred(currentChoice.id)}
+              revealed={showChoiceExplanation}
+              onToggleRevealed={() => setShowChoiceExplanation((p) => !p)}
+              toggleLabel="解析"
+              onCopy={() => {
+                const opts = (['A', 'B', 'C', 'D'] as const)
+                  .map((k) => `${k}. ${currentChoice.options[k]}`)
+                  .join('\n');
+                triggerCopy(
+                  `【单选专项 #${currentChoice.id}】${currentChoice.stem}\n${opts}\n\n正确答案：${currentChoice.correctKey}\n解析：${currentChoice.rationale}`
+                );
+              }}
+              isCopied={copied}
+              modeBadge="单选专项"
+            />
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="w-full max-w-3xl bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 md:p-8 space-y-6 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-relaxed">
-                {choiceIdx + 1}. {currentChoice.stem}
-              </h3>
-
-              {/* Options A, B, C, D */}
-              <div className="space-y-3">
-                {(['A', 'B', 'C', 'D'] as const).map((key) => {
-                  const text = currentChoice.options[key];
-                  const isSelected = selectedOption === key;
-                  const isCorrect = key === currentChoice.correctKey;
-
-                  let optClass =
-                    'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200';
-
-                  if (showChoiceExplanation) {
-                    if (isCorrect) {
-                      optClass =
-                        'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold';
-                    } else if (isSelected) {
-                      optClass =
-                        'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-900 dark:text-rose-200';
-                    }
-                  } else if (isSelected) {
-                    optClass =
-                      'border-blue-500 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 font-bold';
-                  }
-
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => {
-                        setSelectedOption(key);
-                        setShowChoiceExplanation(true);
-                      }}
-                      className={`w-full p-4 rounded-2xl border text-left flex items-start gap-3 transition cursor-pointer text-sm ${optClass}`}
-                    >
-                      <span className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-xs shrink-0">
-                        {key}
+            <div className="w-full max-w-3xl my-auto space-y-4">
+              <div className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6">
+                {/* Top Card Meta */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+                      单选专项 #{currentChoice.id}
+                    </span>
+                    {currentChoice.recitationQuestionId && (
+                      <span className="font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                        源自全书速记 #{currentChoice.recitationQuestionId}
                       </span>
-                      <span className="flex-1 pt-0.5">{text}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Explanation */}
-              {showChoiceExplanation && (
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
-                  <div className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">
-                    正确答案：【{currentChoice.correctKey}】
+                    )}
                   </div>
-                  <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
-                    {currentChoice.rationale}
-                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                    第 {choiceIdx + 1} / {singleChoices.length} 题
+                  </span>
                 </div>
-              )}
+
+                {/* Question Stem & Options */}
+                <div className="space-y-5">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                    <span className="font-mono mr-1.5">{choiceIdx + 1}.</span>
+                    <span>{currentChoice.stem}</span>
+                  </h3>
+
+                  <div className="space-y-3">
+                    {(['A', 'B', 'C', 'D'] as const).map((key) => {
+                      const text = currentChoice.options[key];
+                      const isSelected = selectedOption === key;
+                      const isCorrect = key === currentChoice.correctKey;
+
+                      let optClass =
+                        'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200';
+
+                      if (showChoiceExplanation) {
+                        if (isCorrect) {
+                          optClass =
+                            'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold';
+                        } else if (isSelected) {
+                          optClass =
+                            'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-900 dark:text-rose-200';
+                        }
+                      } else if (isSelected) {
+                        optClass =
+                          'border-blue-500 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 font-bold';
+                      }
+
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => {
+                            setSelectedOption(key);
+                            setShowChoiceExplanation(true);
+                          }}
+                          className={`w-full p-4 rounded-2xl border text-left flex items-start gap-3 transition cursor-pointer text-sm ${optClass}`}
+                        >
+                          <span className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-xs shrink-0">
+                            {key}
+                          </span>
+                          <span className="flex-1 pt-0.5">{text}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {showChoiceExplanation && (
+                    <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                      <div className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">
+                        正确答案：【{currentChoice.correctKey}】
+                      </div>
+                      <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
+                        {currentChoice.rationale}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {renderCardFooterActions(
+                  choiceMemorized.includes(currentChoice.id),
+                  () => onToggleChoiceMemorized(currentChoice.id),
+                  choiceStarred.includes(currentChoice.id),
+                  () => onToggleChoiceStarred(currentChoice.id),
+                  currentChoice.chapterId
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -469,112 +624,121 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
       {/* Tab 3: True / False Drill */}
       {activeTab === 'truefalse' && currentTF && (
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* FRM-style Sticky Stepper Nav */}
-          <div className="bg-white dark:bg-[#151b26] border-b border-slate-200/80 dark:border-slate-800 px-4 py-2 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setTfIdx((p) => Math.max(0, p - 1));
-                  setSelectedTf(null);
-                  setShowTfExplanation(false);
-                }}
-                disabled={tfIdx === 0}
-                className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
-                title="上一题 (J)"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-xs font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
-                判断改错 第 {tfIdx + 1} / {trueFalse.length} 题
-              </span>
-              {currentTF.recitationQuestionId && (
-                <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
-                  源自背诵 #{currentTF.recitationQuestionId}
-                </span>
-              )}
-              <button
-                onClick={() => {
-                  setTfIdx((p) => Math.min(trueFalse.length - 1, p + 1));
-                  setSelectedTf(null);
-                  setShowTfExplanation(false);
-                }}
-                disabled={tfIdx === trueFalse.length - 1}
-                className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
-                title="下一题 (K)"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowTfExplanation((p) => !p)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition cursor-pointer ${
-                showTfExplanation
-                  ? 'bg-purple-600 text-white border-purple-700 shadow-xs'
-                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              解析
-            </button>
+          <div className="px-3 pt-3 sm:px-5 sm:pt-4 shrink-0">
+            <ClayQuestionNav
+              key="truefalse"
+              currentIndex={tfIdx}
+              totalFiltered={trueFalse.length}
+              onPrev={() => setTfIdx((p) => Math.max(0, p - 1))}
+              onNext={() => setTfIdx((p) => Math.min(trueFalse.length - 1, p + 1))}
+              onJumpToIndex={(idx) => setTfIdx(idx)}
+              allItemIds={trueFalse.map((q) => q.id)}
+              completedItemIds={tfMemorized}
+              starredItemIds={tfStarred}
+              isMemorized={tfMemorized.includes(currentTF.id)}
+              onToggleMemorized={() => onToggleTfMemorized(currentTF.id)}
+              actionLabel="掌握"
+              isStarred={tfStarred.includes(currentTF.id)}
+              onToggleStar={() => onToggleTfStarred(currentTF.id)}
+              revealed={showTfExplanation}
+              onToggleRevealed={() => setShowTfExplanation((p) => !p)}
+              toggleLabel="解析"
+              onCopy={() => {
+                triggerCopy(
+                  `【判断改错 #${currentTF.id}】${currentTF.statement}\n判断：${currentTF.isCorrect ? '正确 (√)' : '错误 (×)'}\n解析：${currentTF.errorCorrection}`
+                );
+              }}
+              isCopied={copied}
+              modeBadge="判断改错"
+            />
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="w-full max-w-3xl bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 md:p-8 space-y-6 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-relaxed">
-                {tfIdx + 1}. {currentTF.statement}
-              </h3>
-
-              {/* Answer buttons */}
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => {
-                    setSelectedTf(true);
-                    setShowTfExplanation(true);
-                  }}
-                  className={`p-4 rounded-2xl border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
-                    showTfExplanation
-                      ? currentTF.isCorrect
-                        ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-bold'
-                        : selectedTf === true
-                        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-200'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-500'
-                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
-                  }`}
-                >
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>正确 (√)</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedTf(false);
-                    setShowTfExplanation(true);
-                  }}
-                  className={`p-4 rounded-2xl border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
-                    showTfExplanation
-                      ? !currentTF.isCorrect
-                        ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-bold'
-                        : selectedTf === false
-                        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-200'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-500'
-                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
-                  }`}
-                >
-                  <X className="w-4 h-4 text-rose-600" />
-                  <span>错误 (×)</span>
-                </button>
-              </div>
-
-              {/* Explanation & Correction */}
-              {showTfExplanation && (
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
-                  <div className="font-bold text-slate-900 dark:text-white text-sm">
-                    判断结果：本题陈述【{currentTF.isCorrect ? '正确 (√)' : '错误 (×)'}】
+            <div className="w-full max-w-3xl my-auto space-y-4">
+              <div className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6">
+                {/* Top Card Meta */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+                      判断改错 #{currentTF.id}
+                    </span>
+                    {currentTF.recitationQuestionId && (
+                      <span className="font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                        源自全书速记 #{currentTF.recitationQuestionId}
+                      </span>
+                    )}
                   </div>
-                  <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
-                    {currentTF.errorCorrection}
-                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                    第 {tfIdx + 1} / {trueFalse.length} 题
+                  </span>
                 </div>
-              )}
+
+                {/* Statement & Answer Buttons */}
+                <div className="space-y-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                    <span className="font-mono mr-1.5">{tfIdx + 1}.</span>
+                    <span>{currentTF.statement}</span>
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => {
+                        setSelectedTf(true);
+                        setShowTfExplanation(true);
+                      }}
+                      className={`p-4 rounded-2xl border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
+                        showTfExplanation
+                          ? currentTF.isCorrect
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-bold'
+                            : selectedTf === true
+                            ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-200'
+                            : 'border-slate-200 dark:border-slate-700 text-slate-500'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                      }`}
+                    >
+                      <Check className="w-4 h-4 text-emerald-600" />
+                      <span>正确 (√)</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedTf(false);
+                        setShowTfExplanation(true);
+                      }}
+                      className={`p-4 rounded-2xl border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
+                        showTfExplanation
+                          ? !currentTF.isCorrect
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-bold'
+                            : selectedTf === false
+                            ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-200'
+                            : 'border-slate-200 dark:border-slate-700 text-slate-500'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                      }`}
+                    >
+                      <X className="w-4 h-4 text-rose-600" />
+                      <span>错误 (×)</span>
+                    </button>
+                  </div>
+
+                  {showTfExplanation && (
+                    <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                      <div className="font-bold text-slate-900 dark:text-white text-sm">
+                        判断结果：本题陈述【{currentTF.isCorrect ? '正确 (√)' : '错误 (×)'}】
+                      </div>
+                      <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
+                        {currentTF.errorCorrection}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {renderCardFooterActions(
+                  tfMemorized.includes(currentTF.id),
+                  () => onToggleTfMemorized(currentTF.id),
+                  tfStarred.includes(currentTF.id),
+                  () => onToggleTfStarred(currentTF.id),
+                  currentTF.chapterId
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -583,79 +747,102 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
       {/* Tab 4: Fill in blanks Drill */}
       {activeTab === 'fill' && currentFill && (
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* FRM-style Sticky Stepper Nav */}
-          <div className="bg-white dark:bg-[#151b26] border-b border-slate-200/80 dark:border-slate-800 px-4 py-2 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setFillIdx((p) => Math.max(0, p - 1));
-                  setShowFillAnswer(false);
-                }}
-                disabled={fillIdx === 0}
-                className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
-                title="上一题 (J)"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800">
-                填空专项 第 {fillIdx + 1} / {fillIns.length} 题
-              </span>
-              {currentFill.recitationQuestionId && (
-                <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
-                  源自背诵 #{currentFill.recitationQuestionId}
-                </span>
-              )}
-              <button
-                onClick={() => {
-                  setFillIdx((p) => Math.min(fillIns.length - 1, p + 1));
-                  setShowFillAnswer(false);
-                }}
-                disabled={fillIdx === fillIns.length - 1}
-                className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
-                title="下一题 (K)"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowFillAnswer((prev) => !prev)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition cursor-pointer ${
-                showFillAnswer
-                  ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
-                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              答案
-            </button>
+          <div className="px-3 pt-3 sm:px-5 sm:pt-4 shrink-0">
+            <ClayQuestionNav
+              key="fill"
+              currentIndex={fillIdx}
+              totalFiltered={fillIns.length}
+              onPrev={() => setFillIdx((p) => Math.max(0, p - 1))}
+              onNext={() => setFillIdx((p) => Math.min(fillIns.length - 1, p + 1))}
+              onJumpToIndex={(idx) => setFillIdx(idx)}
+              allItemIds={fillIns.map((q) => q.id)}
+              completedItemIds={fillMemorized}
+              starredItemIds={fillStarred}
+              isMemorized={fillMemorized.includes(currentFill.id)}
+              onToggleMemorized={() => onToggleFillMemorized(currentFill.id)}
+              actionLabel="掌握"
+              isStarred={fillStarred.includes(currentFill.id)}
+              onToggleStar={() => onToggleFillStarred(currentFill.id)}
+              revealed={showFillAnswer}
+              onToggleRevealed={() => setShowFillAnswer((prev) => !prev)}
+              toggleLabel="答案"
+              onCopy={() => {
+                triggerCopy(
+                  `【填空专项 #${currentFill.id}】${currentFill.stem}\n答案：${currentFill.answers.join(' / ')}${currentFill.explanation ? `\n解析：${currentFill.explanation}` : ''}`
+                );
+              }}
+              isCopied={copied}
+              modeBadge="填空专项"
+            />
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="w-full max-w-3xl bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 md:p-8 space-y-6 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-relaxed">
-                {fillIdx + 1}. {currentFill.stem}
-              </h3>
-
-              {showFillAnswer && (
-                <div className="p-4 bg-amber-50/70 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-800 space-y-2 text-xs">
-                  <div className="font-bold text-amber-900 dark:text-amber-200 text-sm">
-                    参考答案关键词：
-                    {currentFill.answers.map((ans, aIdx) => (
-                      <span
-                        key={aIdx}
-                        className="ml-2 px-2.5 py-1 bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-100 rounded-lg font-bold"
-                      >
-                        {ans}
+            <div className="w-full max-w-3xl my-auto space-y-4">
+              <div
+                onClick={() => setShowFillAnswer((prev) => !prev)}
+                className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6 cursor-pointer select-none"
+              >
+                {/* Top Card Meta */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+                      填空专项 #{currentFill.id}
+                    </span>
+                    {currentFill.recitationQuestionId && (
+                      <span className="font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                        源自全书速记 #{currentFill.recitationQuestionId}
                       </span>
-                    ))}
+                    )}
                   </div>
-                  {currentFill.explanation && (
-                    <div className="text-slate-700 dark:text-slate-300 mt-2 leading-relaxed text-xs sm:text-sm">
-                      解析：{currentFill.explanation}
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                    {showFillAnswer ? '点击隐藏答案' : '点击卡片或按 Space 看答案'}
+                  </span>
+                </div>
+
+                {/* Stem & Answer */}
+                <div className="space-y-6 my-4">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                    <span className="font-mono mr-1.5">{fillIdx + 1}.</span>
+                    <span>{currentFill.stem}</span>
+                  </h3>
+
+                  {!showFillAnswer ? (
+                    <p className="text-sm text-slate-400 font-medium">
+                      按 <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md text-xs text-slate-600 dark:text-slate-300 font-mono">Space</kbd> 或点击卡片查看答案
+                    </p>
+                  ) : (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2.5 text-xs select-text cursor-auto"
+                    >
+                      <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex flex-wrap items-center gap-2">
+                        <span>参考答案：</span>
+                        {currentFill.answers.map((ans, aIdx) => (
+                          <span
+                            key={aIdx}
+                            className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 rounded-lg font-bold"
+                          >
+                            {ans}
+                          </span>
+                        ))}
+                      </div>
+                      {currentFill.explanation && (
+                        <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
+                          解析：{currentFill.explanation}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
+
+                {renderCardFooterActions(
+                  fillMemorized.includes(currentFill.id),
+                  () => onToggleFillMemorized(currentFill.id),
+                  fillStarred.includes(currentFill.id),
+                  () => onToggleFillStarred(currentFill.id),
+                  currentFill.chapterId
+                )}
+              </div>
             </div>
           </div>
         </div>

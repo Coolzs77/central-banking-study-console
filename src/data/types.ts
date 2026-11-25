@@ -20,8 +20,18 @@ export interface UserMasteryState {
   starred: number[];
   // Completed homework question IDs (1..54)
   homeworkCompleted: number[];
-  // Terminology memorized IDs (1..30)
+  // Terminology memorized & starred IDs (1..28)
   termMemorized: number[];
+  termStarred?: number[];
+  // Practice single-choice memorized & starred IDs (1..40)
+  choiceMemorized?: number[];
+  choiceStarred?: number[];
+  // Practice true/false memorized & starred IDs (1..30)
+  tfMemorized?: number[];
+  tfStarred?: number[];
+  // Practice fill-in memorized & starred IDs (1..40)
+  fillMemorized?: number[];
+  fillStarred?: number[];
   // User exam records
   examHistory: ExamRecord[];
 }
@@ -66,6 +76,7 @@ export interface FillInQuestion {
   answers: string[]; // accepted answers / keywords
   points: number; // 1 pt
   chapterId: number;
+  recitationQuestionId?: number;
   explanation?: string;
 }
 
@@ -82,6 +93,7 @@ export interface SingleChoiceQuestion {
   rationale: string;
   points: number; // 1 pt
   chapterId: number;
+  recitationQuestionId?: number;
 }
 
 export interface TrueFalseQuestion {
@@ -91,6 +103,7 @@ export interface TrueFalseQuestion {
   errorCorrection: string; // explanation / correction if false
   points: number; // 1 pt
   chapterId: number;
+  recitationQuestionId?: number;
 }
 
 export interface ShortAnswerRubric {

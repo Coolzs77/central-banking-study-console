@@ -38,6 +38,13 @@ interface RightSidebarProps {
   currentTermId: number;
   onSelectTermId: (id: number) => void;
   termMemorizedList: number[];
+  termStarredList?: number[];
+  choiceMemorizedList?: number[];
+  choiceStarredList?: number[];
+  tfMemorizedList?: number[];
+  tfStarredList?: number[];
+  fillMemorizedList?: number[];
+  fillStarredList?: number[];
   practiceTab?: 'terms' | 'choice' | 'truefalse' | 'fill';
   currentChoiceIndex?: number;
   onSelectChoiceIndex?: (idx: number) => void;
@@ -70,6 +77,13 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   currentTermId,
   onSelectTermId,
   termMemorizedList,
+  termStarredList = [],
+  choiceMemorizedList = [],
+  choiceStarredList = [],
+  tfMemorizedList = [],
+  tfStarredList = [],
+  fillMemorizedList = [],
+  fillStarredList = [],
   practiceTab = 'terms',
   currentChoiceIndex = 0,
   onSelectChoiceIndex,
@@ -335,16 +349,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <div className="flex-1 flex flex-col h-full overflow-hidden p-3.5 space-y-3">
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-800">
                 <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  {practiceTab === 'terms' && '30 核心名词速达'}
+                  {practiceTab === 'terms' && `${terminologyList.length} 核心名词速达`}
                   {practiceTab === 'choice' && '单选题号 (40题)'}
                   {practiceTab === 'truefalse' && '判断改错题号 (30题)'}
                   {practiceTab === 'fill' && '填空题号 (40题)'}
                 </span>
-                {practiceTab === 'terms' && (
-                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800">
-                    已掌握 {termMemorizedList.length} / {terminologyList.length}
-                  </span>
-                )}
+                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800">
+                  {practiceTab === 'terms' && `已掌握 ${termMemorizedList.length} / ${terminologyList.length}`}
+                  {practiceTab === 'choice' && `已掌握 ${choiceMemorizedList.length} / 40`}
+                  {practiceTab === 'truefalse' && `已掌握 ${tfMemorizedList.length} / 30`}
+                  {practiceTab === 'fill' && `已掌握 ${fillMemorizedList.length} / 40`}
+                </span>
               </div>
 
               {/* Number Buttons for Active Practice Tab */}
@@ -352,6 +367,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 {practiceTab === 'terms' &&
                   terminologyList.map((t) => {
                     const isMem = termMemorizedList.includes(t.id);
+                    const isStar = termStarredList.includes(t.id);
                     const isCurr = currentTermId === t.id;
 
                     let cellStyle =
@@ -362,6 +378,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                         'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10';
                     } else if (isMem) {
                       cellStyle = 'bg-emerald-500 text-white font-bold border-emerald-600';
+                    } else if (isStar) {
+                      cellStyle = 'bg-amber-400 text-amber-950 font-bold border-amber-500';
                     }
 
                     return (
@@ -379,15 +397,24 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 {practiceTab === 'choice' &&
                   Array.from({ length: 40 }, (_, i) => i + 1).map((num) => {
                     const isCurr = currentChoiceIndex === num - 1;
+                    const isMem = choiceMemorizedList.includes(num);
+                    const isStar = choiceStarredList.includes(num);
+
+                    let cellStyle =
+                      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700';
+                    if (isCurr) {
+                      cellStyle = 'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10';
+                    } else if (isMem) {
+                      cellStyle = 'bg-emerald-500 text-white font-bold border-emerald-600';
+                    } else if (isStar) {
+                      cellStyle = 'bg-amber-400 text-amber-950 font-bold border-amber-500';
+                    }
+
                     return (
                       <button
                         key={num}
                         onClick={() => onSelectChoiceIndex && onSelectChoiceIndex(num - 1)}
-                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${
-                          isCurr
-                            ? 'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
-                        }`}
+                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${cellStyle}`}
                       >
                         {num}
                       </button>
@@ -397,15 +424,24 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 {practiceTab === 'truefalse' &&
                   Array.from({ length: 30 }, (_, i) => i + 1).map((num) => {
                     const isCurr = currentTfIndex === num - 1;
+                    const isMem = tfMemorizedList.includes(num);
+                    const isStar = tfStarredList.includes(num);
+
+                    let cellStyle =
+                      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700';
+                    if (isCurr) {
+                      cellStyle = 'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10';
+                    } else if (isMem) {
+                      cellStyle = 'bg-emerald-500 text-white font-bold border-emerald-600';
+                    } else if (isStar) {
+                      cellStyle = 'bg-amber-400 text-amber-950 font-bold border-amber-500';
+                    }
+
                     return (
                       <button
                         key={num}
                         onClick={() => onSelectTfIndex && onSelectTfIndex(num - 1)}
-                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${
-                          isCurr
-                            ? 'bg-purple-600 text-white ring-2 ring-purple-400 font-bold shadow-md scale-105 z-10'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
-                        }`}
+                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${cellStyle}`}
                       >
                         {num}
                       </button>
@@ -415,15 +451,24 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 {practiceTab === 'fill' &&
                   Array.from({ length: 40 }, (_, i) => i + 1).map((num) => {
                     const isCurr = currentFillIndex === num - 1;
+                    const isMem = fillMemorizedList.includes(num);
+                    const isStar = fillStarredList.includes(num);
+
+                    let cellStyle =
+                      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700';
+                    if (isCurr) {
+                      cellStyle = 'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10';
+                    } else if (isMem) {
+                      cellStyle = 'bg-emerald-500 text-white font-bold border-emerald-600';
+                    } else if (isStar) {
+                      cellStyle = 'bg-amber-400 text-amber-950 font-bold border-amber-500';
+                    }
+
                     return (
                       <button
                         key={num}
                         onClick={() => onSelectFillIndex && onSelectFillIndex(num - 1)}
-                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${
-                          isCurr
-                            ? 'bg-emerald-600 text-white ring-2 ring-emerald-400 font-bold shadow-md scale-105 z-10'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
-                        }`}
+                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${cellStyle}`}
                       >
                         {num}
                       </button>
