@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen,
   Copy,
+  HelpCircle,
 } from 'lucide-react';
 import { HomeworkQuestion } from '../data/types';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
@@ -31,6 +32,7 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
   onToggleStar = () => {},
 }) => {
   const [showAnswer, setShowAnswer] = useState<boolean>(true);
+  const [isMasking, setIsMasking] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
   const safeIndex = Math.min(Math.max(0, currentIndex), Math.max(0, questions.length - 1));
@@ -132,7 +134,24 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
         {/* 3. Solution Section (展开题解卡片) */}
         {showAnswer && (
           <div className="mt-2 p-5 sm:p-6 rounded-2xl bg-slate-50/80 dark:bg-[#18202e] border border-slate-200/80 dark:border-slate-800/80 clay-card-shadow">
-            <MarkdownViewer content={currentQ.answer} maskKeywords={false} />
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200/60 dark:border-slate-800/60">
+              <span className="text-xs font-bold text-slate-500 tracking-wider">
+                平时作业标准解析与采分层级
+              </span>
+              <button
+                onClick={() => setIsMasking((prev) => !prev)}
+                className={`clay-button-shadow clay-squash px-2.5 py-1 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isMasking
+                    ? 'bg-rose-500 text-white border-rose-600 shadow-sm'
+                    : 'bg-white dark:bg-[#1a2232] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-rose-500'
+                }`}
+                title="遮挡 / 显露采分关键词"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>{isMasking ? '显露关键词' : '挖空遮挡'}</span>
+              </button>
+            </div>
+            <MarkdownViewer content={currentQ.answer} maskKeywords={isMasking} />
           </div>
         )}
       </div>

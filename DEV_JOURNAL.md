@@ -2318,3 +2318,214 @@ stateDiagram-v2
   - `tests/verifyData.ts`：40 项严格断言 100% 通过（40 PASSED, 0 FAILED），确认 54 题均具备翠绿标题、缩进子列表与核心关键词；
   - `npm run build`：打包生成 1657 个模块，无 TypeScript 类型或编译报错；
   - `npm run deploy`：成功推送 `main` 分支与 `gh-pages` 分支，在线静态页面已更新发布（https://coolzs77.github.io/central-banking-study-console/）。
+
+
+---
+
+## 第 17 轮 [2026-11-25 12:40]：作业本层级渲染深度解耦、标题Markdown标记彻底清洗与交互式挖空增强
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **审查与攻坚背景**：在前序对平时作业本 54 道题依据课件 PPT 进行层级化改造的基础上，针对系统渲染与交互细节进行了深度审查（Break-it Skeptical Review）。审查发现：
+  1. 标题 Markdown 标记残留：当标题以序号开头（如 `1. **经济发展的推动机**：...`）时，正则仅从字符串首尾剔除星号，导致首部 `1. ` 阻断了对 `**` 的剔除，页面标题赫然渲染出原始 Markdown 字符 `1. **经济发展的推动机`；
+  2. 嵌套层级扁平化错位：单行内联概括模式（`inlineSummaryMatch`）在处理缩进 4 空格的二级子列表（如 `    - **发行的银行**：...`）时被提前拦截，将其拔高为与一级标题平级的无缩进 `<h4>`，导致 117 处子项目与上级要点视觉碰撞、层级坍塌；
+  3. 分号子项未拆分：当冒号后出现多句分号并列阐述时，原先仅输出单行圆点，未按分号分行形成清晰的子无序列表；
+  4. 交互式挖空能力缺失：作业本界面原本硬编码 `maskKeywords={false}`，学员无法像全书速记一样自主开启“关键词挖空/胶带遮挡”进行自测复习。
+- **本轮目标**：全面修复 `MarkdownViewer.tsx` 解析引擎，确保所有层级、标题样式与分号子列表 100% 优雅呈现；在 `HomeworkCanvas.tsx` 中新增题解卡片专属交互式挖空遮挡开关；补充全量自动化回归断言。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- **涉及文件**：
+  - [`src/components/common/MarkdownViewer.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx#L270-L330)：重构行级解析引擎与层级判定流水线；
+  - [`src/components/HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx#L30-L150)：新增 `isMasking` 状态与卡片顶部“挖空遮挡 / 显露关键词”切换按钮；
+  - [`tests/verifyHomeworkHierarchy.ts`](file:///e:/workspace/central-banking-study-console/tests/verifyHomeworkHierarchy.ts#L60-L115)：补充标题清洗、多分句拆分子列表、二级子项保护及交互组件断言。
+
+#### 核心代码 Diff：
+1. **彻底清洗标题 Markdown 标记与防二级子项劫持**：
+```typescript
+// src/components/common/MarkdownViewer.tsx
+const hasColonWithBody = /[:：].+$/.test(cleanText);
+
+// 1. 内联概括模式：仅对根级或一级要点生效 (!isLevel2)，严防二级子列表被劫持拔高
+if (!isLevel2 && hasColonWithBody) {
+  const inlineSummaryMatch = cleanText.match(
+    /^([（(][一二三四五六七八九十0-9]+[）)][^：:]{1,30}|\d+[\.、]\s*\*\*[^*]+\*\*|\d+[\.、]\s*[^：:]{1,30}|[一二三四五六七八九十]+[、.][^：:]{1,30}|\*[^*]+\*|\*\*[^*]+\*\*|[^。；\n：:]{2,25})[：:]([\s\S]+)$/
+  );
+
+  if (inlineSummaryMatch) {
+    // 深度剥离加粗与斜体标记，解决 "1. **标题**" 残留星号的缺陷
+    const rawHeader = inlineSummaryMatch[1]
+      .replace(/[:：]$/, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/^[*_]+|[*_]+$/g, '')
+      .trim();
+    const rawBody = inlineSummaryMatch[2].trim();
+    // 依分号切分多子项，完美构成真正的子无序列表
+    const clauses = rawBody.split(/[；;]\s*/).map((c) => c.trim()).filter(Boolean);
+
+    return (
+      <div key={lineIdx} className="mt-3.5 mb-1 pt-0.5 first:mt-0 first:pt-0 space-y-1">
+        <h4 className="font-extrabold text-[15.5px] text-emerald-600 dark:text-emerald-400 tracking-wide">
+          {rawHeader}
+        </h4>
+        <div className="space-y-1">
+          {clauses.map((clause, cIdx) => (
+            <div key={cIdx} className="flex items-start gap-2 text-[14px] leading-relaxed pl-4 py-0.5 text-slate-700 dark:text-slate-300">
+              <span className="text-slate-400 mt-1 select-none text-xs font-mono shrink-0">•</span>
+              <div className="flex-1 min-w-0">{renderInlineFormatted(clause)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+}
+```
+
+2. **作业本卡片增加交互式采分关键词挖空**：
+```tsx
+// src/components/HomeworkCanvas.tsx
+<div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200/60 dark:border-slate-800/60">
+  <span className="text-xs font-bold text-slate-500 tracking-wider">
+    平时作业标准解析与采分层级
+  </span>
+  <button
+    onClick={() => setIsMasking((prev) => !prev)}
+    className={`clay-button-shadow clay-squash px-2.5 py-1 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+      isMasking
+        ? 'bg-rose-500 text-white border-rose-600 shadow-sm'
+        : 'bg-white dark:bg-[#1a2232] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-rose-500'
+    }`}
+    title="遮挡 / 显露采分关键词"
+  >
+    <HelpCircle className="w-3.5 h-3.5" />
+    <span>{isMasking ? '显露关键词' : '挖空遮挡'}</span>
+  </button>
+</div>
+<MarkdownViewer content={currentQ.answer} maskKeywords={isMasking} />
+```
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+1. **标题星号残留问题**：
+   - **现象**：测试用例输入 `1. **经济发展的推动机**：...`，渲染结果为 `1. **经济发展的推动机`；
+   - **根因**：原清洗逻辑使用 `rawHeader.replace(/^\*+|\*+$/g, '')`，由于标题以数字前缀 `1. ` 开头，首部星号匹配被断开，导致尾部星号被脱除而前部星号保留，生成破损 Markdown；
+   - **解法**：采用正则替换组提取内部纯文本 `replace(/\*\*([^*]+)\*\*/g, '$1')`，无论前缀包含序号、中文括号或破折号，均可 100% 净化。
+2. **多层缩进列表层级坍塌**：
+   - **现象**：数据中类似 `    - **发行的银行**：垄断货币发行权...` 缩进 4 空格的二级子项被当做顶级小标题输出，导致与一级标题平级；
+   - **根因**：内联正则优先度高于缩进层级判定，且缺少 `!isLevel2` 保护；
+   - **解法**：增加 `!isLevel2` 约束，确保缩进层级为 2 的项目继续走列表项渲染分支，维持标准的 `pl-4` / `pl-6` 树状缩进。
+3. **分号子项目单行粘连**：
+   - **现象**：内联格式后跟随多个分号语句时全部挤在一个圆点内；
+   - **根因**：原组件仅将整个 `rawBody` 塞入一个 `<div>`；
+   - **解法**：增加 `rawBody.split(/[；;]\s*/)` 切分数组，利用 `map` 渲染出独立的子无序列表项。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：MarkdownViewer 增强型文本行解析与层级判定流程拓扑
+```mermaid
+flowchart TD
+    Line["输入原始文本行"] --> CheckSpace["缩进与前缀检测 (leadingSpaces & trimmed)"]
+    CheckSpace --> LevelAssign["层级判定: isLevel0 / isLevel1 / isLevel2"]
+    
+    LevelAssign --> ColonBranch{"是否为非深层项且含正文冒号?<br/>(!isLevel2 && hasColonWithBody)"}
+    
+    ColonBranch -- 是 --> InlineRegex{"是否命中概括正则?<br/>(inlineSummaryMatch)"}
+    InlineRegex -- 命中 --> StripHeader["纯净化提取小标题<br/>(剔除内部所有 ** 和 * 标记)"]
+    StripHeader --> SplitClauses["按中英文分号 [；;] 拆分子列表"]
+    SplitClauses --> RenderEmeraldH4["渲染翠绿 H4 标题<br/>(text-emerald-600 font-extrabold)"]
+    RenderEmeraldH4 --> RenderBullets["渲染缩进子无序列表项<br/>(pl-4 with • & renderInlineFormatted)"]
+    
+    ColonBranch -- 否 --> StandaloneCheck{"是否为独立小标题行?<br/>(isSubheading && !hasColonWithBody)"}
+    StandaloneCheck -- 是 --> CleanSubTitle["清洗独立标题"] --> RenderEmeraldSub["渲染翠绿 H4 小标题"]
+    
+    StandaloneCheck -- 否 --> L0Check{"是否为根级导语?<br/>(isLevel0)"}
+    L0Check -- 是 --> RenderL0["渲染导语句 (font-medium text-slate-800)"]
+    L0Check -- 否 --> RenderL2["维持规范缩进列表项<br/>(Level 2: pl-4 保持子属关系)"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+该流程图清晰展示了重构后的 MarkdownViewer 行解析管道。关键创新在于引入了前置的 `!isLevel2` 边界门禁，有效阻断了缩进子项目被错误提取为全局标题的问题。同时，通过中英文分号自动解耦管道，将单行概括型答案转化为标准的“翠绿标题 + 缩进子无序列表”的物理多层结构。
+
+#### 图 2：平时作业本交互式关键词挖空与显露时序图
+```mermaid
+sequenceDiagram
+    actor Student as 学员
+    participant Canvas as HomeworkCanvas
+    participant Viewer as MarkdownViewer
+    participant State as RevealedSet 状态池
+    
+    Student->>Canvas: 点击“挖空遮挡”按钮
+    Canvas->>Viewer: 传入 maskKeywords = true
+    Viewer->>State: 初始化全部关键词为遮挡态
+    Viewer-->>Student: 关键采分词覆盖日系和纸胶带 (Washi Tape with ···)
+    
+    Student->>Viewer: 点击特定单词胶带 (e.g. "发行的银行")
+    Viewer->>State: toggleCloze(clozeId)
+    State-->>Viewer: 将该词加入 revealedSet
+    Viewer-->>Student: 局部显露该词 (玫瑰珊瑚红 text-rose-500)
+    
+    Student->>Canvas: 再次点击“显露关键词”
+    Canvas->>Viewer: 传入 maskKeywords = false
+    Viewer->>State: 清空 revealedSet
+    Viewer-->>Student: 全量高亮展示玫瑰红采分词
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+该时序图完整还原了学员在平时作业本卡片中进行自测背诵的交互全过程。依托全局 `revealedSet` 与 `isMasking` 的协同，学员既能一键全局遮挡关键词模拟考试默写，又支持单点即时撕开胶带验证记忆，大幅提升了平时作业本的交互复习价值。
+
+#### 图 3：题目卡片状态机模型
+```mermaid
+stateDiagram-v2
+    [*] --> CollapsedState: 初始化 (卡片折叠)
+    
+    state CollapsedState {
+        Collapsed: 仅显示题号与题干
+    }
+    
+    state ExpandedState {
+        NormalView: 全量答案呈现 (翠绿标题 + 玫瑰红关键词)
+        ClozeView: 挖空自测模式 (和纸胶带遮挡核心关键词)
+        PartialView: 局部提示模式 (部分胶带被点击撕开)
+    }
+    
+    CollapsedState --> ExpandedState: 点击“答案”或按空格
+    ExpandedState --> CollapsedState: 再次点击“答案”或按空格
+    
+    NormalView --> ClozeView: 点击“挖空遮挡”
+    ClozeView --> PartialView: 点击任意胶带
+    PartialView --> ClozeView: 重新点击已显露词
+    ClozeView --> NormalView: 点击“显露关键词”
+    PartialView --> NormalView: 点击“显露关键词”
+```
+
+**【图 3 机制解析 (Diagram Walkthrough & Analysis)】**：
+该状态机模型展示了题目卡片从收起到展开，再到完全显露、全量遮挡与单词撕开的五种状态迁移闭环。各状态之间流转平滑、互不干扰，兼顾了日常查题与严肃背诵的双重需求。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+1. **彻底杜绝语法标记外泄**：全面清洗标题内的 `**`、`*` 标记，确保界面排版纯净严谨；
+2. **多层级视觉舒适度跃升**：通过 `space-y-1`、`pl-4` 与 `•` 圆点，实现了清晰的二级与三级视觉层次，彻底告别单行挤压；
+3. **自测背诵闭环达成**：在平时作业本中引入与全书速记同级的“贴纸胶带”互动能力，期末自测无需切换模式即可随时实战。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **测试命令**：
+  ```bash
+  cd e:\workspace\central-banking-study-console
+  node verify_suite.mjs
+  npx tsx tests/verifyData.ts
+  npx tsx tests/verifyHomeworkHierarchy.ts
+  npm run build
+  ```
+- **实际执行结果**：
+  - `verify_suite.mjs`：48 个测试项 100% 通过（48 PASSED, 0 FAILED）；
+  - `tests/verifyData.ts`：40 项全景数据断言 100% 通过（40 PASSED, 0 FAILED）；
+  - `tests/verifyHomeworkHierarchy.ts`：21 项层级与关键词断言 100% 通过（21 PASSED, 0 FAILED）；
+  - `npm run build`：打包 1657 个模块，0 错误，打包耗时 38.9s。

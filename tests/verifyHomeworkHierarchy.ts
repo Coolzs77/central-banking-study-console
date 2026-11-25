@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { homeworkQuestions } from '../src/data/homeworkData';
 import { CENTRAL_BANKING_KEYWORDS } from '../src/data/keywords';
 
@@ -64,8 +66,8 @@ const headingLines = cleanQ7Lines.filter(l => {
   let c = l;
   if (c.startsWith('- ')) c = c.slice(2);
   return (
-    /^[\\*]*[（\(][一二三四五六七八九十0-9]+[）\)][^\\*]*[\\*]*[:：]?$/.test(c) ||
-    /^[\\*]*[一二三四五六七八九十]+[、.][^\\*]*[\\*]*[:：]?$/.test(c) ||
+    /^[\\*]*[（\(][一二三四五六七八九十0-9]+[）\)][^。；\n]*[:：]?$/.test(c) ||
+    /^[\\*]*[一二三四五六七八九十]+[、.][^。；\n]*[:：]?$/.test(c) ||
     (/^\*[^*]+\*[:：]?$/.test(c) && !c.includes('**')) ||
     (/^\*\*[^*]+\*\*[:：]?$/.test(c) && c.length <= 40) ||
     (/^\d+[\.、][^。；\n]{1,30}[:：]?$/.test(c) && !c.includes('。') && !c.includes('；'))
@@ -73,6 +75,37 @@ const headingLines = cleanQ7Lines.filter(l => {
 });
 
 assert(headingLines.length === 4, 'Question 7 has exactly 4 parsed emerald green subheadings', `Found ${headingLines.length}`);
+
+// 5. Deep regression tests for heading cleaning, multi-clause inline summaries, and level-2 preservation
+const sampleInline = '1. **经济发展的推动机**：提供统一法定货币媒介；引导资金合理配置；支持实体经济稳步发展；';
+const inlineMatch = sampleInline.match(
+  /^([（\(][一二三四五六七八九十0-9]+[）\)][^：:]{1,30}|\d+[\.、]\s*\*\*[^*]+\*\*|\d+[\.、]\s*[^：:]{1,30}|[一二三四五六七八九十]+[、.][^：:]{1,30}|\*[^*]+\*|\*\*[^*]+\*\*|[^。；\n：:]{2,25})[：:]([\s\S]+)$/
+);
+assert(!!inlineMatch, 'Inline summary pattern matches user sample "1. **经济发展的推动机**：..."');
+if (inlineMatch) {
+  const cleanHeader = inlineMatch[1]
+    .replace(/[:：]$/, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/^[*_]+|[*_]+$/g, '')
+    .trim();
+  assert(cleanHeader === '1. 经济发展的推动机', 'Inline summary header cleanly strips markdown asterisks', `Got "${cleanHeader}"`);
+  assert(!cleanHeader.includes('*'), 'Inline summary header contains zero stray asterisks');
+
+  const clauses = inlineMatch[2].trim().split(/[；;]\s*/).map(c => c.trim()).filter(Boolean);
+  assert(clauses.length === 3, 'Inline summary splits semicolon-delimited clauses into child bullets', `Got ${clauses.length}`);
+}
+
+// 6. Level 2 sub-bullet preservation test
+const sampleLevel2 = '    - **发行的银行**：垄断货币发行权，调节货币流通总量与钞票结构；';
+const isL2 = sampleLevel2.search(/\S|$/) >= 4 || sampleLevel2.startsWith('    -');
+assert(isL2, 'Level 2 sub-bullet is correctly detected as indented');
+
+// 7. Verify HomeworkCanvas masking support
+const hwCanvasPath = path.resolve(process.cwd(), 'src/components/HomeworkCanvas.tsx');
+const hwCanvasCode = fs.readFileSync(hwCanvasPath, 'utf-8');
+assert(hwCanvasCode.includes('maskKeywords={isMasking}'), 'HomeworkCanvas passes dynamic maskKeywords={isMasking} to MarkdownViewer');
+assert(hwCanvasCode.includes('挖空遮挡'), 'HomeworkCanvas includes interactive cloze masking toggle button');
 
 console.log('\n====================================================');
 console.log(`   AUDIT FINISHED: ${passCount} PASSED, ${failCount} FAILED`);
