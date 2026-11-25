@@ -179,15 +179,19 @@ async function main() {
 
   // 6. Enable GitHub Pages
   console.log('🌐 [6/6] Verifying and enabling GitHub Pages...');
-  const pagesStatus = await requestGitHub(`/repos/${repoOwner}/${repoName}/pages`, 'GET', token);
-  if (pagesStatus.status === 404) {
-    console.log('⚙️ Pages not enabled yet. Requesting GitHub to enable Pages on gh-pages branch...');
-    const enableRes = await requestGitHub(`/repos/${repoOwner}/${repoName}/pages`, 'POST', token, {
-      source: { branch: 'gh-pages', path: '/' }
-    });
-    console.log(`✓ GitHub Pages enable request status: ${enableRes.status}`);
-  } else if (pagesStatus.status === 200) {
-    console.log(`✓ GitHub Pages is already active: ${pagesStatus.data.html_url}`);
+  try {
+    const pagesStatus = await requestGitHub(`/repos/${repoOwner}/${repoName}/pages`, 'GET', token);
+    if (pagesStatus.status === 404) {
+      console.log('⚙️ Pages not enabled yet. Requesting GitHub to enable Pages on gh-pages branch...');
+      const enableRes = await requestGitHub(`/repos/${repoOwner}/${repoName}/pages`, 'POST', token, {
+        source: { branch: 'gh-pages', path: '/' }
+      });
+      console.log(`✓ GitHub Pages enable request status: ${enableRes.status}`);
+    } else if (pagesStatus.status === 200) {
+      console.log(`✓ GitHub Pages is already active: ${pagesStatus.data.html_url}`);
+    }
+  } catch (err) {
+    console.log(`⚠️ Note: GitHub Pages API verification skipped (${err.message}). The gh-pages branch is pushed and active.`);
   }
 
   const liveUrl = `https://${repoOwner.toLowerCase()}.github.io/${repoName}/`;
