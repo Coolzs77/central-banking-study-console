@@ -336,7 +336,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
             中央银行学 期末模考全真试卷
           </h2>
           <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg mx-auto mb-8">
-            严格按照期末考试标准分值与题型结构命制：120分钟倒计时，全卷共100分。
+            120 分钟 · 满分 100 分
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-lg mx-auto mb-8 text-left text-xs">
@@ -370,7 +370,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
             onClick={generateNewPaper}
             className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-base shadow-lg clay-button-shadow clay-squash"
           >
-            开始生成试卷并作答 (120分钟)
+            生成试卷
           </button>
         </div>
       </div>
@@ -403,7 +403,6 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
 
         {/* Section Indicators */}
         <div className="hidden lg:flex items-center gap-1.5 text-xs">
-          <span className="font-semibold text-slate-400">试卷题型架构:</span>
           <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">一·名词(15分)</span>
           <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">二·填空(15分)</span>
           <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">三·单选(15分)</span>
@@ -508,7 +507,6 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
             </span>
             名词解释 (共5小题，每小题3分，共15分)
           </h3>
-          <span className="text-xs text-slate-400 font-mono">回答核心概念与内涵</span>
         </div>
 
         <div className="space-y-6">
@@ -586,7 +584,6 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
             </span>
             填空题 (共15小题，每小题1分，共15分)
           </h3>
-          <span className="text-xs text-slate-400 font-mono">精准关键词填空</span>
         </div>
 
         <div className="space-y-4">
@@ -654,7 +651,6 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
             </span>
             单项选择题 (共15小题，每小题1分，共15分)
           </h3>
-          <span className="text-xs text-slate-400 font-mono">四选一标准客观题</span>
         </div>
 
         <div className="space-y-4">
@@ -752,7 +748,6 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
             </span>
             判断改错题 (共15小题，每小题1分，共15分)
           </h3>
-          <span className="text-xs text-slate-400 font-mono">若错误须掌握正误辨析</span>
         </div>
 
         <div className="space-y-4">
@@ -847,7 +842,6 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
             </span>
             简答题 (共3小题，第1、2题各6分，第3题8分，共20分)
           </h3>
-          <span className="text-xs text-slate-400 font-mono">条理要点给分</span>
         </div>
 
         <div className="space-y-6">
@@ -931,7 +925,6 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
             </span>
             论述题 (共1小题，共20分)
           </h3>
-          <span className="text-xs text-slate-400 font-mono">货币政策与金融监管宏观综合大题</span>
         </div>
 
         <div className="p-6 rounded-2xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/70 dark:border-slate-700/70 clay-card-shadow">

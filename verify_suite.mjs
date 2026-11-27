@@ -73,7 +73,7 @@ async function runTests() {
 
     // 6. Check MarkdownViewer supports cute washi tape (贴纸胶带) cloze masking (NO ...揭开, NO blurry shadow)
     const mdViewerCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/common/MarkdownViewer.tsx'), 'utf-8');
-    assert(mdViewerCode.includes('maskKeywords') && mdViewerCode.includes('repeating-linear-gradient') && mdViewerCode.includes('点击撕开胶带'), 'MarkdownViewer applies cute washi tape (贴纸胶带) overlay directly over keyword');
+    assert(mdViewerCode.includes('maskKeywords') && mdViewerCode.includes('repeating-linear-gradient') && mdViewerCode.includes('role="button"'), 'MarkdownViewer applies cute washi tape (贴纸胶带) overlay directly over keyword');
 
     // 7. Check that "共 N 点" is RETAINED per user explicit demand!
     assert(mdViewerCode.includes('共 {badgeNum} 点'), 'MarkdownViewer RETAINS the "共 N 点" amber badge per user demand');
@@ -133,6 +133,24 @@ async function runTests() {
       rightSidebarCode.includes('onSelectShortIndex') &&
       rightSidebarCode.includes('onSelectEssayIndex'),
       'RightSidebar has clickable buttons for choice, truefalse, fill, short, and essay drills'
+    );
+
+    // 16b. Check redesigned RightSidebar tabs, clickable outline, dynamic term count, collapse, and a11y
+    assert(
+      rightSidebarCode.includes('role="tablist"') &&
+      rightSidebarCode.includes('role="tab"') &&
+      rightSidebarCode.includes('aria-selected') &&
+      rightSidebarCode.includes('onSelectSection') &&
+      rightSidebarCode.includes('onJumpToPracticeTerm') &&
+      rightSidebarCode.includes('isCollapsed') &&
+      rightSidebarCode.includes('onToggleCollapse') &&
+      rightSidebarCode.includes('terminologyList.length') &&
+      !rightSidebarCode.includes('核心名词 (30)') &&
+      !rightSidebarCode.includes('transition-all') &&
+      rightSidebarCode.includes('overscroll-contain') &&
+      rightSidebarCode.includes('sec-terms') &&
+      rightSidebarCode.includes('sec-essay'),
+      'RightSidebar implements redesigned 3-tab segmented control, clickable onSelectSection outline, dynamic terminology count, collapse, and a11y'
     );
 
     // 17. Check ClayQuestionNav has fixed concise button labels, zero hover tooltips, and NO undefined memorizedLabel

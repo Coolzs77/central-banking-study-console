@@ -3405,3 +3405,81 @@ flowchart LR
   - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
   - `verify_suite.mjs`：`53 PASSED, 0 FAILED`
   - `npm run build`：`✓ built in 3.48s`（`0` 错误，成功拆分 6 个独立 chunk）
+
+---
+
+## 第 28 轮 [2026-11-27 17:38]：全站冗余文案精简与右侧栏全方位重构
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：全站存在大量“按 Space 查看”、“点击撕开胶带”、“回答核心概念与内涵”等冗余提示与多余副标题；同时原右侧栏内容重复、缺乏交互性且不支持折叠，需要保留并重构题号矩阵、可按节跳转的知识大纲及名词速查。
+- **目标**：在不删改任何题干、答案或课件正文的前提下，全局瘦身界面文案并重构右侧栏三大实用模块（`题号`、`大纲`、`名词`），同时将状态筛选胶囊直接整合进全书速记与作业本主画布顶部。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+1. **全局文案瘦身与去提示（[`PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)、[`MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx)、[`MarkdownViewer.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)、[`LeftSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/LeftSidebar.tsx)、[`SyncModal.tsx`](file:///e:/workspace/central-banking-study-console/src/components/SyncModal.tsx)、[`Header.tsx`](file:///e:/workspace/central-banking-study-console/src/components/Header.tsx)、[`HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)）**
+   - 删除题型专项的翻面/键盘教学提示与模考 6 大题型的冗余副标题；
+   - 移除 `MarkdownViewer` 遮挡红词上的 `title="点击撕开胶带"` 与 `Header`/`HomeworkCanvas` 图标上的多余 `title` 悬停气泡（保留 `aria-label`）；
+   - 精简 `SyncModal`、`LeftSidebar` 与 `Header` 计时器文案。
+2. **右侧栏全方位重构（[`RightSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx)）**
+   - 顶部改用极简三段式分段器（`题号`、`大纲`、`名词`，支持 `role="tablist"`/`role="tab"`/`aria-selected`）及桌面端一键折叠按钮（状态持久化至 `cb_right_sidebar_collapsed`）；
+   - **`题号` Tab**：精简 6 列紧凑圆角矩阵（`tabular-nums`），模考模式下直接提供六大题型锚点跳转（`#sec-terms`..`#sec-essay`）；
+   - **`大纲` Tab**：11 章下属各节全部改为可点击原生 `<button>`，点击直接跳转至对应章节/该节第 1 题（`onSelectSection`），并实时高亮当前章/节与已背进度；
+   - **`名词` Tab**：动态显示 `名词 (28)`，支持搜索清空、根据 `currentQuestionText` 置顶标记 `相关` 术语、手风琴展开定义及一键跳转专项练习（`onJumpToPracticeTerm`）。
+3. **主画布独立筛选与跳转联动（[`App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)、[`RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)、[`HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)）**
+   - 在全书速记与平时作业本顶部直接提供「全部 / 未背(未做) / 已背(已做) / 收藏」筛选胶囊（带 `tabular-nums` 计数），折叠右侧栏时仍可独立筛选。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：`verify_suite.mjs` 原第 76 行校验包含已删除的 `点击撕开胶带` 文案。
+- **根本原因 (RCA)**：旧断言绑定了冗余的 `title` 悬停文案。
+- **具体解法**：更新 [`verify_suite.mjs`](file:///e:/workspace/central-banking-study-console/verify_suite.mjs) 校验无障碍属性 `role="button"` 及新版右侧栏三大特性，全部 54 项检查通过。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Header["Header 右侧栏折叠开关 (cb_right_sidebar_collapsed)"] -->|"展开/收起"| RS["RightSidebar 三模块"]
+    RS --> T1["题号: 6列精简矩阵 / 模考锚点"]
+    RS --> T2["大纲: 点击节 -> onSelectSection() 精准跳题"]
+    RS --> T3["名词: 动态28词 / 相关置顶 / 专项跳转"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **功能互补不重复**：左侧栏负责 4 大模式与 11 章宏观切换，右侧栏提供题号全局缩略、精确到「节」的知识大纲直达与关联术语速查，且支持随时一键收起释放主画布空间。
+
+```mermaid
+flowchart TD
+    Main["RecitationCanvas / HomeworkCanvas"] --> Pills["顶部筛选胶囊 (全部 / 未背 / 已背 / 收藏)"]
+    Pills -->|"独立于右侧栏"| Filter["实时过滤当前章/全书题目列表"]
+    Filter -->|"空结果"| Reset["提供一键「查看全部」复位"]
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **筛选下沉主画布**：状态筛选不再依赖右侧栏存在，无论桌面端折叠右侧栏还是移动端窄屏，均可直接在主区一键过滤复习。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 彻底消除鼠标划过遮挡词条与按钮时的多余原生 `title` 黑框；
+- 模考模式右侧栏从静态文字升级为可点击跳转的六大题型锚点导航；
+- 无头 Chrome 端到端实测通过，控制台 `0` 个 `SEVERE` 错误。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npx tsx scripts/audit_exam_accuracy.ts; npx tsx tests/verifyData.ts; npx tsx tests/verifyHomeworkHierarchy.ts; npx tsx tests/verifyPracticeUI.tsx; node verify_suite.mjs; npm run build
+  ```
+- **实际输出**：
+  - `scripts/audit_exam_accuracy.ts`：`0` 错误
+  - `tests/verifyData.ts`：`46 PASSED, 0 FAILED`
+  - `tests/verifyHomeworkHierarchy.ts`：`21 PASSED, 0 FAILED`
+  - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
+  - `verify_suite.mjs`：`54 PASSED, 0 FAILED`
+  - `npm run build`：`✓ built in 3.49s`（0 错误）
+  - Selenium 无头 Chrome 实测：`E2E_PASS`（0 `SEVERE` 控制台错误）

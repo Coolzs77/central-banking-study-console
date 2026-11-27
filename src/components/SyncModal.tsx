@@ -163,7 +163,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
           <div className="flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
             <h3 id="sync-modal-title" className="font-bold text-slate-800 dark:text-slate-100 text-base">
-              跨设备云端同步 (短码直连)
+              云端同步
             </h3>
           </div>
           <button
@@ -194,7 +194,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
 
           {/* Account Binding Card */}
           <div className="p-4 bg-slate-50 dark:bg-[#1a2232] rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
-            <div className="text-xs font-bold text-slate-700 dark:text-slate-200">1. 同步账号绑定</div>
+            <div className="text-xs font-bold text-slate-700 dark:text-slate-200">同步账号</div>
             {currentAccount ? (
               <div className="flex items-center justify-between bg-white dark:bg-[#151b26] px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="flex items-center gap-2">
@@ -234,7 +234,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
               </form>
             )}
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              提示：输入相同的简短账号，即可在手机、平板或另一台电脑上互相同步进度。
+              两端输入同一账号即可同步进度
             </p>
           </div>
 
@@ -250,8 +250,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
               ) : (
                 <UploadCloud className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
               )}
-              <span className="text-xs font-bold">手动备份到云端</span>
-              <span className="text-[10px] text-blue-600/80 dark:text-blue-300/80">上传本机背诵与做题记录</span>
+              <span className="text-xs font-bold">上传备份</span>
             </button>
 
             <button
@@ -264,8 +263,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
               ) : (
                 <DownloadCloud className="w-5 h-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
               )}
-              <span className="text-xs font-bold">从云端拉取记录</span>
-              <span className="text-[10px] text-emerald-600/80 dark:text-emerald-300/80">覆盖更新本机做题进度</span>
+              <span className="text-xs font-bold">云端恢复</span>
             </button>
           </div>
 
@@ -274,7 +272,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
             <div className="p-4 bg-slate-50 dark:bg-[#1a2232] rounded-2xl border border-slate-200/80 dark:border-slate-800 flex flex-col items-center space-y-3">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
                 <QrCode className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
-                <span>手机微信/浏览器 扫码无缝接力</span>
+                <span>扫码同步</span>
               </div>
               <div className="p-2 bg-white rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <img src={qrDataUrl} alt="跨设备同步二维码" width={144} height={144} className="w-36 h-36 rounded-lg" />
@@ -304,7 +302,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
                 onChange={(e) => syncService.setAutoSyncEnabled(e.target.checked)}
                 className="rounded text-blue-600 focus:ring-blue-500"
               />
-              <span>做题或背诵时自动静默保存到云端</span>
+              <span>自动同步</span>
             </label>
             <span className="text-slate-500 dark:text-slate-400 text-[11px]">{syncStatus.statusText}</span>
           </div>

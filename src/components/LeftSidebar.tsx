@@ -143,7 +143,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-blue-600" />
           <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            学习模式与章节
+            导航
           </span>
         </div>
         {onToggleCollapse && (
@@ -160,7 +160,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
       {/* 4 Core Modes */}
       <div className="flex flex-col gap-1.5">
-        <span className="text-[11px] font-semibold text-slate-400 px-1">复习模式</span>
         <div className="grid grid-cols-1 gap-1.5">
           {modes.map((mode) => {
             const Icon = mode.icon;
@@ -191,7 +190,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       {/* 11 Chapters Tree (1:1 replicated from FRM study console) */}
       <div className="flex flex-col gap-2 flex-1">
         <div className="flex items-center justify-between px-1">
-          <span className="text-[11px] font-semibold text-slate-400">章节大纲 (共 11 章)</span>
+          <span className="text-[11px] font-semibold text-slate-400">章节 (11)</span>
           <button
             onClick={() => onSelectChapter(null)}
             className={`text-xs font-semibold transition-colors cursor-pointer ${

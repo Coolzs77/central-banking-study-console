@@ -900,12 +900,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
                     名词解释 #{currentTerm.id}
                   </span>
-                  <div className="flex items-center gap-2">
-                    {currentTerm.source && <span className="text-slate-500">{currentTerm.source}</span>}
-                    <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                      {isFlipped ? '点击翻回正面' : '点击翻转看定义'}
-                    </span>
-                  </div>
+                  {currentTerm.source && <span className="text-slate-500">{currentTerm.source}</span>}
                 </div>
 
                 <div className="my-8 text-center">
@@ -915,7 +910,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                         {currentTerm.term}
                       </h2>
                       <p className="text-sm text-slate-400 font-medium">
-                        按 <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md text-xs text-slate-600 dark:text-slate-300 font-mono">Space</kbd> 或点击卡片查看定义
+                        查看定义
                       </p>
                     </div>
                   ) : (
@@ -1247,9 +1242,6 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       </span>
                     )}
                   </div>
-                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                    {showFillAnswer ? '点击隐藏答案' : '点击卡片或按 Space 看答案'}
-                  </span>
                 </div>
 
                 {/* Stem & Answer */}
@@ -1261,7 +1253,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
                   {!showFillAnswer ? (
                     <p className="text-sm text-slate-400 font-medium">
-                      按 <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md text-xs text-slate-600 dark:text-slate-300 font-mono">Space</kbd> 或点击卡片查看答案
+                      查看答案
                     </p>
                   ) : (
                     <div
@@ -1370,7 +1362,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       className="p-5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 text-center cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition"
                     >
                       <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        按 <kbd className="px-2 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-600 dark:text-slate-300 font-mono">Space</kbd> 或点击此处展开参考答案与采分点
+                        展开参考答案
                       </p>
                     </div>
                   ) : (
@@ -1497,7 +1489,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       className="p-5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 text-center cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition"
                     >
                       <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        按 <kbd className="px-2 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-600 dark:text-slate-300 font-mono">Space</kbd> 或点击此处展开参考答案与评分维度
+                        展开参考答案
                       </p>
                     </div>
                   ) : (

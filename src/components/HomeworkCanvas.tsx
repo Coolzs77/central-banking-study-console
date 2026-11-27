@@ -8,6 +8,8 @@ import { HomeworkQuestion } from '../data/types';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
 import { MarkdownViewer } from './common/MarkdownViewer';
 
+type HomeworkFilter = 'all' | 'completed' | 'uncompleted' | 'starred';
+
 interface HomeworkCanvasProps {
   questions: HomeworkQuestion[];
   currentIndex: number;
@@ -18,6 +20,11 @@ interface HomeworkCanvasProps {
   onToggleCompleted: (id: number) => void;
   starredList?: number[];
   onToggleStar?: (id: number) => void;
+  activeFilter?: HomeworkFilter;
+  onSelectFilter?: (f: HomeworkFilter) => void;
+  totalCount?: number;
+  completedCount?: number;
+  starredCount?: number;
 }
 
 export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
@@ -30,6 +37,11 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
   onToggleCompleted,
   starredList = [],
   onToggleStar = () => {},
+  activeFilter = 'all',
+  onSelectFilter,
+  totalCount,
+  completedCount,
+  starredCount,
 }) => {
   const [showAnswer, setShowAnswer] = useState<boolean>(true);
   const [isMasking, setIsMasking] = useState<boolean>(false);
@@ -72,11 +84,69 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onPrev, onNext, currentQ, onToggleCompleted]);
 
+  const effectiveTotal = totalCount ?? questions.length;
+  const effectiveCompleted = completedCount ?? completedList.length;
+  const effectiveUncompleted = Math.max(0, effectiveTotal - effectiveCompleted);
+  const effectiveStarred = starredCount ?? starredList.length;
+
+  const filterPills = onSelectFilter ? (
+    <div
+      role="group"
+      aria-label="作业题筛选"
+      className="flex flex-wrap items-center gap-1.5 px-1"
+    >
+      {(
+        [
+          { key: 'all', label: '全部', count: effectiveTotal },
+          { key: 'uncompleted', label: '未做', count: effectiveUncompleted },
+          { key: 'completed', label: '已做', count: effectiveCompleted },
+          { key: 'starred', label: '收藏', count: effectiveStarred },
+        ] as const
+      ).map((item) => {
+        const isActive = activeFilter === item.key;
+        return (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => onSelectFilter(item.key)}
+            aria-pressed={isActive}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+              isActive
+                ? 'bg-sky-600 text-white border-sky-700 shadow-sm'
+                : 'bg-white/90 dark:bg-[#151b26] text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700 hover:text-sky-600 dark:hover:text-sky-400'
+            }`}
+          >
+            <span>{item.label}</span>
+            <span
+              className={`tabular-nums text-[11px] ${
+                isActive ? 'text-sky-100' : 'text-slate-400 dark:text-slate-500'
+              }`}
+            >
+              {item.count}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  ) : null;
+
   if (!currentQ) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400">
-        <BookOpen className="w-12 h-12 mb-3 text-slate-300" />
-        <p className="text-base font-medium">当前章节暂无作业题</p>
+      <div className="flex-1 min-w-0 flex flex-col gap-3 p-3 sm:p-5 lg:p-6 overflow-y-auto max-h-[calc(100vh-4rem)]">
+        {filterPills}
+        <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400">
+          <BookOpen className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" />
+          <p className="text-base font-medium mb-3">当前章节暂无作业题</p>
+          {onSelectFilter && (
+            <button
+              type="button"
+              onClick={() => onSelectFilter('all')}
+              className="clay-button-shadow clay-squash px-4 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white hover:bg-sky-700 transition-colors cursor-pointer"
+            >
+              查看全部
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -110,6 +180,8 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
         modeBadge="平时作业本"
       />
 
+      {filterPills}
+
       {/* 2. Main Question Card (Clean, spacious typography) */}
       <div className="clay-card-shadow bg-white dark:bg-[#151b26] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800/80 transition-all">
         {/* Top Badges */}
@@ -136,16 +208,15 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
           <div className="mt-2 p-5 sm:p-6 rounded-2xl bg-slate-50/80 dark:bg-[#18202e] border border-slate-200/80 dark:border-slate-800/80 clay-card-shadow">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200/60 dark:border-slate-800/60">
               <span className="text-xs font-bold text-slate-500 tracking-wider">
-                平时作业标准解析与采分层级
+                参考解析
               </span>
               <button
                 onClick={() => setIsMasking((prev) => !prev)}
-                className={`clay-button-shadow clay-squash px-2.5 py-1 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`clay-button-shadow clay-squash px-2.5 py-1 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
                   isMasking
                     ? 'bg-rose-500 text-white border-rose-600 shadow-sm'
                     : 'bg-white dark:bg-[#1a2232] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-rose-500'
                 }`}
-                title="遮挡 / 显露采分关键词"
               >
                 <HelpCircle className="w-3.5 h-3.5" />
                 <span>{isMasking ? '显露关键词' : '挖空遮挡'}</span>

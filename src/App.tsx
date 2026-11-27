@@ -70,6 +70,7 @@ export function App() {
   );
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'memorized' | 'unmemorized' | 'starred'>('all');
+  const [homeworkFilter, setHomeworkFilter] = useState<'all' | 'completed' | 'uncompleted' | 'starred'>('all');
   const [practiceTab, setPracticeTab] = useState<'terms' | 'fill' | 'choice' | 'truefalse' | 'short' | 'essay'>(
     initialNavState.practiceTab || 'terms'
   );
@@ -131,6 +132,13 @@ export function App() {
       return false;
     }
   });
+  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('cb_right_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   // Close mobile right drawer on Escape
   useEffect(() => {
@@ -149,6 +157,18 @@ export function App() {
       const next = !prev;
       try {
         localStorage.setItem('cb_left_sidebar_collapsed', String(next));
+      } catch {
+        // Ignore storage errors
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleRightSidebarCollapsed = useCallback(() => {
+    setRightSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('cb_right_sidebar_collapsed', String(next));
       } catch {
         // Ignore storage errors
       }
@@ -183,9 +203,57 @@ export function App() {
         const matchAns = q.answer.toLowerCase().includes(query);
         if (!matchTitle && !matchAns) return false;
       }
+      if (homeworkFilter === 'completed' && !state.homeworkCompleted.includes(q.id)) return false;
+      if (homeworkFilter === 'uncompleted' && state.homeworkCompleted.includes(q.id)) return false;
+      if (homeworkFilter === 'starred' && !state.starred.includes(q.id)) return false;
       return true;
     });
-  }, [selectedChapterId, searchQuery]);
+  }, [selectedChapterId, searchQuery, homeworkFilter, state.homeworkCompleted, state.starred]);
+
+  // Chapter-scoped counts for filter pills
+  const chapterRecitationBase = useMemo(
+    () => recitationQuestions.filter((q) => !selectedChapterId || q.chapterId === selectedChapterId),
+    [selectedChapterId]
+  );
+  const recitationTotalCount = chapterRecitationBase.length;
+  const recitationMemorizedCount = useMemo(
+    () => chapterRecitationBase.filter((q) => state.memorized.includes(q.id)).length,
+    [chapterRecitationBase, state.memorized]
+  );
+  const recitationStarredCount = useMemo(
+    () => chapterRecitationBase.filter((q) => state.starred.includes(q.id)).length,
+    [chapterRecitationBase, state.starred]
+  );
+
+  const chapterHomeworkBase = useMemo(
+    () => homeworkQuestions.filter((q) => !selectedChapterId || q.chapterId === selectedChapterId),
+    [selectedChapterId]
+  );
+  const homeworkTotalCount = chapterHomeworkBase.length;
+  const homeworkCompletedCount = useMemo(
+    () => chapterHomeworkBase.filter((q) => state.homeworkCompleted.includes(q.id)).length,
+    [chapterHomeworkBase, state.homeworkCompleted]
+  );
+  const homeworkStarredCount = useMemo(
+    () => chapterHomeworkBase.filter((q) => state.starred.includes(q.id)).length,
+    [chapterHomeworkBase, state.starred]
+  );
+
+  const handleSelectRecitationFilter = useCallback(
+    (f: 'all' | 'memorized' | 'unmemorized' | 'starred') => {
+      setActiveFilter(f);
+      setRecitationIndex(0);
+    },
+    []
+  );
+
+  const handleSelectHomeworkFilter = useCallback(
+    (f: 'all' | 'completed' | 'uncompleted' | 'starred') => {
+      setHomeworkFilter(f);
+      setHomeworkIndex(0);
+    },
+    []
+  );
 
   // Handle Chapter selection from LeftSidebar (filtered list starts at index 0)
   const handleSelectChapter = useCallback((chId: number | null) => {
@@ -230,12 +298,36 @@ export function App() {
       if (selectedChapterId && targetQ.chapterId !== selectedChapterId) {
         setSelectedChapterId(null);
       }
+      if (homeworkFilter !== 'all') {
+        setHomeworkFilter('all');
+      }
       if (searchQuery.trim()) {
         setSearchQuery('');
       }
       setHomeworkIndex(idx);
     }
-  }, [filteredHomeworkQuestions, selectedChapterId, searchQuery]);
+  }, [filteredHomeworkQuestions, selectedChapterId, homeworkFilter, searchQuery]);
+
+  // Jump to a specific chapter section in recitation mode
+  const handleJumpToSection = useCallback((chapterId: number, sectionId: string) => {
+    setCurrentMode('recitation');
+    setSelectedChapterId(chapterId);
+    setActiveFilter('all');
+    setSearchQuery('');
+    const chapterQuestions = recitationQuestions.filter((q) => q.chapterId === chapterId);
+    const secIdx = chapterQuestions.findIndex((q) => q.sectionId === sectionId);
+    setRecitationIndex(secIdx !== -1 ? secIdx : 0);
+  }, []);
+
+  // Jump to a specific terminology item in practice mode
+  const handleJumpToPracticeTerm = useCallback((termId: number) => {
+    setCurrentMode('practice');
+    setPracticeTab('terms');
+    const idx = terminologyList.findIndex((t) => t.id === termId);
+    if (idx !== -1) {
+      setPracticeTermIndex(idx);
+    }
+  }, []);
 
   // Bounded indices & current active questions
   const safeRecitationIndex = Math.min(
@@ -249,6 +341,47 @@ export function App() {
   const currentRecitationQ = filteredRecitationQuestions[safeRecitationIndex];
   const currentHomeworkQ = filteredHomeworkQuestions[safeHomeworkIndex];
   const currentTerm = terminologyList[practiceTermIndex] || terminologyList[0];
+
+  const currentQuestionText = useMemo(() => {
+    if (currentMode === 'recitation' && currentRecitationQ) {
+      return `${currentRecitationQ.title}\n${currentRecitationQ.content}`;
+    }
+    if (currentMode === 'homework' && currentHomeworkQ) {
+      return `${currentHomeworkQ.question}\n${currentHomeworkQ.answer}`;
+    }
+    if (currentMode === 'practice') {
+      if (practiceTab === 'terms' && currentTerm) {
+        return `${currentTerm.term}\n${currentTerm.definition}`;
+      }
+      if (practiceTab === 'fill' && fillInQuestions[practiceFillIndex]) {
+        return fillInQuestions[practiceFillIndex].stem;
+      }
+      if (practiceTab === 'choice' && singleChoiceQuestions[practiceChoiceIndex]) {
+        return singleChoiceQuestions[practiceChoiceIndex].stem;
+      }
+      if (practiceTab === 'truefalse' && trueFalseQuestions[practiceTfIndex]) {
+        return trueFalseQuestions[practiceTfIndex].statement;
+      }
+      if (practiceTab === 'short' && shortAnswerQuestions[practiceShortIndex]) {
+        return shortAnswerQuestions[practiceShortIndex].question;
+      }
+      if (practiceTab === 'essay' && essayQuestions[practiceEssayIndex]) {
+        return essayQuestions[practiceEssayIndex].question;
+      }
+    }
+    return '';
+  }, [
+    currentMode,
+    currentRecitationQ,
+    currentHomeworkQ,
+    practiceTab,
+    currentTerm,
+    practiceFillIndex,
+    practiceChoiceIndex,
+    practiceTfIndex,
+    practiceShortIndex,
+    practiceEssayIndex,
+  ]);
 
   // Check URL query parameters for QR code sync handoff (?account=xxx&sync=pull)
   useEffect(() => {
@@ -320,11 +453,17 @@ export function App() {
     onSelectShortIndex: setPracticeShortIndex,
     currentEssayIndex: practiceEssayIndex,
     onSelectEssayIndex: setPracticeEssayIndex,
-    // Chapter metadata
+    // Chapter metadata & redesign props
     currentChapterId:
       currentMode === 'homework'
         ? currentHomeworkQ?.chapterId || 1
         : currentRecitationQ?.chapterId || 1,
+    currentSectionId: currentRecitationQ?.sectionId,
+    currentQuestionText,
+    onSelectSection: handleJumpToSection,
+    onJumpToPracticeTerm: handleJumpToPracticeTerm,
+    isCollapsed: rightSidebarCollapsed,
+    onToggleCollapse: toggleRightSidebarCollapsed,
     chapters: chaptersMeta,
   };
 
@@ -345,6 +484,8 @@ export function App() {
         onToggleMobileRightDrawer={() => setMobileRightDrawerOpen((prev) => !prev)}
         isLeftCollapsed={leftSidebarCollapsed}
         onToggleLeftCollapsed={toggleLeftSidebarCollapsed}
+        isRightCollapsed={rightSidebarCollapsed}
+        onToggleRightCollapsed={toggleRightSidebarCollapsed}
         activeMode={currentMode}
       />
 
@@ -390,6 +531,11 @@ export function App() {
               starredList={state.starred}
               onToggleMemorized={toggleMemorized}
               onToggleStar={toggleStarred}
+              activeFilter={activeFilter}
+              onSelectFilter={handleSelectRecitationFilter}
+              totalCount={recitationTotalCount}
+              memorizedCount={recitationMemorizedCount}
+              starredCount={recitationStarredCount}
             />
           )}
 
@@ -406,6 +552,11 @@ export function App() {
               onToggleCompleted={toggleHomeworkCompleted}
               starredList={state.starred}
               onToggleStar={toggleStarred}
+              activeFilter={homeworkFilter}
+              onSelectFilter={handleSelectHomeworkFilter}
+              totalCount={homeworkTotalCount}
+              completedCount={homeworkCompletedCount}
+              starredCount={homeworkStarredCount}
             />
           )}
 
@@ -505,7 +656,12 @@ export function App() {
               aria-label="题号矩阵与大纲"
               className="relative z-10 h-full max-w-full bg-white dark:bg-slate-900 shadow-2xl overscroll-contain flex"
             >
-              <RightSidebar {...rightSidebarProps} className="flex h-full" />
+              <RightSidebar
+                {...rightSidebarProps}
+                isCollapsed={false}
+                onToggleCollapse={() => setMobileRightDrawerOpen(false)}
+                className="flex h-full"
+              />
             </div>
           </div>
         )}

@@ -102,7 +102,6 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
               aria-pressed={isRevealed}
               onClick={(e) => toggleCloze(clozeId, e)}
               onKeyDown={(e) => handleClozeKeyDown(clozeId, e)}
-              title="点击撕开胶带"
               className="inline-flex items-center justify-center relative mx-1 px-1.5 py-0.5 rounded cursor-pointer select-none transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97] align-baseline shadow-xs"
               style={{
                 background:
@@ -131,7 +130,6 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             className={`font-semibold text-rose-600 dark:text-rose-400 transition-colors ${
               maskKeywords ? 'cursor-pointer hover:opacity-75' : ''
             }`}
-            title={maskKeywords ? '点击重新遮挡' : undefined}
           >
             {part}
           </strong>
@@ -211,7 +209,6 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
                     aria-pressed={isRevealed}
                     onClick={(e) => toggleCloze(clozeId, e)}
                     onKeyDown={(e) => handleClozeKeyDown(clozeId, e)}
-                    title="点击撕开胶带"
                     className="inline-flex items-center justify-center relative mx-1 px-1.5 py-0.5 rounded cursor-pointer select-none transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97] align-baseline shadow-xs"
                     style={{
                       background:
@@ -240,7 +237,6 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
                   className={`font-semibold text-rose-600 dark:text-rose-400 transition-colors ${
                     maskKeywords ? 'cursor-pointer hover:opacity-75' : ''
                   }`}
-                  title={maskKeywords ? '点击重新遮挡' : undefined}
                 >
                   {rawWord}
                 </strong>

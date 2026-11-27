@@ -8,6 +8,8 @@ import { RecitationQuestion } from '../data/types';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
 import { MarkdownViewer } from './common/MarkdownViewer';
 
+type RecitationFilter = 'all' | 'memorized' | 'unmemorized' | 'starred';
+
 interface RecitationCanvasProps {
   questions: RecitationQuestion[];
   currentIndex: number;
@@ -18,6 +20,11 @@ interface RecitationCanvasProps {
   starredList: number[];
   onToggleMemorized: (id: number) => void;
   onToggleStar: (id: number) => void;
+  activeFilter?: RecitationFilter;
+  onSelectFilter?: (f: RecitationFilter) => void;
+  totalCount?: number;
+  memorizedCount?: number;
+  starredCount?: number;
 }
 
 export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
@@ -30,6 +37,11 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
   starredList,
   onToggleMemorized,
   onToggleStar,
+  activeFilter = 'all',
+  onSelectFilter,
+  totalCount,
+  memorizedCount,
+  starredCount,
 }) => {
   const [isMasking, setIsMasking] = useState<boolean>(true);
   const [copied, setCopied] = useState<boolean>(false);
@@ -77,11 +89,69 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onPrev, onNext, currentQ, onToggleMemorized, onToggleStar]);
 
+  const effectiveTotal = totalCount ?? questions.length;
+  const effectiveMemorized = memorizedCount ?? memorizedList.length;
+  const effectiveUnmemorized = Math.max(0, effectiveTotal - effectiveMemorized);
+  const effectiveStarred = starredCount ?? starredList.length;
+
+  const filterPills = onSelectFilter ? (
+    <div
+      role="group"
+      aria-label="背诵题筛选"
+      className="flex flex-wrap items-center gap-1.5 px-1"
+    >
+      {(
+        [
+          { key: 'all', label: '全部', count: effectiveTotal },
+          { key: 'unmemorized', label: '未背', count: effectiveUnmemorized },
+          { key: 'memorized', label: '已背', count: effectiveMemorized },
+          { key: 'starred', label: '收藏', count: effectiveStarred },
+        ] as const
+      ).map((item) => {
+        const isActive = activeFilter === item.key;
+        return (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => onSelectFilter(item.key)}
+            aria-pressed={isActive}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+              isActive
+                ? 'bg-sky-600 text-white border-sky-700 shadow-sm'
+                : 'bg-white/90 dark:bg-[#151b26] text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700 hover:text-sky-600 dark:hover:text-sky-400'
+            }`}
+          >
+            <span>{item.label}</span>
+            <span
+              className={`tabular-nums text-[11px] ${
+                isActive ? 'text-sky-100' : 'text-slate-400 dark:text-slate-500'
+              }`}
+            >
+              {item.count}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  ) : null;
+
   if (!currentQ) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400">
-        <BookOpen className="w-12 h-12 mb-3 text-slate-300" />
-        <p className="text-base font-medium">未找到符合条件的背诵题</p>
+      <div className="flex-1 min-w-0 flex flex-col gap-3 p-3 sm:p-5 lg:p-6 overflow-y-auto max-h-[calc(100vh-4rem)]">
+        {filterPills}
+        <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400">
+          <BookOpen className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" />
+          <p className="text-base font-medium mb-3">未找到符合条件的背诵题</p>
+          {onSelectFilter && (
+            <button
+              type="button"
+              onClick={() => onSelectFilter('all')}
+              className="clay-button-shadow clay-squash px-4 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white hover:bg-sky-700 transition-colors cursor-pointer"
+            >
+              查看全部
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -114,6 +184,8 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
         isCopied={copied}
         modeBadge="全书速记"
       />
+
+      {filterPills}
 
       {/* 2. Main Question Card (Clean, spacious typography) */}
       <div className="clay-card-shadow bg-white dark:bg-[#151b26] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800/80 transition-all">
