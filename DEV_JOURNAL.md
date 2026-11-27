@@ -2965,3 +2965,68 @@ flowchart TD
   - `verify_suite.mjs`：`53 PASSED, 0 FAILED`；
   - `npm run build`：打包成功（5.47s，0 错误）；
   - 无头 Chrome（Selenium）实测：验证 4 级高亮与和纸胶带遮挡、全部 6 个题型专项标签及 `modeBadge`、简答题抽屉跳题至 `第 3 / 20 题`、刷新页面后 `已掌握: 1 / 20` 与 `已收藏: 1` 持久化保持，浏览器控制台 `0` 个 `SEVERE` 错误。
+
+---
+
+## 第 22 轮 [2026-11-27 16:33]：全局消除点击按钮时的文本意外选中问题
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：用户在快速连续点击“下一题 >”、“上一题”等界面按钮时，浏览器会将按钮内部的文字（如 `一题`）意外高亮选中，影响操作观感与连续刷题体验。
+- **目标**：在不影响题目题干、答案正文自由划词复制的前提下，全局禁止所有按钮及可点击控件的文字被鼠标连击或轻微拖拽选中。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- 修改 [`src/index.css`](file:///e:/workspace/central-banking-study-console/src/index.css) 第 36-41 行：在 `@layer base` 中为所有 `button`、`[role="button"]` 以及 `.clay-squash` 粘土按压控件统一添加 `user-select: none;` 与 `-webkit-user-select: none;`。
+- 题目正文、参考答案与 `MarkdownViewer` 内部文本保持默认可选状态，用户仍可直接划词或点击右上角“复制”按钮。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：快速连续点击导航栏“下一题 >”时，按钮文字出现蓝色选区（`::selection`）。
+- **根本原因 (RCA)**：浏览器对原生 `<button>` 元素在部分场景下（如连续点击、鼠标按下时发生微小位移）会触发文本选区，而项目全局样式仅对 `.mask-hidden` 设置了 `user-select: none`，未覆盖 `<button>` 与自定义按压类。
+- **具体解法**：在 Tailwind `@layer base` 层级统一声明 `button, [role="button"], .clay-squash { user-select: none; -webkit-user-select: none; }`，一次性覆盖全站所有导航栏、侧边栏、题型切换、选项按钮与弹窗控件。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Click["用户快速连击/微拖拽按钮"] --> Target{"目标元素类型"}
+    Target -->|"button / [role='button'] / .clay-squash"| NoSelect["CSS user-select: none 生效<br/>仅触发点击事件，不产生选区"]
+    Target -->|"题目正文 / MarkdownViewer 文本"| AllowSelect["保持默认文本可选<br/>支持划词与一键复制"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **选择性屏蔽**：将 `user-select: none` 精确限定在交互控件（`button`、`[role="button"]`、`.clay-squash`），避免在全局 `*` 上禁用文本选择而破坏用户的正常划词复制功能；
+- **零侵入覆盖**：置于 `@layer base` 中后，无论现有组件还是后续新增按钮均自动继承该行为，无需在每个 JSX 元素上重复堆砌 `select-none`。
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant Btn as ClayQuestionNav 按钮
+    participant Browser as 浏览器渲染引擎
+    User->>Btn: 快速双击“下一题”
+    Browser->>Btn: 检查 @layer base 样式 (user-select: none)
+    Browser-->>User: 忽略文本选区生成，仅执行 onNext() 切题
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **交互闭环**：浏览器在收到连续 `mousedown`/`click` 时先判定 CSS `user-select` 属性，命中 `none` 后跳过选区高亮绘制，仅执行粘土按压形变（`.clay-squash:active`）与 React `onNext` 切题逻辑。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 全站所有按钮（包括顶部导航、左侧大纲、右侧矩阵按钮、题型专项选项、遮挡/背会/收藏/复制按钮）均已消除误选中蓝底高亮现象。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npm run build; node verify_suite.mjs
+  ```
+- **实际输出**：
+  - `npm run build`：`✓ built in 5.34s`（`dist/assets/index-DWi6XbSz.css 47.34 kB`，0 错误）
+  - `node verify_suite.mjs`：`53 PASSED, 0 FAILED`
