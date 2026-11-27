@@ -7,6 +7,7 @@ import {
 import { HomeworkQuestion, ChapterMeta } from '../data/types';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
 import { MarkdownViewer } from './common/MarkdownViewer';
+import { HOMEWORK_PPT_REFS } from '../data/pptRefs';
 
 type HomeworkFilter = 'all' | 'completed' | 'uncompleted' | 'starred';
 
@@ -229,9 +230,14 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
           </div>
         </div>
 
-        {/* Question Title with 1. style (Black font) */}
+        {/* Question Title with 1. style (Black font) + PPT page ref */}
         <h2 className="py-4 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-white">
-          <span className="font-mono font-bold mr-1.5 text-slate-900 dark:text-white">{currentQ.id}.</span>
+          <span className="font-mono font-bold mr-1 text-slate-900 dark:text-white">{currentQ.id}.</span>
+          {HOMEWORK_PPT_REFS[currentQ.id] && (
+            <span className="font-mono text-sm sm:text-base font-semibold text-slate-500 dark:text-slate-400 mr-1.5">
+              （{HOMEWORK_PPT_REFS[currentQ.id]}）
+            </span>
+          )}
           <span>{currentQ.question}</span>
         </h2>
 

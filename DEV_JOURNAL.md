@@ -3548,3 +3548,71 @@ sequenceDiagram
 - **实际输出**：
   - `npm run build`：打包成功（0 错误）
   - `node verify_suite.mjs`：`54 PASSED, 0 FAILED`
+
+---
+
+## 第 30 轮 [2026-11-27 18:40]：全题库题号后统一标注对应章节 PPT 页码（p章_起-止）
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：在每道题的题号之后直接标注对应的课件章节与页码范围，格式如 `（p1_2-3）`，方便对照原版 PPT 复习核对。
+- **目标**：为全书速记（162 题）、平时作业本（54 题）以及题型专项全部 6 类题型（164 题）生成准确的 `p{chapterId}_{start}-{end}` 页码映射，并在题号后统一展示。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+1. **生成全量 PPT 页码映射模块（[`src/data/pptRefs.ts`](file:///e:/workspace/central-banking-study-console/src/data/pptRefs.ts)）**
+   - 162 道全书速记题直接提取原有精确 `(p...)` 页码并拼接章节号为 `p{chapterId}_{pages}`，同时提供 `stripTrailingPptTag()` 去除标题末尾重复页码；
+   - 40 道填空、40 道单选、30 道判断改错通过 `recitationQuestionId` 继承对应背诵题的精确 PPT 页码；
+   - 54 道平时作业、28 道名词解释、20 道简答与 6 道论述对照 11 章 `课件OCR全书原文` 逐页 4-gram 匹配定位，输出 `HOMEWORK_PPT_REFS`、`TERM_PPT_REFS`、`SHORT_PPT_REFS`、`ESSAY_PPT_REFS`。
+2. **题号后统一渲染（[`RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)、[`HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)、[`PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)）**
+   - 在题号 `1.` 之后统一渲染灰字等宽页码标注 `（p1_4-5）`，名词解释卡片同步标注于 `#id` 后方。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：全书速记原题干末尾已有 `(p4-5)`，若直接在题号后加 `（p1_4-5）` 会导致同一页码出现两次。
+- **根本原因 (RCA)**：早期数据构建时把页码拼在了 `title` 末尾。
+- **具体解法**：在 `RecitationCanvas` 渲染时通过 `stripTrailingPptTag(currentQ.title)` 剥离尾部旧标签，统一挪到题号之后以 `（p{章}_{页}）` 格式展示。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    OCR["11章 PPT OCR 原文 (Slide pX)"] -->|"4-gram 匹配"| Map["src/data/pptRefs.ts"]
+    Rec["162 题自带 (p...)"] -->|"提取重组 p章_页"| Map
+    Obj["填空/单选/判断 (recitationQuestionId)"] -->|"直接继承"| Map
+    Map --> UI["RecitationCanvas / HomeworkCanvas / PracticeCanvas<br/>统一于题号后渲染 （p1_4-5）"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **集中映射零侵入**：通过独立字典 `pptRefs.ts` 统一承载全部 380 题页码映射，不破坏现有题库数据结构与 46 项数据断言测试。
+
+```mermaid
+sequenceDiagram
+    participant Data as pptRefs.ts
+    participant UI as RecitationCanvas
+    UI->>Data: 读取 RECITATION_PPT_REFS[id]
+    UI->>Data: 调用 stripTrailingPptTag(title)
+    UI-->>UI: 渲染 "1. （p1_4-5） 中央银行产生的历史背景。"
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **格式统一**：全站所有学习与刷题模块均保持「题号 + `（p章_起-止）` + 题干」的统一视觉顺序。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 全站 380 道题目（162 背诵 + 54 作业 + 164 专项）均具备准确的章节页码定位，方便随时回溯原版 PPT。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npm run build; node verify_suite.mjs
+  ```
+- **实际输出**：
+  - `npm run build`：打包成功（0 错误）
+  - `node verify_suite.mjs`：`54 PASSED, 0 FAILED`

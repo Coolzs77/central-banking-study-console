@@ -7,6 +7,7 @@ import {
 import { RecitationQuestion, ChapterMeta } from '../data/types';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
 import { MarkdownViewer } from './common/MarkdownViewer';
+import { RECITATION_PPT_REFS, stripTrailingPptTag } from '../data/pptRefs';
 
 type RecitationFilter = 'all' | 'memorized' | 'unmemorized' | 'starred';
 
@@ -240,10 +241,15 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
           </div>
         </div>
 
-        {/* Question Title with 1. style (Black font) */}
+        {/* Question Title with 1. style (Black font) + PPT page ref */}
         <h2 className="py-4 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-white">
-          <span className="font-mono font-bold mr-1.5 text-slate-900 dark:text-white">{currentQ.id}.</span>
-          <span>{currentQ.title}</span>
+          <span className="font-mono font-bold mr-1 text-slate-900 dark:text-white">{currentQ.id}.</span>
+          {RECITATION_PPT_REFS[currentQ.id] && (
+            <span className="font-mono text-sm sm:text-base font-semibold text-slate-500 dark:text-slate-400 mr-1.5">
+              （{RECITATION_PPT_REFS[currentQ.id]}）
+            </span>
+          )}
+          <span>{stripTrailingPptTag(currentQ.title)}</span>
         </h2>
 
         {/* 3. Question Content / Answer Area */}
