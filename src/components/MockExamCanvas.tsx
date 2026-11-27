@@ -86,13 +86,14 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
     const shuffledSingle = [...singleChoicesBank].sort(() => 0.5 - Math.random()).slice(0, 15);
     // 15 true/false (15pt)
     const shuffledTF = [...trueFalseBank].sort(() => 0.5 - Math.random()).slice(0, 15);
-    // 3 short answers (6+6+8 = 20pt)
-    const shuffledShort = [...shortAnswersBank].sort(() => 0.5 - Math.random()).slice(0, 3);
-    if (shuffledShort.length >= 3) {
-      shuffledShort[0].totalPoints = 6;
-      shuffledShort[1].totalPoints = 6;
-      shuffledShort[2].totalPoints = 8;
-    }
+    // 3 short answers (6+6+8 = 20pt) — shallow copy to avoid mutating bank items
+    const shuffledShort = [...shortAnswersBank]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 3)
+      .map((item, idx) => ({
+        ...item,
+        totalPoints: idx === 2 ? 8 : 6,
+      }));
     // 1 essay (20pt)
     const shuffledEssay = [...essaysBank].sort(() => 0.5 - Math.random())[0] || essaysBank[0];
 
@@ -127,6 +128,17 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
     });
     setExamStatus('testing');
   };
+
+  // Warn before leaving page while an exam is in progress
+  useEffect(() => {
+    if (examStatus !== 'testing') return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [examStatus]);
 
   // Timer countdown
   useEffect(() => {

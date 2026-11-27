@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Search,
   Timer,
@@ -40,12 +40,15 @@ export const Header: React.FC<HeaderProps> = ({
   const toggleTheme = () => {
     const nextDark = !isDark;
     setIsDark(nextDark);
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (nextDark) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('cb_theme', 'dark');
+      if (metaTheme) metaTheme.setAttribute('content', '#0b0f17');
     } else {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('cb_theme', 'light');
+      if (metaTheme) metaTheme.setAttribute('content', '#eef2f7');
     }
   };
 
@@ -55,6 +58,55 @@ export const Header: React.FC<HeaderProps> = ({
   const [pomodoroSeconds, setPomodoroSeconds] = useState<number>(25 * 60);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [showTimerMenu, setShowTimerMenu] = useState<boolean>(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState<boolean>(false);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+  const timerMenuRef = useRef<HTMLDivElement>(null);
+
+  // Global "/" shortcut to focus search, "Escape" to close timer menu or blur search
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isEditable =
+        target &&
+        (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable);
+
+      if (e.key === '/' && !isEditable && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        if (searchInputRef.current && searchInputRef.current.offsetParent !== null) {
+          searchInputRef.current.focus();
+        } else {
+          setMobileSearchOpen(true);
+          requestAnimationFrame(() => mobileSearchInputRef.current?.focus());
+        }
+      } else if (e.key === 'Escape') {
+        if (showTimerMenu) {
+          setShowTimerMenu(false);
+        }
+        if (target === searchInputRef.current || target === mobileSearchInputRef.current) {
+          if (searchQuery) onSearchChange('');
+          target.blur();
+          setMobileSearchOpen(false);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [showTimerMenu, searchQuery, onSearchChange]);
+
+  // Outside click to close timer mode popover
+  useEffect(() => {
+    if (!showTimerMenu) return;
+    const handlePointerDown = (e: MouseEvent) => {
+      if (timerMenuRef.current && !timerMenuRef.current.contains(e.target as Node)) {
+        setShowTimerMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [showTimerMenu]);
 
   useEffect(() => {
     let interval: any = null;
@@ -99,10 +151,11 @@ export const Header: React.FC<HeaderProps> = ({
           {onToggleMobileMenu && (
             <button
               onClick={onToggleMobileMenu}
+              aria-label="切换章节导航"
               className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
               title="切换章节导航"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-5 h-5" aria-hidden="true" />
             </button>
           )}
 
@@ -113,7 +166,11 @@ export const Header: React.FC<HeaderProps> = ({
               title={isLeftCollapsed ? '展开左侧栏' : '折叠左侧栏'}
               className="hidden md:inline-flex p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
             >
-              {isLeftCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+              {isLeftCollapsed ? (
+                <PanelLeftOpen className="w-5 h-5" aria-hidden="true" />
+              ) : (
+                <PanelLeftClose className="w-5 h-5" aria-hidden="true" />
+              )}
             </button>
           )}
 
@@ -130,37 +187,60 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Center: Global Search Input */}
         <div className="flex-1 max-w-md hidden sm:block relative">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true" />
             <input
+              ref={searchInputRef}
               type="text"
+              name="globalSearch"
+              aria-label="搜索题目或关键词"
+              autoComplete="off"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="搜索题目、关键词 (按 / 聚焦)..."
-              className="w-full pl-10 pr-9 py-1.5 text-sm rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 transition-all clay-inset-groove"
+              placeholder="搜索题目、关键词（按 / 聚焦）…"
+              className="w-full pl-10 pr-9 py-1.5 text-sm rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus:border-sky-500 transition-colors clay-inset-groove"
             />
             {searchQuery && (
               <button
                 onClick={() => onSearchChange('')}
+                aria-label="清空搜索"
+                title="清空搜索"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             )}
           </div>
         </div>
 
-        {/* Right Tools: Focus Timer, Theme, Multi-device Sync */}
+        {/* Right Tools: Mobile Search, Focus Timer, Theme, Multi-device Sync */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Search Toggle */}
+          <button
+            onClick={() => {
+              setMobileSearchOpen((prev) => !prev);
+              requestAnimationFrame(() => mobileSearchInputRef.current?.focus());
+            }}
+            aria-label="搜索题目"
+            aria-expanded={mobileSearchOpen}
+            title="搜索题目"
+            className="sm:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 clay-button-shadow clay-squash"
+          >
+            <Search className="w-4 h-4" aria-hidden="true" />
+          </button>
+
           {/* Focus Timer / Stopwatch */}
-          <div className="relative">
+          <div className="relative" ref={timerMenuRef}>
             <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 text-xs font-mono font-medium clay-badge-shadow">
               <button
                 onClick={() => setShowTimerMenu(!showTimerMenu)}
+                aria-label="切换计时模式"
+                aria-expanded={showTimerMenu}
+                aria-haspopup="menu"
                 className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
                 title="点击切换计时模式"
               >
-                <Timer className="w-3.5 h-3.5 text-sky-500" />
-                <span>
+                <Timer className="w-3.5 h-3.5 text-sky-500" aria-hidden="true" />
+                <span className="tabular-nums">
                   {timerMode === 'stopwatch'
                     ? formatTime(seconds)
                     : formatTime(pomodoroSeconds)}
@@ -169,22 +249,24 @@ export const Header: React.FC<HeaderProps> = ({
 
               <button
                 onClick={() => setIsRunning(!isRunning)}
+                aria-label={isRunning ? '暂停计时' : '开始计时'}
                 className="p-1 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400"
                 title={isRunning ? '暂停计时' : '开始计时'}
               >
                 {isRunning ? (
-                  <Pause className="w-3.5 h-3.5" />
+                  <Pause className="w-3.5 h-3.5" aria-hidden="true" />
                 ) : (
-                  <Play className="w-3.5 h-3.5" />
+                  <Play className="w-3.5 h-3.5" aria-hidden="true" />
                 )}
               </button>
 
               <button
                 onClick={handleResetTimer}
+                aria-label="重置计时"
                 className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 title="重置计时"
               >
-                <RotateCcw className="w-3 h-3" />
+                <RotateCcw className="w-3 h-3" aria-hidden="true" />
               </button>
             </div>
 
@@ -246,22 +328,53 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Multi-device Sync Button */}
           <button
             onClick={onOpenSync}
+            aria-label="跨设备同步与数据备份"
             className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 clay-button-shadow clay-squash"
             title="跨设备同步与数据备份"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
           </button>
 
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
+            aria-label={isDark ? '切换至明亮模式' : '切换至暗黑模式'}
             className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 clay-button-shadow clay-squash"
             title={isDark ? '切换至明亮模式' : '切换至暗黑模式'}
           >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {isDark ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
           </button>
         </div>
       </div>
+
+      {/* Mobile Expandable Search Bar */}
+      {mobileSearchOpen && (
+        <div className="sm:hidden px-4 pb-3">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+            <input
+              ref={mobileSearchInputRef}
+              type="text"
+              name="mobileGlobalSearch"
+              aria-label="搜索题目或关键词"
+              autoComplete="off"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="搜索题目、关键词…"
+              className="w-full pl-10 pr-9 py-2 text-sm rounded-xl bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus:border-sky-500 clay-inset-groove"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange('')}
+                aria-label="清空搜索"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="w-4 h-4" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 };

@@ -45,22 +45,73 @@ export function App() {
     importState,
   } = useStudyState();
 
+  // Load persisted navigation state (mode, chapter, practiceTab, and per-mode indices)
+  const initialNavState = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('cb_nav_state');
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // Ignore storage errors
+    }
+    return {};
+  }, []);
+
   // Navigation & filters state
-  const [currentMode, setCurrentMode] = useState<AppMode>('recitation');
-  const [selectedChapterId, setSelectedChapterId] = useState<number | null>(null);
+  const [currentMode, setCurrentMode] = useState<AppMode>(initialNavState.currentMode || 'recitation');
+  const [selectedChapterId, setSelectedChapterId] = useState<number | null>(
+    initialNavState.selectedChapterId ?? null
+  );
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'memorized' | 'unmemorized' | 'starred'>('all');
-  const [practiceTab, setPracticeTab] = useState<'terms' | 'fill' | 'choice' | 'truefalse' | 'short' | 'essay'>('terms');
+  const [practiceTab, setPracticeTab] = useState<'terms' | 'fill' | 'choice' | 'truefalse' | 'short' | 'essay'>(
+    initialNavState.practiceTab || 'terms'
+  );
 
   // Single Source of Truth for question navigation indices (0-based)
-  const [recitationIndex, setRecitationIndex] = useState<number>(0);
-  const [homeworkIndex, setHomeworkIndex] = useState<number>(0);
-  const [practiceTermIndex, setPracticeTermIndex] = useState<number>(0);
-  const [practiceChoiceIndex, setPracticeChoiceIndex] = useState<number>(0);
-  const [practiceTfIndex, setPracticeTfIndex] = useState<number>(0);
-  const [practiceFillIndex, setPracticeFillIndex] = useState<number>(0);
-  const [practiceShortIndex, setPracticeShortIndex] = useState<number>(0);
-  const [practiceEssayIndex, setPracticeEssayIndex] = useState<number>(0);
+  const [recitationIndex, setRecitationIndex] = useState<number>(initialNavState.recitationIndex || 0);
+  const [homeworkIndex, setHomeworkIndex] = useState<number>(initialNavState.homeworkIndex || 0);
+  const [practiceTermIndex, setPracticeTermIndex] = useState<number>(initialNavState.practiceTermIndex || 0);
+  const [practiceChoiceIndex, setPracticeChoiceIndex] = useState<number>(initialNavState.practiceChoiceIndex || 0);
+  const [practiceTfIndex, setPracticeTfIndex] = useState<number>(initialNavState.practiceTfIndex || 0);
+  const [practiceFillIndex, setPracticeFillIndex] = useState<number>(initialNavState.practiceFillIndex || 0);
+  const [practiceShortIndex, setPracticeShortIndex] = useState<number>(initialNavState.practiceShortIndex || 0);
+  const [practiceEssayIndex, setPracticeEssayIndex] = useState<number>(initialNavState.practiceEssayIndex || 0);
+
+  // Persist navigation state on change
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'cb_nav_state',
+        JSON.stringify({
+          currentMode,
+          selectedChapterId,
+          practiceTab,
+          recitationIndex,
+          homeworkIndex,
+          practiceTermIndex,
+          practiceChoiceIndex,
+          practiceTfIndex,
+          practiceFillIndex,
+          practiceShortIndex,
+          practiceEssayIndex,
+        })
+      );
+    } catch {
+      // Ignore storage errors
+    }
+  }, [
+    currentMode,
+    selectedChapterId,
+    practiceTab,
+    recitationIndex,
+    homeworkIndex,
+    practiceTermIndex,
+    practiceChoiceIndex,
+    practiceTfIndex,
+    practiceFillIndex,
+    practiceShortIndex,
+    practiceEssayIndex,
+  ]);
 
   // Modals & UI state
   const [syncModalOpen, setSyncModalOpen] = useState<boolean>(false);
@@ -199,6 +250,12 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-[#eef2f7] dark:bg-[#0b0f17] text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-xl focus:text-xs focus:font-bold focus:shadow-lg"
+      >
+        跳至主内容
+      </a>
       {/* 1. Header (Clean edge-to-edge, zero fluff) */}
       <Header
         searchQuery={searchQuery}
@@ -238,7 +295,7 @@ export function App() {
         )}
 
         {/* Middle Canvas (Edge-to-edge controlled canvas) */}
-        <main className="flex-1 min-w-0 h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
+        <main id="main-content" className="flex-1 min-w-0 h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
           {currentMode === 'recitation' && (
             <RecitationCanvas
               questions={filteredRecitationQuestions}

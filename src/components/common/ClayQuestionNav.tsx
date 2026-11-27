@@ -78,7 +78,8 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
 
           <button
             onClick={() => setJumpDrawerOpen(!jumpDrawerOpen)}
-            className="clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 hover:text-blue-600 border border-slate-200 dark:border-slate-700 flex items-center gap-1 transition-all cursor-pointer"
+            aria-expanded={jumpDrawerOpen}
+            className="clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 hover:text-blue-600 border border-slate-200 dark:border-slate-700 flex items-center gap-1 transition-colors cursor-pointer tabular-nums"
           >
             <span>第 {currentIndex + 1} / {totalFiltered} 题 ▾</span>
           </button>
@@ -175,7 +176,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 max-h-52 overflow-y-auto p-1">
+          <div className="flex flex-wrap gap-1.5 max-h-52 overflow-y-auto overscroll-contain p-1">
             {allItemIds.map((itemId, idx) => {
               const isCurr = idx === currentIndex;
               const isDone = completedItemIds.includes(itemId);

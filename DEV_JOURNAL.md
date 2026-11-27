@@ -3030,3 +3030,86 @@ sequenceDiagram
 - **实际输出**：
   - `npm run build`：`✓ built in 5.34s`（`dist/assets/index-DWi6XbSz.css 47.34 kB`，0 错误）
   - `node verify_suite.mjs`：`53 PASSED, 0 FAILED`
+
+---
+
+## 第 23 轮 [2026-11-27 16:44]：Web Interface Guidelines 全面审查与体验加固
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：对照 Vercel Web Interface Guidelines 对网站进行全面审查，定位并修复无障碍（A11y）、键盘焦点、暗黑模式断层、移动端搜索、刷新状态丢失与模考防误触等问题。
+- **目标**：在不改动题库内容与核心排版的前提下，完成 P0–P2 级交互、语义化与工程合规加固。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+1. **全局样式与暗黑主题（[`index.html`](file:///e:/workspace/central-banking-study-console/index.html)、[`src/index.css`](file:///e:/workspace/central-banking-study-console/src/index.css)）**
+   - 添加 `<meta name="theme-color">` 并在主题初始化/切换时同步 `#eef2f7` / `#0b0f17`；
+   - `.dark` 增加 `color-scheme: dark;`，`html` 增加 `touch-action: manipulation;`，补充 `:focus-visible` 蓝色焦点环及 `@media (prefers-reduced-motion: reduce)` 减弱动效支持。
+2. **顶部导航与全局搜索（[`src/components/Header.tsx`](file:///e:/workspace/central-banking-study-console/src/components/Header.tsx)）**
+   - 注册全局 `/` 键聚焦搜索框、`Escape` 清空失焦或关闭计时菜单，新增计时菜单外部点击关闭逻辑；
+   - 为 `< sm` 窄屏新增折叠搜索按钮与移动端全宽搜索栏，补全所有纯图标按钮 `aria-label` 与装饰图标 `aria-hidden="true"`，计时数字添加 `tabular-nums`。
+3. **云同步弹窗暗黑适配与无障碍（[`src/components/SyncModal.tsx`](file:///e:/workspace/central-banking-study-console/src/components/SyncModal.tsx)）**
+   - 补全 `dark:*` 暗黑语义样式，新增 `role="dialog"`、`aria-modal="true"`、`aria-labelledby="sync-modal-title"`、`overscroll-contain`、遮罩点击与 `Escape` 关闭；
+   - 提示横幅添加 `aria-live="polite"`，二维码 `<img>` 指定 `width={144} height={144}`，输入框补充 `name`、`autoComplete="off"`、`spellCheck={false}`。
+4. **导航数字排版与状态持久化（[`ClayQuestionNav.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/ClayQuestionNav.tsx)、[`LeftSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/LeftSidebar.tsx)、[`App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)）**
+   - 题号与章节计数添加 `tabular-nums`，抽屉列表添加 `overscroll-contain`；
+   - `App.tsx` 将 `currentMode`、`selectedChapterId`、`practiceTab` 及各模式题号持久化至 `localStorage`（`cb_nav_state`），并增加「跳至主内容」无障碍跳转链接与 `#main-content`。
+5. **模考浅拷贝与防误触（[`MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx)）**
+   - 组卷时改为浅拷贝新对象 `{ ...item, totalPoints }` 避免污染原始题库数组，并在 `testing` 状态注册 `beforeunload` 离开提醒。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：暗黑模式下打开云同步弹窗仍显示刺眼白底；按 `/` 无法聚焦搜索框；手机端无法搜索；刷新浏览器后总是回到第 1 题；计时与题号跳动时宽度轻微抖动。
+- **根本原因 (RCA)**：`SyncModal` 缺少 `dark:` 类名与弹窗语义；`Header` 仅写了占位符提示但未注册全局 `keydown` 监听；`App.tsx` 导航索引仅存于内存 `useState`；非等宽数字在宽度变化时引起重排。
+- **具体解法**：逐一补全暗黑样式、`keydown` + `mousedown` 监听、`cb_nav_state` 本地持久化及 `tabular-nums` 等宽数字样式。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Shortcut["全局键盘 / & Escape"] --> HeaderSearch["Header 搜索聚焦 / 移动端展开"]
+    Shortcut --> Popover["计时菜单 / SyncModal 关闭"]
+    NavChange["模式/章节/题号切换"] --> Store["localStorage (cb_nav_state)"]
+    Store -->|"页面刷新恢复"| AppInit["App 初始定位还原"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **键盘与焦点闭环**：`/` 与 `Escape` 统一由 `Header` 和 `SyncModal` 协同接管，配合 `:focus-visible` 与无障碍跳转链接，实现桌面与移动端全流程键盘可达；
+- **状态恢复闭环**：`cb_nav_state` 轻量记录用户离开时的模式与题号，刷新后直接恢复原阅读位置，不与云端进度 `cb_study_state` 冲突。
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: 模考未开始
+    Idle --> Testing: 生成浅拷贝试卷 (不改原题库)
+    Testing --> Testing: 注册 beforeunload 防误关提醒
+    Testing --> Submitted: 交卷或倒计时归零
+    Submitted --> [*]: 注销 beforeunload 监听
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **数据不可变与防误触**：组卷阶段通过 `.map((item, idx) => ({ ...item, totalPoints }))` 保证原题库不可变；仅在 `examStatus === 'testing'` 期间挂载 `beforeunload` 监听，避免交卷后产生多余弹窗。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 全部纯图标按钮均具备屏幕阅读器可读的 `aria-label`；
+- 支持系统级 `prefers-reduced-motion` 减弱动效与 `touch-action: manipulation` 零延迟点击；
+- 暗黑模式与原生滚动条、浏览器状态栏主题色（`theme-color`）完全统一。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npx tsx scripts/audit_exam_accuracy.ts; npx tsx tests/verifyData.ts; npx tsx tests/verifyHomeworkHierarchy.ts; npx tsx tests/verifyPracticeUI.tsx; node verify_suite.mjs; npm run build
+  ```
+- **实际输出**：
+  - `scripts/audit_exam_accuracy.ts`：`0` 错误
+  - `tests/verifyData.ts`：`46 PASSED, 0 FAILED`
+  - `tests/verifyHomeworkHierarchy.ts`：`21 PASSED, 0 FAILED`
+  - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
+  - `verify_suite.mjs`：`53 PASSED, 0 FAILED`
+  - `npm run build`：`✓ built in 4.81s`（0 错误）

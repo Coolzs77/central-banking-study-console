@@ -232,7 +232,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     </span>
                   </div>
                   <span
-                    className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-bold flex-shrink-0 ${
+                    className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-bold flex-shrink-0 tabular-nums ${
                       stats.pct === 100
                         ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
                         : 'bg-white dark:bg-[#151b26] text-slate-500 dark:text-slate-400'
