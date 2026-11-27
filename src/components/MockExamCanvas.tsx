@@ -328,7 +328,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
   if (examStatus === 'idle') {
     return (
       <div className="flex-1 w-full h-full overflow-y-auto px-4 py-12 flex flex-col items-center">
-        <div className="w-full max-w-3xl p-8 rounded-3xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/70 dark:border-slate-700/70 clay-card-shadow text-center">
+        <div className="paper-card w-full max-w-3xl p-8 rounded-3xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/70 dark:border-slate-700/70 text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-400 text-white flex items-center justify-center clay-button-shadow">
             <Award className="w-8 h-8" />
           </div>

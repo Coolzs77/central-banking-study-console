@@ -215,8 +215,8 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
 
       {filterPills}
 
-      {/* 2. Main Question Card (Clean, spacious typography) */}
-      <div className="clay-card-shadow bg-white dark:bg-[#151b26] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800/80 transition-all">
+      {/* 2. Main Question Card (Paper-textured spacious typography) */}
+      <div className="paper-card bg-white dark:bg-[#151b26] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800/80 transition-colors">
         {/* Top Badges */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800/80">
           <div className="flex flex-wrap items-center gap-2">
@@ -243,7 +243,7 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
 
         {/* 3. Solution Section (展开题解卡片) */}
         {showAnswer && (
-          <div className="mt-2 p-5 sm:p-6 rounded-2xl bg-slate-50/80 dark:bg-[#18202e] border border-slate-200/80 dark:border-slate-800/80 clay-card-shadow">
+          <div className="paper-inner mt-2 p-5 sm:p-6 rounded-2xl bg-slate-50/80 dark:bg-[#18202e] border border-slate-200/80 dark:border-slate-800/80">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200/60 dark:border-slate-800/60">
               <span className="text-xs font-bold text-slate-500 tracking-wider">
                 参考解析

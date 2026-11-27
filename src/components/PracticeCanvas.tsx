@@ -902,7 +902,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             <div className="w-full max-w-3xl my-auto space-y-4">
               <div
                 onClick={() => setIsFlipped((prev) => !prev)}
-                className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between cursor-pointer select-none group"
+                className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between cursor-pointer select-none group"
               >
                 <div className="flex items-center justify-between text-xs text-slate-400">
                   <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
@@ -939,7 +939,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                           )}
                         </h3>
                       </div>
-                      <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-base leading-relaxed text-slate-800 dark:text-slate-200">
+                      <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-base leading-relaxed text-slate-800 dark:text-slate-200">
                         <MarkdownViewer content={currentTerm.definition} maskKeywords={isMasking} />
                       </div>
                     </div>
@@ -997,7 +997,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
             <div className="w-full max-w-3xl my-auto space-y-4">
-              <div className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6">
+              <div className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6">
                 {/* Top Card Meta */}
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                   <div className="flex items-center gap-2">
@@ -1068,7 +1068,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   </div>
 
                   {showChoiceExplanation && (
-                    <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                    <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
                       <div className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">
                         正确答案：【{currentChoice.correctKey}】
                       </div>
@@ -1126,7 +1126,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
             <div className="w-full max-w-3xl my-auto space-y-4">
-              <div className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6">
+              <div className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6">
                 {/* Top Card Meta */}
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                   <div className="flex items-center gap-2">
@@ -1196,7 +1196,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   </div>
 
                   {showTfExplanation && (
-                    <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                    <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
                       <div className="font-bold text-slate-900 dark:text-white text-sm">
                         判断结果：本题陈述【{currentTF.isCorrect ? '正确 (√)' : '错误 (×)'}】
                       </div>
@@ -1256,7 +1256,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             <div className="w-full max-w-3xl my-auto space-y-4">
               <div
                 onClick={() => setShowFillAnswer((prev) => !prev)}
-                className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6 cursor-pointer select-none"
+                className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6 cursor-pointer select-none"
               >
                 {/* Top Card Meta */}
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
@@ -1291,7 +1291,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   ) : (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2.5 text-xs select-text cursor-auto"
+                      className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2.5 text-xs select-text cursor-auto"
                     >
                       <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex flex-wrap items-center gap-2">
                         <span>参考答案：</span>
@@ -1363,7 +1363,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
             <div className="w-full max-w-3xl my-auto space-y-4">
-              <div className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6">
+              <div className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6">
                 {/* Top Card Meta */}
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                   <div className="flex flex-wrap items-center gap-2">
@@ -1405,7 +1405,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+                      <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
                         <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
                           参考答案
                         </div>
@@ -1488,7 +1488,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
             <div className="w-full max-w-3xl my-auto space-y-4">
-              <div className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6">
+              <div className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6">
                 {/* Top Card Meta */}
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                   <div className="flex flex-wrap items-center gap-2">
@@ -1537,7 +1537,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+                      <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
                         <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
                           参考答案框架
                         </div>

@@ -3687,3 +3687,79 @@ sequenceDiagram
   - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
   - `verify_suite.mjs`：`54 PASSED, 0 FAILED`
   - `npm run build`：打包成功（0 错误）
+
+---
+
+## 第 32 轮 [2026-11-27 21:02]：中间学习区 7 套物理纸张质感（含羊皮纸）与 7 种阅读字体
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：中间学习区原有纯白卡片加冷灰底缺乏沉浸感，需要真正的纸张纤维质感（不能仅改底色），并增加**古典羊皮纸**等一共 7 套纸张质感方案与 7 种舒适阅读字体。
+- **目标**：通过纯 CSS + 内联 SVG `feTurbulence` 纸浆纤维噪点、多层叠纸书页边与台灯漫反射光感实现 7 套纸张质感与 7 种字体，并在顶部提供统一切换面板与本地持久化。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+1. **纸张与字体配置（[`src/data/appearance.ts`](file:///e:/workspace/central-banking-study-console/src/data/appearance.ts)）**
+   - 定义 `PAPER_THEMES`（7 套：`ivory` 道林考卷、`parchment` 古典羊皮纸、`sage` 豆沙护眼、`kraft` 温润牛皮、`grid` 康奈尔方格、`lined` 横线稿纸、`default` 极简白纸）与 `FONT_THEMES`（7 种：`system` 现代黑体、`song` 印刷宋体、`kai` 温润楷体、`fangsong` 清秀仿宋、`yuanti` 柔和圆体、`serif-mix` 学术混排、`mono-clean` 等宽精读）。
+2. **物理纸张渲染系统（[`src/index.css`](file:///e:/workspace/central-banking-study-console/src/index.css)）**
+   - `.paper-card::after` 叠加内联 SVG `feTurbulence` 分形噪点（细纤维/粗纤维双纹理 + `mix-blend-mode`），模拟真实纸浆纤维；
+   - `.paper-card` 采用多层递进 `box-shadow` 营造叠纸书页厚度，其中 `parchment`（羊皮纸）附加做旧琥珀暗角晕染，`lined` 附加 28px 蓝灰横线与左侧双红装订竖线，`grid` 附加 24px 印刷方格线。
+3. **顶部统一切换面板与画布接入（[`Header.tsx`](file:///e:/workspace/central-banking-study-console/src/components/Header.tsx)、[`App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)、[`RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)、[`HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)、[`PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)、[`MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx)）**
+   - 顶部工具栏新增 `BookType` 样式切换弹出面板（`cb_paper_theme` / `cb_font_theme` 持久化），四大主画布卡片统一接入 `paper-card` 与 `paper-inner`。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：单纯修改背景色仍显得扁平刺眼，缺乏真实纸质讲义的颗粒与厚度。
+- **根本原因 (RCA)**：缺少纸浆纤维噪点叠加层、表面漫反射明暗与底部叠页阴影。
+- **具体解法**：使用零外部请求的内联 SVG `feTurbulence` + `mix-blend-mode` + 多层 `box-shadow` 叠纸页边实现真实物理纸感。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Header["Header 纸张与字体面板 (7+7)"] -->|"cb_paper_theme / cb_font_theme"| Main["<main data-paper data-font class='paper-canvas'>"]
+    Main --> Card[".paper-card (叠纸阴影 + 漫反射 + 线格)"]
+    Card --> Fiber["::after SVG feTurbulence 纤维噪点层"]
+    Card --> Inner[".paper-inner 凹槽解析区"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **CSS 变量驱动**：所有 7 套纸张与 7 种字体均通过 `<main>` 上的 `data-paper` / `data-font` 属性切换 CSS 变量与伪元素纹理，无需重渲染题目列表，切换零延迟。
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant Panel as Header 样式面板
+    participant LS as localStorage
+    participant Canvas as .paper-canvas
+    User->>Panel: 选择“古典羊皮纸” + “印刷宋体”
+    Panel->>LS: 写入 cb_paper_theme / cb_font_theme
+    Panel-->>Canvas: 更新 data-paper="parchment" data-font="song"
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **局部作用域隔离**：字体与纸张纹理仅作用于中间学习区 `.paper-canvas`，保持左右侧栏与顶部导航栏的紧凑排版不受影响。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 全量 7 套纸张均适配亮/暗双模式，确保四级文本高亮对比度清晰；
+- 零外部图片请求，支持离线与 GitHub Pages 秒开。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npx tsx scripts/audit_exam_accuracy.ts; npx tsx tests/verifyData.ts; npx tsx tests/verifyHomeworkHierarchy.ts; npx tsx tests/verifyPracticeUI.tsx; node verify_suite.mjs; npm run build
+  ```
+- **实际输出**：
+  - `scripts/audit_exam_accuracy.ts`：`0` 错误
+  - `tests/verifyData.ts`：`46 PASSED, 0 FAILED`
+  - `tests/verifyHomeworkHierarchy.ts`：`21 PASSED, 0 FAILED`
+  - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
+  - `verify_suite.mjs`：`54 PASSED, 0 FAILED`
+  - `npm run build`：打包成功（0 错误）

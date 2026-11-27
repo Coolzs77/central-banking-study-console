@@ -6,6 +6,7 @@ import { RecitationCanvas } from './components/RecitationCanvas';
 import { HomeworkCanvas } from './components/HomeworkCanvas';
 import { useStudyState } from './hooks/useStudyState';
 import { syncService } from './services/syncService';
+import { PaperThemeId, FontThemeId } from './data/appearance';
 
 const MockExamCanvas = lazy(() =>
   import('./components/MockExamCanvas').then((m) => ({ default: m.MockExamCanvas }))
@@ -139,6 +140,38 @@ export function App() {
       return false;
     }
   });
+  const [paperTheme, setPaperTheme] = useState<PaperThemeId>(() => {
+    try {
+      return (localStorage.getItem('cb_paper_theme') as PaperThemeId) || 'ivory';
+    } catch {
+      return 'ivory';
+    }
+  });
+  const [fontTheme, setFontTheme] = useState<FontThemeId>(() => {
+    try {
+      return (localStorage.getItem('cb_font_theme') as FontThemeId) || 'system';
+    } catch {
+      return 'system';
+    }
+  });
+
+  const handleChangePaperTheme = useCallback((next: PaperThemeId) => {
+    setPaperTheme(next);
+    try {
+      localStorage.setItem('cb_paper_theme', next);
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  const handleChangeFontTheme = useCallback((next: FontThemeId) => {
+    setFontTheme(next);
+    try {
+      localStorage.setItem('cb_font_theme', next);
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
 
   // Close mobile right drawer on Escape
   useEffect(() => {
@@ -486,6 +519,10 @@ export function App() {
         onToggleLeftCollapsed={toggleLeftSidebarCollapsed}
         isRightCollapsed={rightSidebarCollapsed}
         onToggleRightCollapsed={toggleRightSidebarCollapsed}
+        paperTheme={paperTheme}
+        onChangePaperTheme={handleChangePaperTheme}
+        fontTheme={fontTheme}
+        onChangeFontTheme={handleChangeFontTheme}
         activeMode={currentMode}
       />
 
@@ -516,8 +553,13 @@ export function App() {
           />
         )}
 
-        {/* Middle Canvas (Edge-to-edge controlled canvas) */}
-        <main id="main-content" className="flex-1 min-w-0 h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
+        {/* Middle Canvas (Edge-to-edge paper-textured canvas) */}
+        <main
+          id="main-content"
+          data-paper={paperTheme}
+          data-font={fontTheme}
+          className="paper-canvas flex-1 min-w-0 h-[calc(100vh-4rem)] overflow-hidden flex flex-col"
+        >
           {currentMode === 'recitation' && (
             <RecitationCanvas
               questions={filteredRecitationQuestions}

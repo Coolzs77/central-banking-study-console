@@ -135,3 +135,273 @@
     transform: none;
   }
 }
+
+/* ============================================================================
+   物理级纸张质感系统 (7 套纸张纹理 + 叠纸页边 + 台灯漫反射) & 7 种舒适阅读字体
+   ============================================================================ */
+.paper-canvas {
+  --paper-grain-fine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
+  --paper-grain-coarse: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.52' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.36'/%3E%3C/svg%3E");
+  --paper-desktop: #f2ede2;
+  --paper-surface: #fbf8f1;
+  --paper-inner: #f5efe3;
+  --paper-border: rgba(168, 150, 120, 0.34);
+  --paper-stack-1: #f4efe4;
+  --paper-stack-2: #ebe4d5;
+  --paper-vignette: inset 0 0 0 0 transparent;
+  --paper-pattern: none;
+  --paper-pattern-size: auto;
+  --paper-grain: var(--paper-grain-fine);
+  --paper-grain-opacity: 0.22;
+  background-color: var(--paper-desktop);
+  background-image: var(--paper-grain-fine);
+  transition: background-color 0.25s ease;
+}
+
+.dark .paper-canvas {
+  --paper-desktop: #12110f;
+  --paper-surface: #191815;
+  --paper-inner: #201e1a;
+  --paper-border: rgba(120, 110, 92, 0.32);
+  --paper-stack-1: #161512;
+  --paper-stack-2: #12110e;
+  --paper-grain-opacity: 0.12;
+}
+
+/* 1. 道林考卷纸 */
+.paper-canvas[data-paper="ivory"] {
+  --paper-desktop: #f2ede2;
+  --paper-surface: #fbf8f1;
+  --paper-inner: #f4eee1;
+  --paper-border: rgba(176, 158, 128, 0.36);
+  --paper-stack-1: #f3ede0;
+  --paper-stack-2: #eae2d1;
+  --paper-grain: var(--paper-grain-fine);
+  --paper-grain-opacity: 0.24;
+}
+.dark .paper-canvas[data-paper="ivory"] {
+  --paper-desktop: #12110f;
+  --paper-surface: #191815;
+  --paper-inner: #211f1b;
+  --paper-stack-1: #151411;
+  --paper-stack-2: #11100d;
+  --paper-grain-opacity: 0.12;
+}
+
+/* 2. 古典羊皮纸 (双层粗纤维 + 做旧琥珀暗角) */
+.paper-canvas[data-paper="parchment"] {
+  --paper-desktop: #e7d8b9;
+  --paper-surface: #f4ead2;
+  --paper-inner: #ecdfc0;
+  --paper-border: rgba(154, 114, 58, 0.42);
+  --paper-stack-1: #eadcc0;
+  --paper-stack-2: #dfd0ae;
+  --paper-vignette: inset 0 0 46px rgba(139, 98, 42, 0.16), inset 0 1px 0 rgba(255, 250, 235, 0.7);
+  --paper-grain: var(--paper-grain-coarse);
+  --paper-grain-opacity: 0.32;
+}
+.dark .paper-canvas[data-paper="parchment"] {
+  --paper-desktop: #15120d;
+  --paper-surface: #1c1813;
+  --paper-inner: #241f18;
+  --paper-border: rgba(146, 112, 62, 0.36);
+  --paper-stack-1: #18140f;
+  --paper-stack-2: #13100b;
+  --paper-vignette: inset 0 0 42px rgba(92, 64, 24, 0.24);
+  --paper-grain-opacity: 0.16;
+}
+
+/* 3. 护眼豆沙绿纸 */
+.paper-canvas[data-paper="sage"] {
+  --paper-desktop: #e3ece5;
+  --paper-surface: #f1f7f2;
+  --paper-inner: #e7f0e9;
+  --paper-border: rgba(114, 148, 124, 0.35);
+  --paper-stack-1: #e9f2eb;
+  --paper-stack-2: #dee9e0;
+  --paper-grain: var(--paper-grain-fine);
+  --paper-grain-opacity: 0.22;
+}
+.dark .paper-canvas[data-paper="sage"] {
+  --paper-desktop: #0f1512;
+  --paper-surface: #141b17;
+  --paper-inner: #1a231e;
+  --paper-border: rgba(82, 116, 94, 0.35);
+  --paper-stack-1: #111714;
+  --paper-stack-2: #0d1310;
+  --paper-grain-opacity: 0.12;
+}
+
+/* 4. 温润牛皮纸 */
+.paper-canvas[data-paper="kraft"] {
+  --paper-desktop: #e3d3b6;
+  --paper-surface: #efe3cd;
+  --paper-inner: #e7d8bc;
+  --paper-border: rgba(145, 112, 72, 0.4);
+  --paper-stack-1: #e6d8be;
+  --paper-stack-2: #dccbb0;
+  --paper-vignette: inset 0 0 28px rgba(110, 80, 42, 0.1);
+  --paper-grain: var(--paper-grain-coarse);
+  --paper-grain-opacity: 0.3;
+}
+.dark .paper-canvas[data-paper="kraft"] {
+  --paper-desktop: #15110e;
+  --paper-surface: #1b1713;
+  --paper-inner: #231e18;
+  --paper-border: rgba(132, 102, 68, 0.35);
+  --paper-stack-1: #171310;
+  --paper-stack-2: #120f0c;
+  --paper-grain-opacity: 0.15;
+}
+
+/* 5. 康奈尔方格纸 */
+.paper-canvas[data-paper="grid"] {
+  --paper-desktop: #eff2f5;
+  --paper-surface: #fcfaf5;
+  --paper-inner: #f5f3ec;
+  --paper-border: rgba(148, 163, 184, 0.36);
+  --paper-stack-1: #f4f2eb;
+  --paper-stack-2: #ebe8df;
+  --paper-pattern: linear-gradient(to right, rgba(100, 116, 139, 0.085) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(100, 116, 139, 0.085) 1px, transparent 1px);
+  --paper-pattern-size: 24px 24px;
+  --paper-grain: var(--paper-grain-fine);
+  --paper-grain-opacity: 0.18;
+}
+.dark .paper-canvas[data-paper="grid"] {
+  --paper-desktop: #0e1218;
+  --paper-surface: #141820;
+  --paper-inner: #1a202b;
+  --paper-border: rgba(71, 85, 105, 0.42);
+  --paper-stack-1: #11151d;
+  --paper-stack-2: #0d1016;
+  --paper-pattern: linear-gradient(to right, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+  --paper-grain-opacity: 0.1;
+}
+
+/* 6. 横线作业纸 (含左侧淡红装订竖线) */
+.paper-canvas[data-paper="lined"] {
+  --paper-desktop: #f0ece3;
+  --paper-surface: #fdfbf6;
+  --paper-inner: #f6f2e8;
+  --paper-border: rgba(164, 152, 132, 0.36);
+  --paper-stack-1: #f5f1e6;
+  --paper-stack-2: #ece6d8;
+  --paper-pattern: linear-gradient(to right, transparent 42px, rgba(225, 29, 72, 0.13) 42px, rgba(225, 29, 72, 0.13) 43px, transparent 43px, transparent 46px, rgba(225, 29, 72, 0.09) 46px, rgba(225, 29, 72, 0.09) 47px, transparent 47px),
+    repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, rgba(59, 130, 246, 0.09) 27px, rgba(59, 130, 246, 0.09) 28px);
+  --paper-pattern-size: 100% 28px;
+  --paper-grain: var(--paper-grain-fine);
+  --paper-grain-opacity: 0.18;
+}
+.dark .paper-canvas[data-paper="lined"] {
+  --paper-desktop: #11100f;
+  --paper-surface: #171614;
+  --paper-inner: #1e1c19;
+  --paper-border: rgba(92, 86, 76, 0.38);
+  --paper-stack-1: #141311;
+  --paper-stack-2: #100f0e;
+  --paper-pattern: linear-gradient(to right, transparent 42px, rgba(244, 63, 94, 0.16) 42px, rgba(244, 63, 94, 0.16) 43px, transparent 43px, transparent 46px, rgba(244, 63, 94, 0.1) 46px, rgba(244, 63, 94, 0.1) 47px, transparent 47px),
+    repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, rgba(96, 165, 250, 0.08) 27px, rgba(96, 165, 250, 0.08) 28px);
+  --paper-grain-opacity: 0.1;
+}
+
+/* 7. 极简白纸 */
+.paper-canvas[data-paper="default"] {
+  --paper-desktop: #eef2f7;
+  --paper-surface: #ffffff;
+  --paper-inner: #f8fafc;
+  --paper-border: rgba(203, 213, 225, 0.8);
+  --paper-stack-1: #f8fafc;
+  --paper-stack-2: #f1f5f9;
+  --paper-grain-opacity: 0.08;
+}
+.dark .paper-canvas[data-paper="default"] {
+  --paper-desktop: #0b0f17;
+  --paper-surface: #151b26;
+  --paper-inner: #18202e;
+  --paper-border: rgba(30, 41, 59, 0.85);
+  --paper-stack-1: #121824;
+  --paper-stack-2: #0e131d;
+  --paper-grain-opacity: 0.06;
+}
+
+/* 纸张卡片与物理叠页边缘 */
+.paper-card {
+  position: relative;
+  background-color: var(--paper-surface) !important;
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, transparent 48%, rgba(60, 45, 20, 0.04) 100%), var(--paper-pattern);
+  background-size: 100% 100%, var(--paper-pattern-size);
+  border-color: var(--paper-border) !important;
+  box-shadow:
+    var(--paper-vignette),
+    0 1px 2px rgba(60, 45, 20, 0.06),
+    0 6px 0 -3px var(--paper-stack-1),
+    0 6px 2px -2px rgba(60, 45, 20, 0.06),
+    0 12px 0 -6px var(--paper-stack-2),
+    0 12px 2px -5px rgba(60, 45, 20, 0.05),
+    0 18px 34px rgba(60, 45, 20, 0.08) !important;
+}
+
+.dark .paper-card {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 55%, rgba(0, 0, 0, 0.16) 100%), var(--paper-pattern);
+  box-shadow:
+    var(--paper-vignette),
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 6px 0 -3px var(--paper-stack-1),
+    0 6px 3px -2px rgba(0, 0, 0, 0.35),
+    0 12px 0 -6px var(--paper-stack-2),
+    0 16px 32px rgba(0, 0, 0, 0.45) !important;
+}
+
+.paper-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: var(--paper-grain);
+  opacity: var(--paper-grain-opacity);
+  mix-blend-mode: multiply;
+  z-index: 1;
+}
+
+.dark .paper-card::after {
+  mix-blend-mode: soft-light;
+}
+
+.paper-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+.paper-inner {
+  background-color: var(--paper-inner) !important;
+  border-color: var(--paper-border) !important;
+}
+
+/* 7 种舒适阅读字体 (作用于中间学习区正文) */
+.paper-canvas[data-font="system"] {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+}
+.paper-canvas[data-font="song"] {
+  font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", "STSong", serif;
+}
+.paper-canvas[data-font="kai"] {
+  font-family: "LXGW WenKai", "Kaiti SC", "STKaiti", "KaiTi", "FangSong", serif;
+}
+.paper-canvas[data-font="fangsong"] {
+  font-family: "FangSong", "STFangsong", "FangSong_GB2312", "Noto Serif SC", serif;
+}
+.paper-canvas[data-font="yuanti"] {
+  font-family: "Hiragino Sans GB", "YouYuan", "STYuanti", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.paper-canvas[data-font="serif-mix"] {
+  font-family: "Georgia", "Times New Roman", "Songti SC", "Noto Serif SC", "SimSun", serif;
+}
+.paper-canvas[data-font="serif-mix"] .font-mono {
+  font-family: "Times New Roman", "Georgia", serif;
+}
+.paper-canvas[data-font="mono-clean"] {
+  font-family: "JetBrains Mono", "Cascadia Code", "Consolas", "PingFang SC", "Microsoft YaHei", monospace;
+}

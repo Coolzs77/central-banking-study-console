@@ -14,7 +14,14 @@ import {
   PanelLeftOpen,
   PanelRightOpen,
   PanelRightClose,
+  BookType,
 } from 'lucide-react';
+import {
+  PAPER_THEMES,
+  FONT_THEMES,
+  PaperThemeId,
+  FontThemeId,
+} from '../data/appearance';
 
 interface HeaderProps {
   searchQuery: string;
@@ -26,6 +33,10 @@ interface HeaderProps {
   onToggleLeftCollapsed?: () => void;
   isRightCollapsed?: boolean;
   onToggleRightCollapsed?: () => void;
+  paperTheme?: PaperThemeId;
+  onChangePaperTheme?: (p: PaperThemeId) => void;
+  fontTheme?: FontThemeId;
+  onChangeFontTheme?: (f: FontThemeId) => void;
   activeMode: string;
 }
 
@@ -39,6 +50,10 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleLeftCollapsed,
   isRightCollapsed = false,
   onToggleRightCollapsed,
+  paperTheme = 'ivory',
+  onChangePaperTheme,
+  fontTheme = 'system',
+  onChangeFontTheme,
 }) => {
   // Theme state
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -66,11 +81,13 @@ export const Header: React.FC<HeaderProps> = ({
   const [pomodoroSeconds, setPomodoroSeconds] = useState<number>(25 * 60);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [showTimerMenu, setShowTimerMenu] = useState<boolean>(false);
+  const [showStyleMenu, setShowStyleMenu] = useState<boolean>(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState<boolean>(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const mobileSearchInputRef = useRef<HTMLInputElement>(null);
   const timerMenuRef = useRef<HTMLDivElement>(null);
+  const styleMenuRef = useRef<HTMLDivElement>(null);
 
   // Global "/" shortcut to focus search, "Escape" to close timer menu or blur search
   useEffect(() => {
@@ -92,6 +109,9 @@ export const Header: React.FC<HeaderProps> = ({
         if (showTimerMenu) {
           setShowTimerMenu(false);
         }
+        if (showStyleMenu) {
+          setShowStyleMenu(false);
+        }
         if (target && (target === searchInputRef.current || target === mobileSearchInputRef.current)) {
           if (searchQuery) onSearchChange('');
           target.blur();
@@ -102,19 +122,22 @@ export const Header: React.FC<HeaderProps> = ({
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [showTimerMenu, searchQuery, onSearchChange]);
+  }, [showTimerMenu, showStyleMenu, searchQuery, onSearchChange]);
 
-  // Outside click to close timer mode popover
+  // Outside click to close timer / style popovers
   useEffect(() => {
-    if (!showTimerMenu) return;
+    if (!showTimerMenu && !showStyleMenu) return;
     const handlePointerDown = (e: MouseEvent) => {
-      if (timerMenuRef.current && !timerMenuRef.current.contains(e.target as Node)) {
+      if (showTimerMenu && timerMenuRef.current && !timerMenuRef.current.contains(e.target as Node)) {
         setShowTimerMenu(false);
+      }
+      if (showStyleMenu && styleMenuRef.current && !styleMenuRef.current.contains(e.target as Node)) {
+        setShowStyleMenu(false);
       }
     };
     document.addEventListener('mousedown', handlePointerDown);
     return () => document.removeEventListener('mousedown', handlePointerDown);
-  }, [showTimerMenu]);
+  }, [showTimerMenu, showStyleMenu]);
 
   useEffect(() => {
     let interval: any = null;
@@ -334,6 +357,98 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <RefreshCw className="w-4 h-4" aria-hidden="true" />
           </button>
+
+          {/* Paper & Font Style Selector */}
+          {(onChangePaperTheme || onChangeFontTheme) && (
+            <div className="relative" ref={styleMenuRef}>
+              <button
+                type="button"
+                onClick={() => setShowStyleMenu((p) => !p)}
+                aria-label="纸张与字体设置"
+                aria-expanded={showStyleMenu}
+                aria-haspopup="menu"
+                className={`p-2 rounded-xl border clay-button-shadow clay-squash transition-colors cursor-pointer ${
+                  showStyleMenu
+                    ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 bg-slate-100/90 dark:bg-slate-800/90 border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200/60 dark:hover:bg-slate-700/60'
+                }`}
+              >
+                <BookType className="w-4 h-4" aria-hidden="true" />
+              </button>
+
+              {showStyleMenu && (
+                <div
+                  role="menu"
+                  aria-label="纸张质感与阅读字体"
+                  className="absolute right-0 mt-2 w-72 sm:w-80 p-3.5 rounded-2xl bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-700 shadow-2xl z-50 space-y-3.5 overscroll-contain"
+                >
+                  {onChangePaperTheme && (
+                    <div className="space-y-2">
+                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        纸张质感 (7)
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {PAPER_THEMES.map((p) => {
+                          const active = paperTheme === p.id;
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              role="menuitemradio"
+                              aria-checked={active}
+                              onClick={() => onChangePaperTheme(p.id)}
+                              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-colors cursor-pointer text-left ${
+                                active
+                                  ? 'border-sky-500 bg-sky-50/70 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300'
+                                  : 'border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70'
+                              }`}
+                            >
+                              <span
+                                className="w-4 h-4 rounded-md border border-black/15 dark:border-white/20 shrink-0"
+                                style={{ backgroundColor: isDark ? p.darkSwatch : p.swatch }}
+                                aria-hidden="true"
+                              />
+                              <span className="truncate">{p.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {onChangeFontTheme && (
+                    <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        阅读字体 (7)
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {FONT_THEMES.map((f) => {
+                          const active = fontTheme === f.id;
+                          return (
+                            <button
+                              key={f.id}
+                              type="button"
+                              role="menuitemradio"
+                              aria-checked={active}
+                              onClick={() => onChangeFontTheme(f.id)}
+                              style={{ fontFamily: f.previewFont }}
+                              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-colors cursor-pointer text-left truncate ${
+                                active
+                                  ? 'border-sky-500 bg-sky-50/70 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300'
+                                  : 'border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70'
+                              }`}
+                            >
+                              {f.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Theme Toggle Button */}
           <button
