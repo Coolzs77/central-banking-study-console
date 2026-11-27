@@ -3113,3 +3113,76 @@ stateDiagram-v2
   - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
   - `verify_suite.mjs`：`53 PASSED, 0 FAILED`
   - `npm run build`：`✓ built in 4.81s`（0 错误）
+
+---
+
+## 第 24 轮 [2026-11-27 16:47]：修复期末模考切换页面后试卷丢失问题
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：在「期末模考」中生成试卷后，点击左侧其他模式（如切去全书速记/平时作业本/题型专项查看资料）再切回期末模考时，已生成的试卷会直接消失，只能重新生成。
+- **目标**：在切换复习模式或刷新页面后，完整保留已生成的期末模考试卷、作答内容、剩余倒计时与交卷批改状态。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- 修改 [`src/components/MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx) 第 39-112 行：
+  - 新增 `MOCK_EXAM_DRAFT_KEY = 'cb_mock_exam_draft'` 与 `loadMockExamDraft()` 恢复函数；
+  - 组件挂载时自动从 `localStorage` 读取未结束或已交卷的草稿，恢复 `examStatus`、`paper`、`answers`、`timeLeft`、`subjectiveScores` 与计时器运行状态；
+  - 当 `paper` 存在且 `examStatus !== 'idle'` 时，实时将当前试卷与作答状态持久化至 `localStorage`，仅在用户主动点击「重新出卷」或「再考一套」时生成新卷覆盖。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：期末模考生成试卷后，切换到其他标签或模式再切回，界面退回到“开始模拟考试”初始页。
+- **根本原因 (RCA)**：[`src/App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx) 采用条件渲染 `{currentMode === 'mock-exam' && <MockExamCanvas ... />}`，一旦切换至其他模式，`MockExamCanvas` 会被 React 卸载，组件内部 `useState` 持有的 `paper` 与 `examStatus` 随之销毁。
+- **具体解法**：将模考活动试卷及作答状态持久化至 `localStorage`（`cb_mock_exam_draft`），切出时自动暂停倒计时，切回或刷新页面后无缝还原原试卷与已填答案。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Gen["点击生成 100 分标准模考卷"] --> Save["写入 localStorage (cb_mock_exam_draft)"]
+    Save --> Switch["切换至全书速记 / 刷新页面"]
+    Switch -->|"React 卸载 MockExamCanvas"| Pause["倒计时自动暂停"]
+    Pause --> Back["切回期末模考"]
+    Back -->|"loadMockExamDraft()"| Restore["原试卷、已填答案与剩余时间完整还原"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **跨卸载状态延续**：通过 `cb_mock_exam_draft` 将试卷生命周期与组件挂载状态解耦，既保留条件渲染的低内存开销，又保证试卷与作答不丢失；
+- **倒计时自然暂停**：切换至其他模式查阅资料时组件卸载，切回后从上次保存的 `timeLeft` 继续计时。
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant Exam as MockExamCanvas
+    participant LS as localStorage (cb_mock_exam_draft)
+    User->>Exam: 生成试卷并作答部分题目
+    Exam->>LS: 实时保存 paper + answers + timeLeft + examStatus
+    User->>Exam: 切去其他模块再切回“期末模考”
+    Exam->>LS: loadMockExamDraft()
+    LS-->>Exam: 返回完整试卷与作答记录
+    Exam-->>User: 恢复原试卷与作答状态
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **只在使用中持久化**：仅当 `paper` 非空且 `examStatus !== 'idle'` 时写入草稿，点击“重新出卷 / 再考一套”时直接覆盖旧草稿，避免残留脏数据。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 支持在模考过程中随时切去其他板块核对知识点再返回继续作答；
+- 刷新页面也不会丢失已生成的 100 分试卷与已填主观题答案。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npm run build; node verify_suite.mjs
+  ```
+- **实际输出**：
+  - `npm run build`：打包成功（0 错误）
+  - `node verify_suite.mjs`：`53 PASSED, 0 FAILED`

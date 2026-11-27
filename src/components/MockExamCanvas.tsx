@@ -36,6 +36,32 @@ interface MockExamCanvasProps {
   onFinishExam?: (record: any) => void;
 }
 
+const MOCK_EXAM_DRAFT_KEY = 'cb_mock_exam_draft';
+
+function loadMockExamDraft(): {
+  examStatus: 'idle' | 'testing' | 'submitted';
+  timeLeft: number;
+  paper: ExamPaper | null;
+  answers: ExamUserAnswers;
+  subjectiveScores: {
+    termScores: Record<number, number>;
+    shortAnswerScores: Record<number, Record<number, boolean>>;
+    essayScores: { theory: number; mechanism: number; practice: number; conclusion: number };
+  };
+} | null {
+  try {
+    const raw = localStorage.getItem(MOCK_EXAM_DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.paper && (parsed.examStatus === 'testing' || parsed.examStatus === 'submitted')) {
+      return parsed;
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  return null;
+}
+
 export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
   termsBank,
   fillInsBank,
@@ -45,36 +71,63 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
   essaysBank,
   onFinishExam,
 }) => {
+  const initialDraft = useMemo(() => loadMockExamDraft(), []);
+
   // Exam State: 'idle' | 'testing' | 'submitted'
-  const [examStatus, setExamStatus] = useState<'idle' | 'testing' | 'submitted'>('idle');
+  const [examStatus, setExamStatus] = useState<'idle' | 'testing' | 'submitted'>(
+    initialDraft?.examStatus || 'idle'
+  );
 
   // Countdown Timer: 120 minutes = 7200 seconds
-  const [timeLeft, setTimeLeft] = useState<number>(120 * 60);
-  const [timerRunning, setTimerRunning] = useState<boolean>(false);
+  const [timeLeft, setTimeLeft] = useState<number>(initialDraft?.timeLeft ?? 120 * 60);
+  const [timerRunning, setTimerRunning] = useState<boolean>(initialDraft?.examStatus === 'testing');
 
   // Active paper
-  const [paper, setPaper] = useState<ExamPaper | null>(null);
+  const [paper, setPaper] = useState<ExamPaper | null>(initialDraft?.paper || null);
 
   // User Answers
-  const [answers, setAnswers] = useState<ExamUserAnswers>({
-    terms: {},
-    fillIns: {},
-    singleChoices: {},
-    trueFalse: {},
-    shortAnswers: {},
-    essay: {},
-  });
+  const [answers, setAnswers] = useState<ExamUserAnswers>(
+    initialDraft?.answers || {
+      terms: {},
+      fillIns: {},
+      singleChoices: {},
+      trueFalse: {},
+      shortAnswers: {},
+      essay: {},
+    }
+  );
 
   // User Subjective Self-Scoring
   const [subjectiveScores, setSubjectiveScores] = useState<{
     termScores: Record<number, number>;
     shortAnswerScores: Record<number, Record<number, boolean>>; // qId -> rubricIndex -> checked
     essayScores: { theory: number; mechanism: number; practice: number; conclusion: number };
-  }>({
-    termScores: {},
-    shortAnswerScores: {},
-    essayScores: { theory: 4, mechanism: 8, practice: 6, conclusion: 2 },
-  });
+  }>(
+    initialDraft?.subjectiveScores || {
+      termScores: {},
+      shortAnswerScores: {},
+      essayScores: { theory: 4, mechanism: 8, practice: 6, conclusion: 2 },
+    }
+  );
+
+  // Persist active paper, answers, timer, and scores across mode switches & reloads
+  useEffect(() => {
+    if (!paper || examStatus === 'idle') return;
+    try {
+      localStorage.setItem(
+        MOCK_EXAM_DRAFT_KEY,
+        JSON.stringify({
+          examStatus,
+          timeLeft,
+          paper,
+          answers,
+          subjectiveScores,
+        })
+      );
+    } catch {
+      // Ignore storage errors
+    }
+  }, [examStatus, timeLeft, paper, answers, subjectiveScores]);
 
   // Generate a standard 100-point paper
   const generateNewPaper = () => {
