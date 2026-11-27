@@ -110,48 +110,67 @@ export function App() {
     });
   }, [selectedChapterId, searchQuery]);
 
-  // Handle Chapter selection from LeftSidebar
+  // Handle Chapter selection from LeftSidebar (filtered list starts at index 0)
   const handleSelectChapter = useCallback((chId: number | null) => {
     setSelectedChapterId(chId);
-    if (chId !== null) {
-      // Find first question of this chapter in recitation
-      const recIdx = recitationQuestions.findIndex((q) => q.chapterId === chId);
-      if (recIdx !== -1) setRecitationIndex(recIdx);
-
-      // Find first question of this chapter in homework
-      const hwIdx = homeworkQuestions.findIndex((q) => q.chapterId === chId);
-      if (hwIdx !== -1) setHomeworkIndex(hwIdx);
-    }
+    setRecitationIndex(0);
+    setHomeworkIndex(0);
   }, []);
 
   // Jump to specific recitation question by absolute question id
   const handleJumpToRecitationId = useCallback((qId: number) => {
+    const filteredIdx = filteredRecitationQuestions.findIndex((q) => q.id === qId);
+    if (filteredIdx !== -1) {
+      setRecitationIndex(filteredIdx);
+      return;
+    }
     const idx = recitationQuestions.findIndex((q) => q.id === qId);
     if (idx !== -1) {
-      // If chapter filter excludes it, clear chapter filter to show target
       const targetQ = recitationQuestions[idx];
       if (selectedChapterId && targetQ.chapterId !== selectedChapterId) {
         setSelectedChapterId(null);
       }
+      if (activeFilter !== 'all') {
+        setActiveFilter('all');
+      }
+      if (searchQuery.trim()) {
+        setSearchQuery('');
+      }
       setRecitationIndex(idx);
     }
-  }, [selectedChapterId]);
+  }, [filteredRecitationQuestions, selectedChapterId, activeFilter, searchQuery]);
 
   // Jump to specific homework question by absolute question id
   const handleJumpToHomeworkId = useCallback((qId: number) => {
+    const filteredIdx = filteredHomeworkQuestions.findIndex((q) => q.id === qId);
+    if (filteredIdx !== -1) {
+      setHomeworkIndex(filteredIdx);
+      return;
+    }
     const idx = homeworkQuestions.findIndex((q) => q.id === qId);
     if (idx !== -1) {
       const targetQ = homeworkQuestions[idx];
       if (selectedChapterId && targetQ.chapterId !== selectedChapterId) {
         setSelectedChapterId(null);
       }
+      if (searchQuery.trim()) {
+        setSearchQuery('');
+      }
       setHomeworkIndex(idx);
     }
-  }, [selectedChapterId]);
+  }, [filteredHomeworkQuestions, selectedChapterId, searchQuery]);
 
-  // Current active questions
-  const currentRecitationQ = filteredRecitationQuestions[recitationIndex] || filteredRecitationQuestions[0];
-  const currentHomeworkQ = filteredHomeworkQuestions[homeworkIndex] || filteredHomeworkQuestions[0];
+  // Bounded indices & current active questions
+  const safeRecitationIndex = Math.min(
+    Math.max(0, recitationIndex),
+    Math.max(0, filteredRecitationQuestions.length - 1)
+  );
+  const safeHomeworkIndex = Math.min(
+    Math.max(0, homeworkIndex),
+    Math.max(0, filteredHomeworkQuestions.length - 1)
+  );
+  const currentRecitationQ = filteredRecitationQuestions[safeRecitationIndex];
+  const currentHomeworkQ = filteredHomeworkQuestions[safeHomeworkIndex];
   const currentTerm = terminologyList[practiceTermIndex] || terminologyList[0];
 
   // Check URL query parameters for QR code sync handoff (?account=xxx&sync=pull)
@@ -217,9 +236,11 @@ export function App() {
           {currentMode === 'recitation' && (
             <RecitationCanvas
               questions={filteredRecitationQuestions}
-              currentIndex={recitationIndex}
-              onPrev={() => setRecitationIndex((p) => Math.max(0, p - 1))}
-              onNext={() => setRecitationIndex((p) => Math.min(filteredRecitationQuestions.length - 1, p + 1))}
+              currentIndex={safeRecitationIndex}
+              onPrev={() => setRecitationIndex(Math.max(0, safeRecitationIndex - 1))}
+              onNext={() =>
+                setRecitationIndex(Math.min(Math.max(0, filteredRecitationQuestions.length - 1), safeRecitationIndex + 1))
+              }
               onJumpToIndex={setRecitationIndex}
               memorizedList={state.memorized}
               starredList={state.starred}
@@ -231,9 +252,11 @@ export function App() {
           {currentMode === 'homework' && (
             <HomeworkCanvas
               questions={filteredHomeworkQuestions}
-              currentIndex={homeworkIndex}
-              onPrev={() => setHomeworkIndex((p) => Math.max(0, p - 1))}
-              onNext={() => setHomeworkIndex((p) => Math.min(filteredHomeworkQuestions.length - 1, p + 1))}
+              currentIndex={safeHomeworkIndex}
+              onPrev={() => setHomeworkIndex(Math.max(0, safeHomeworkIndex - 1))}
+              onNext={() =>
+                setHomeworkIndex(Math.min(Math.max(0, filteredHomeworkQuestions.length - 1), safeHomeworkIndex + 1))
+              }
               onJumpToIndex={setHomeworkIndex}
               completedList={state.homeworkCompleted}
               onToggleCompleted={toggleHomeworkCompleted}

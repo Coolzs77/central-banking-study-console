@@ -2775,3 +2775,87 @@ flowchart TD
   - `tests/verifyPracticeUI.tsx`：`22 PASSED, 0 FAILED`；
   - `verify_suite.mjs`：`50 PASSED, 0 FAILED`；
   - `npm run build`：`vite build` 打包 1657 个模块，耗时 `27.97s`，0 错误。
+
+
+---
+
+## 第 20 轮 [2026-11-27 12:56]：修复左侧大纲选章跳至末题及“上一题”失效的筛选索引错位缺陷
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：用户点击左侧大纲导航（如“第5章 中央银行资产业务”）后，主画布未从该章第 1 题开始，而是总是跳到第 5 题（该章末题），且点击顶部导航栏“上一题”按钮无任何反应。
+- **目标**：彻底对齐 `App.tsx` 中 `filteredRecitationQuestions` / `filteredHomeworkQuestions` 与 `recitationIndex` / `homeworkIndex` 的索引坐标系，确保选章永远从 `第 1 / N 题` 起步，且“上一题 / 下一题”及右侧题号矩阵跳转均在有效区间内即时响应。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- **[`src/App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx#L113-L255)**：
+  - 将 `handleSelectChapter` 改为切换章节后直接复位 `setRecitationIndex(0)` 与 `setHomeworkIndex(0)`，不再误将全量未过滤数组下标（如第 5 章首题下标 `21`）写入已按章节过滤后的 5 题列表；
+  - 将 `handleJumpToRecitationId` 与 `handleJumpToHomeworkId` 改为先在当前 `filteredRecitationQuestions` / `filteredHomeworkQuestions` 中查找下标，仅当被筛选条件排除时才重置冲突筛选器并使用全量下标；
+  - 新增统一边界变量 `safeRecitationIndex` 与 `safeHomeworkIndex`，确保传给 `RecitationCanvas`、`HomeworkCanvas`、`RightSidebar` 及 `onPrev`/`onNext` 回调的下标完全一致。
+- **[`verify_suite.mjs`](file:///e:/workspace/central-banking-study-console/verify_suite.mjs#L140-L148)**：
+  - 新增第 51 项回归断言，校验 `App.tsx` 使用 `safeRecitationIndex`、`safeHomeworkIndex` 及 `filteredHomeworkQuestions.findIndex`。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：在“平时作业本”选中第 5 章（共 5 题，题号 22~26）时，右侧矩阵高亮第 22 题，但中间卡片却显示 `第 5/5 题 · 26.`，且点击“上一题”毫无反应。
+- **根本原因 (RCA)**：`handleSelectChapter(5)` 在未过滤的 54 题全量数组 `homeworkQuestions` 中查得第 5 章首题下标为 `21`，并执行 `setHomeworkIndex(21)`；而 `filteredHomeworkQuestions` 随后立即收缩为仅 5 题（下标 `0..4`）。`HomeworkCanvas` 内部通过 `safeIndex = Math.min(21, 4)` 将画面钳制到末题 `4`（第 26 题），而 `onPrev` 仅执行 `p - 1`（`21 -> 20 -> 19...`），在 `p > 4` 期间 `safeIndex` 始终被钳制在 `4`，导致连续点击十余次“上一题”界面纹丝不动。同时 `App.tsx` 的 `currentHomeworkQ` 取 `filteredHomeworkQuestions[21]` 为 `undefined` 后回退到 `[0]`（第 22 题），造成左右两栏显示分裂。
+- **具体解法**：统一在 `App.tsx` 源头计算 `safeRecitationIndex` / `safeHomeworkIndex`，选章直接归零至过滤列表首题 `0`，并在筛选列表内完成同章跳题与边界步进。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：筛选列表与导航索引坐标系对齐机制
+```mermaid
+flowchart LR
+    Click["LeftSidebar 点击第 5 章"] --> SetCh["setSelectedChapterId(5)"]
+    SetCh --> Filter["filteredHomeworkQuestions 收缩为 5 题 (0..4)"]
+    SetCh --> Reset["setHomeworkIndex(0) (不再使用全量下标 21)"]
+    Filter --> Safe["safeHomeworkIndex = clamp(index, 0..4)"]
+    Reset --> Safe
+    Safe --> Canvas["HomeworkCanvas 显示 22. (第 1/5 题)"]
+    Safe --> Right["RightSidebar 同步高亮 22"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **单一坐标系**：章节筛选生效后，中栏画布、上下题步进与右栏当前高亮共同读取同一份 `safeHomeworkIndex` 与 `filteredHomeworkQuestions`，消除了“全量下标 vs 过滤后下标”的坐标系错位。
+
+#### 图 2：“上一题”步进防钳制死锁对比
+```mermaid
+stateDiagram-v2
+    state "修复前: state=21, len=5" as Bug {
+        [*] --> Clamped4 : safeIndex=min(21,4)=4
+        Clamped4 --> Clamped4 : onPrev() 21→20→19 (仍≥4)
+    }
+    state "修复后: safeIndex=0..4" as Fixed {
+        [*] --> Pos0 : 选章复位 safeIndex=0 (第 1 题)
+        Pos0 --> Pos1 : onNext() 0→1 (第 2 题)
+        Pos1 --> Pos0 : onPrev() 1→0 (第 1 题)
+    }
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **即时响应**：由于 `onPrev` 基于钳制后的 `safeIndex` 计算 `safeIndex - 1`，即使外部状态曾处于边界位置，单次点击“上一题”也一定直接步退到前一题，绝不会出现“空点无响应”现象。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+1. **选章即归首题**：无论在“全书速记”还是“平时作业本”点击左侧任意章节，均精准从该章第 1 题开始；
+2. **左右两栏状态零分裂**：中栏题卡序号与右栏蓝色当前高亮题号始终保持 100% 同步。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console
+  node verify_suite.mjs
+  npx tsx tests/verifyData.ts
+  npm run build
+  ```
+- **实际输出与实机 E2E 结果**：
+  - `verify_suite.mjs`：`51 PASSED, 0 FAILED`；
+  - `tests/verifyData.ts`：`42 PASSED, 0 FAILED`；
+  - `npm run build`：打包成功（5.60s，0 错误）；
+  - 无头 Chrome（Selenium）实测：全书速记与平时作业本切换第 5 章均直接进入 `第 1 / N 题`（作业本第 `22.` 题），点击“下一题”→“上一题”及右栏跳题 `#25` 均准确响应，控制台 `0` 个 `SEVERE` 错误。

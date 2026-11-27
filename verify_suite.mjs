@@ -139,6 +139,14 @@ async function runTests() {
       practiceCode.includes('onToggleFillStarred'),
       'PracticeCanvas unifies ClayQuestionNav, 掌握, and 收藏 across all 4 practice modes'
     );
+
+    // 19. Check App.tsx resets chapter selection to index 0 and uses filtered indices (prevents jumping to last question & broken prev button)
+    assert(
+      appCode.includes('safeRecitationIndex') &&
+      appCode.includes('safeHomeworkIndex') &&
+      appCode.includes('filteredHomeworkQuestions.findIndex'),
+      'App.tsx bounds filtered indices and jumps within filtered lists when selecting chapters or questions'
+    );
   } catch (err) {
     console.error('Error checking layout & features:', err.message);
     failedAssertions++;
