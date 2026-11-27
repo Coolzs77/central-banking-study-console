@@ -112,12 +112,12 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
           );
         }
 
-        // When revealed / normal: cute rose-pink font (NOT black, NOT green!)
+        // When revealed / normal: Tier 3 core scoring keyword in rose-pink
         return (
           <strong
             key={`${keyPrefix}-${pIdx}`}
             onClick={(e) => maskKeywords && toggleCloze(clozeId, e)}
-            className={`font-extrabold text-rose-500 dark:text-rose-400 transition-colors ${
+            className={`font-semibold text-rose-600 dark:text-rose-400 transition-colors ${
               maskKeywords ? 'cursor-pointer hover:opacity-75' : ''
             }`}
             title={maskKeywords ? '点击重新遮挡' : undefined}
@@ -163,13 +163,28 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         {boldTokens.map((segment, i) => {
           if (segment.startsWith('**') && segment.endsWith('**') && segment.length >= 4) {
             const rawWord = segment.slice(2, -2);
+            const nextSeg = boldTokens[i + 1] || '';
+            const isFollowedByColon = /^[：:]/.test(nextSeg);
+            const isLeadPhrase = isFollowedByColon || rawWord.endsWith('：') || rawWord.endsWith(':');
 
-            // If rawWord is a short term (<= 15 chars without punctuation): treat as explicit author-defined key phrase
+            // Tier 2: Bold lead phrase immediately followed by colon (e.g. **融资效果相同**：)
+            // Rendered in calm indigo bold and NEVER masked by washi tape
+            if (isLeadPhrase) {
+              return (
+                <strong
+                  key={i}
+                  className="font-bold text-indigo-700 dark:text-indigo-300"
+                >
+                  {rawWord}
+                </strong>
+              );
+            }
+
+            // Tier 3: Short explicit bold term -> rose-pink & maskable with washi tape
             const isShortTerm =
               rawWord.length <= 15 &&
               !rawWord.includes('。') &&
-              !rawWord.includes('；') &&
-              !rawWord.endsWith('：');
+              !rawWord.includes('；');
 
             if (isShortTerm) {
               const clozeId = globalClozeIdx++;
@@ -202,12 +217,12 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
                 );
               }
 
-              // When revealed / normal: cute rose-pink font (NOT black, NOT green!)
+              // When revealed / normal: Tier 3 rose-pink font
               return (
                 <strong
                   key={i}
                   onClick={(e) => maskKeywords && toggleCloze(clozeId, e)}
-                  className={`font-extrabold text-rose-500 dark:text-rose-400 transition-colors ${
+                  className={`font-semibold text-rose-600 dark:text-rose-400 transition-colors ${
                     maskKeywords ? 'cursor-pointer hover:opacity-75' : ''
                   }`}
                   title={maskKeywords ? '点击重新遮挡' : undefined}
@@ -281,14 +296,37 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
           cleanText = cleanText.slice(2);
         }
 
+        // Tier 4: Source / intro line (e.g. 根据课件... / 根据教材...) -> soft secondary gray & SKIP keyword scanning
+        if (/^(根据课件|根据教材)/.test(cleanText)) {
+          const tagMatch = cleanText.match(/\t*==(\d+)==/);
+          const badgeNum = tagMatch ? tagMatch[1] : null;
+          const sourceDisplay = cleanText
+            .replace(/\t*==\d+==/g, '')
+            .replace(/\*\*([^*]+)\*\*/g, '$1')
+            .replace(/\*([^*]+)\*/g, '$1');
+          return (
+            <div
+              key={lineIdx}
+              className="text-[13.5px] text-slate-500 dark:text-slate-400 leading-relaxed mb-2"
+            >
+              <span>{sourceDisplay}</span>
+              {badgeNum && (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800 select-none align-middle">
+                  共 {badgeNum} 点
+                </span>
+              )}
+            </div>
+          );
+        }
+
         // Check if line contains a middle colon followed by explanatory content (inline summary with body)
         const hasColonWithBody = /[:：].+$/.test(cleanText);
 
         // Inline Summary Pattern: lines like "1. **概括要点**：详细解释..." or "（一）概括：详细解释..." or "概括要点：详细解释..."
-        // Applied ONLY when NOT an already indented child sub-bullet (!isLevel2) to maintain proper hierarchy!
+        // Applied ONLY when NOT an already indented child sub-bullet (!isLevel2) and NOT a Tier 2 bold lead phrase (**...**：)
         if (!isLevel2 && hasColonWithBody) {
           const inlineSummaryMatch = cleanText.match(
-            /^([（\(][一二三四五六七八九十0-9]+[）\)][^：:]{1,30}|\d+[\.、]\s*\*\*[^*]+\*\*|\d+[\.、]\s*[^：:]{1,30}|[一二三四五六七八九十]+[、.][^：:]{1,30}|\*[^*]+\*|\*\*[^*]+\*\*|[^。；\n：:]{2,25})[：:]([\s\S]+)$/
+            /^([（\(][一二三四五六七八九十0-9]+[）\)][^：:]{1,30}|\d+[\.、]\s*\*\*[^*]+\*\*|\d+[\.、]\s*[^：:]{1,30}|[一二三四五六七八九十]+[、.][^：:]{1,30}|\*[^*]+\*|[^*。；\n：:]{2,25})[：:]([\s\S]+)$/
           );
 
           if (inlineSummaryMatch) {

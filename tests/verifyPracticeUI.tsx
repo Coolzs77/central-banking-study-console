@@ -1,12 +1,15 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ClayQuestionNav } from '../src/components/common/ClayQuestionNav';
-import { PracticeCanvas } from '../src/components/PracticeCanvas';
+import { MarkdownViewer } from '../src/components/common/MarkdownViewer';
+import { PracticeCanvas, PracticeTab } from '../src/components/PracticeCanvas';
 import { terminologyList } from '../src/data/terminology';
 import {
   singleChoiceQuestions,
   trueFalseQuestions,
   fillInQuestions,
+  shortAnswerQuestions,
+  essayQuestions,
 } from '../src/data/examData';
 
 let passCount = 0;
@@ -47,23 +50,25 @@ const navHtml = renderToStaticMarkup(
     toggleLabel="解析"
     onCopy={() => {}}
     isCopied={false}
-    modeBadge="单选专项"
+    modeBadge="单选题"
   />
 );
-assert(navHtml.includes('单选专项'), 'ClayQuestionNav renders modeBadge');
+assert(navHtml.includes('单选题'), 'ClayQuestionNav renders modeBadge "单选题"');
 assert(navHtml.includes('第 1 / 40 题 ▾'), 'ClayQuestionNav renders jump button');
 assert(navHtml.includes('掌握') && navHtml.includes('收藏') && navHtml.includes('复制'), 'ClayQuestionNav renders 掌握/收藏/复制 buttons');
 
-// 2. Render PracticeCanvas for ALL 4 tabs
+// 2. Render PracticeCanvas for ALL 6 tabs
 const tabs: Array<{
-  tab: 'terms' | 'choice' | 'truefalse' | 'fill';
+  tab: PracticeTab;
   badge: string;
   toggle: string;
 }> = [
-  { tab: 'terms', badge: '名词抽背', toggle: '定义' },
-  { tab: 'choice', badge: '单选专项', toggle: '解析' },
-  { tab: 'truefalse', badge: '判断改错', toggle: '解析' },
-  { tab: 'fill', badge: '填空专项', toggle: '答案' },
+  { tab: 'terms', badge: '名词解释', toggle: '定义' },
+  { tab: 'fill', badge: '填空题', toggle: '答案' },
+  { tab: 'choice', badge: '单选题', toggle: '解析' },
+  { tab: 'truefalse', badge: '判断改错题', toggle: '解析' },
+  { tab: 'short', badge: '简答题', toggle: '答案' },
+  { tab: 'essay', badge: '论述题', toggle: '答案' },
 ];
 
 for (const { tab, badge, toggle } of tabs) {
@@ -73,6 +78,8 @@ for (const { tab, badge, toggle } of tabs) {
       singleChoices={singleChoiceQuestions}
       trueFalse={trueFalseQuestions}
       fillIns={fillInQuestions}
+      shortAnswers={shortAnswerQuestions}
+      essays={essayQuestions}
       termMemorized={[1]}
       onToggleTermMemorized={() => {}}
       termStarred={[2]}
@@ -89,11 +96,21 @@ for (const { tab, badge, toggle } of tabs) {
       onToggleFillMemorized={() => {}}
       fillStarred={[2]}
       onToggleFillStarred={() => {}}
+      shortMemorized={[1]}
+      onToggleShortMemorized={() => {}}
+      shortStarred={[2]}
+      onToggleShortStarred={() => {}}
+      essayMemorized={[1]}
+      onToggleEssayMemorized={() => {}}
+      essayStarred={[2]}
+      onToggleEssayStarred={() => {}}
       activePracticeTab={tab}
       currentTermIndex={0}
       currentChoiceIndex={0}
       currentTfIndex={0}
       currentFillIndex={0}
+      currentShortIndex={0}
+      currentEssayIndex={0}
     />
   );
 
@@ -101,10 +118,31 @@ for (const { tab, badge, toggle } of tabs) {
   assert(html.includes(toggle), `PracticeCanvas [${tab}] renders toggle button "${toggle}"`);
   assert(html.includes('掌握') && html.includes('收藏') && html.includes('复制'), `PracticeCanvas [${tab}] renders 掌握, 收藏, 复制 buttons`);
   assert(html.includes('已掌握:') && html.includes('已收藏:'), `PracticeCanvas [${tab}] displays mastered & starred summary counts`);
-  if (tab !== 'terms') {
+  if (tab === 'fill' || tab === 'choice' || tab === 'truefalse') {
     assert(html.includes('源自全书速记 #'), `PracticeCanvas [${tab}] displays recitation source badge`);
   }
 }
+
+// 3. Render MarkdownViewer 4-tier hierarchy
+const sampleMd = [
+  '根据课件第一章第二节内容，中央银行制度的形成经历了以下阶段：\t==2==',
+  '*（一）测试小标题*',
+  '  - **融资效果相同**：调节基础货币与货币乘数。',
+].join('\n');
+
+const mdNormalHtml = renderToStaticMarkup(
+  <MarkdownViewer content={sampleMd} keywords={['货币乘数']} maskKeywords={false} />
+);
+assert(mdNormalHtml.includes('text-emerald-600'), 'MarkdownViewer Tier 1: subheading renders in emerald green');
+assert(mdNormalHtml.includes('text-indigo-700') && mdNormalHtml.includes('融资效果相同'), 'MarkdownViewer Tier 2: bold lead phrase renders in indigo');
+assert(mdNormalHtml.includes('text-rose-600') && mdNormalHtml.includes('货币乘数'), 'MarkdownViewer Tier 3: keyword renders in rose-pink');
+assert(mdNormalHtml.includes('text-slate-500') && !mdNormalHtml.includes('text-rose-600">第二节'), 'MarkdownViewer Tier 4: 根据课件... line renders in slate-500 without red keyword highlight');
+
+const mdMaskedHtml = renderToStaticMarkup(
+  <MarkdownViewer content={sampleMd} keywords={['货币乘数']} maskKeywords={true} />
+);
+assert(mdMaskedHtml.includes('点击撕开胶带'), 'MarkdownViewer Tier 3 masked: washi tape covers keyword');
+assert(mdMaskedHtml.includes('text-indigo-700') && mdMaskedHtml.includes('融资效果相同'), 'MarkdownViewer Tier 2 masked: indigo lead phrase stays unmasked');
 
 console.log('\n====================================================');
 console.log(`   PRACTICE UI AUDIT: ${passCount} PASSED, ${failCount} FAILED`);

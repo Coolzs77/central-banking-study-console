@@ -11,16 +11,22 @@ import {
   SingleChoiceQuestion,
   TrueFalseQuestion,
   FillInQuestion,
+  ShortAnswerQuestion,
+  EssayQuestion,
 } from '../data/types';
 import { chaptersMeta } from '../data/chapters';
 import { MarkdownViewer } from './common/MarkdownViewer';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
+
+export type PracticeTab = 'terms' | 'fill' | 'choice' | 'truefalse' | 'short' | 'essay';
 
 interface PracticeCanvasProps {
   terms: TerminologyQuestion[];
   singleChoices: SingleChoiceQuestion[];
   trueFalse: TrueFalseQuestion[];
   fillIns: FillInQuestion[];
+  shortAnswers?: ShortAnswerQuestion[];
+  essays?: EssayQuestion[];
   termMemorized: number[];
   onToggleTermMemorized: (id: number) => void;
   termStarred?: number[];
@@ -37,6 +43,14 @@ interface PracticeCanvasProps {
   onToggleFillMemorized?: (id: number) => void;
   fillStarred?: number[];
   onToggleFillStarred?: (id: number) => void;
+  shortMemorized?: number[];
+  onToggleShortMemorized?: (id: number) => void;
+  shortStarred?: number[];
+  onToggleShortStarred?: (id: number) => void;
+  essayMemorized?: number[];
+  onToggleEssayMemorized?: (id: number) => void;
+  essayStarred?: number[];
+  onToggleEssayStarred?: (id: number) => void;
   currentTermIndex?: number;
   onJumpToTermIndex?: (idx: number) => void;
   currentChoiceIndex?: number;
@@ -45,8 +59,12 @@ interface PracticeCanvasProps {
   onJumpToTfIndex?: (idx: number) => void;
   currentFillIndex?: number;
   onJumpToFillIndex?: (idx: number) => void;
-  activePracticeTab?: 'terms' | 'choice' | 'truefalse' | 'fill';
-  onPracticeTabChange?: (tab: 'terms' | 'choice' | 'truefalse' | 'fill') => void;
+  currentShortIndex?: number;
+  onJumpToShortIndex?: (idx: number) => void;
+  currentEssayIndex?: number;
+  onJumpToEssayIndex?: (idx: number) => void;
+  activePracticeTab?: PracticeTab;
+  onPracticeTabChange?: (tab: PracticeTab) => void;
 }
 
 export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
@@ -54,6 +72,8 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   singleChoices,
   trueFalse,
   fillIns,
+  shortAnswers = [],
+  essays = [],
   termMemorized,
   onToggleTermMemorized,
   termStarred = [],
@@ -70,6 +90,14 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   onToggleFillMemorized = () => {},
   fillStarred = [],
   onToggleFillStarred = () => {},
+  shortMemorized = [],
+  onToggleShortMemorized = () => {},
+  shortStarred = [],
+  onToggleShortStarred = () => {},
+  essayMemorized = [],
+  onToggleEssayMemorized = () => {},
+  essayStarred = [],
+  onToggleEssayStarred = () => {},
   currentTermIndex = 0,
   onJumpToTermIndex,
   currentChoiceIndex,
@@ -78,13 +106,17 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   onJumpToTfIndex,
   currentFillIndex,
   onJumpToFillIndex,
+  currentShortIndex,
+  onJumpToShortIndex,
+  currentEssayIndex,
+  onJumpToEssayIndex,
   activePracticeTab,
   onPracticeTabChange,
 }) => {
-  const [internalTab, setInternalTab] = useState<'terms' | 'choice' | 'truefalse' | 'fill'>('terms');
+  const [internalTab, setInternalTab] = useState<PracticeTab>('terms');
   const activeTab = activePracticeTab || internalTab;
 
-  const setActiveTab = (tab: 'terms' | 'choice' | 'truefalse' | 'fill') => {
+  const setActiveTab = (tab: PracticeTab) => {
     if (onPracticeTabChange) onPracticeTabChange(tab);
     setInternalTab(tab);
   };
@@ -169,12 +201,44 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     setShowFillAnswer(false);
   }, [fillIdx]);
 
+  // Short Answer drill state (20 questions)
+  const [internalShortIdx, setInternalShortIdx] = useState<number>(0);
+  const rawShortIdx = currentShortIndex ?? internalShortIdx;
+  const shortIdx = Math.min(Math.max(0, rawShortIdx), Math.max(0, shortAnswers.length - 1));
+  const setShortIdx = (fnOrVal: number | ((p: number) => number)) => {
+    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(shortIdx) : fnOrVal;
+    if (onJumpToShortIndex) onJumpToShortIndex(nextVal);
+    else setInternalShortIdx(nextVal);
+  };
+  const [showShortAnswer, setShowShortAnswer] = useState<boolean>(false);
+  const currentShort = shortAnswers[shortIdx] || shortAnswers[0];
+
+  useEffect(() => {
+    setShowShortAnswer(false);
+  }, [shortIdx]);
+
+  // Essay drill state (6 questions)
+  const [internalEssayIdx, setInternalEssayIdx] = useState<number>(0);
+  const rawEssayIdx = currentEssayIndex ?? internalEssayIdx;
+  const essayIdx = Math.min(Math.max(0, rawEssayIdx), Math.max(0, essays.length - 1));
+  const setEssayIdx = (fnOrVal: number | ((p: number) => number)) => {
+    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(essayIdx) : fnOrVal;
+    if (onJumpToEssayIndex) onJumpToEssayIndex(nextVal);
+    else setInternalEssayIdx(nextVal);
+  };
+  const [showEssayAnswer, setShowEssayAnswer] = useState<boolean>(false);
+  const currentEssay = essays[essayIdx] || essays[0];
+
+  useEffect(() => {
+    setShowEssayAnswer(false);
+  }, [essayIdx]);
+
   // Reset copied badge on item or tab change
   useEffect(() => {
     setCopied(false);
-  }, [activeTab, activeTermIdx, choiceIdx, tfIdx, fillIdx]);
+  }, [activeTab, activeTermIdx, choiceIdx, tfIdx, fillIdx, shortIdx, essayIdx]);
 
-  // Keyboard navigation across all 4 tabs
+  // Keyboard navigation across all 6 tabs
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
@@ -263,6 +327,48 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             onToggleFillStarred(currentFill.id);
           }
         }
+      } else if (activeTab === 'short') {
+        if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          setShortIdx((p) => Math.max(0, p - 1));
+        } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          setShortIdx((p) => Math.min(shortAnswers.length - 1, p + 1));
+        } else if (e.code === 'Space') {
+          e.preventDefault();
+          setShowShortAnswer((p) => !p);
+        } else if (e.key === 'm' || e.key === 'M') {
+          if (currentShort) {
+            e.preventDefault();
+            onToggleShortMemorized(currentShort.id);
+          }
+        } else if (e.key === 's' || e.key === 'S') {
+          if (currentShort) {
+            e.preventDefault();
+            onToggleShortStarred(currentShort.id);
+          }
+        }
+      } else if (activeTab === 'essay') {
+        if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          setEssayIdx((p) => Math.max(0, p - 1));
+        } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          setEssayIdx((p) => Math.min(essays.length - 1, p + 1));
+        } else if (e.code === 'Space') {
+          e.preventDefault();
+          setShowEssayAnswer((p) => !p);
+        } else if (e.key === 'm' || e.key === 'M') {
+          if (currentEssay) {
+            e.preventDefault();
+            onToggleEssayMemorized(currentEssay.id);
+          }
+        } else if (e.key === 's' || e.key === 'S') {
+          if (currentEssay) {
+            e.preventDefault();
+            onToggleEssayStarred(currentEssay.id);
+          }
+        }
       }
     };
 
@@ -279,6 +385,10 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     currentTF,
     fillIns.length,
     currentFill,
+    shortAnswers.length,
+    currentShort,
+    essays.length,
+    currentEssay,
     onToggleTermMemorized,
     onToggleTermStarred,
     onToggleChoiceMemorized,
@@ -287,17 +397,25 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     onToggleTfStarred,
     onToggleFillMemorized,
     onToggleFillStarred,
+    onToggleShortMemorized,
+    onToggleShortStarred,
+    onToggleEssayMemorized,
+    onToggleEssayStarred,
   ]);
 
   // Active tab summary stats
   const activeStats =
     activeTab === 'terms'
       ? { mastered: termMemorized.length, starred: termStarred.length, total: terms.length }
+      : activeTab === 'fill'
+      ? { mastered: fillMemorized.length, starred: fillStarred.length, total: fillIns.length }
       : activeTab === 'choice'
       ? { mastered: choiceMemorized.length, starred: choiceStarred.length, total: singleChoices.length }
       : activeTab === 'truefalse'
       ? { mastered: tfMemorized.length, starred: tfStarred.length, total: trueFalse.length }
-      : { mastered: fillMemorized.length, starred: fillStarred.length, total: fillIns.length };
+      : activeTab === 'short'
+      ? { mastered: shortMemorized.length, starred: shortStarred.length, total: shortAnswers.length }
+      : { mastered: essayMemorized.length, starred: essayStarred.length, total: essays.length };
 
   const renderCardFooterActions = (
     isMemorized: boolean,
@@ -363,27 +481,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            📇 名词抽背 ({terms.length}词)
-          </button>
-          <button
-            onClick={() => setActiveTab('choice')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
-              activeTab === 'choice'
-                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            🎯 单选专项 ({singleChoices.length}题)
-          </button>
-          <button
-            onClick={() => setActiveTab('truefalse')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
-              activeTab === 'truefalse'
-                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            ⚖️ 判断改错 ({trueFalse.length}题)
+            名词解释 ({terms.length}题)
           </button>
           <button
             onClick={() => setActiveTab('fill')}
@@ -393,7 +491,47 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            ✏️ 填空专项 ({fillIns.length}题)
+            填空题 ({fillIns.length}题)
+          </button>
+          <button
+            onClick={() => setActiveTab('choice')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
+              activeTab === 'choice'
+                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            单选题 ({singleChoices.length}题)
+          </button>
+          <button
+            onClick={() => setActiveTab('truefalse')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
+              activeTab === 'truefalse'
+                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            判断改错题 ({trueFalse.length}题)
+          </button>
+          <button
+            onClick={() => setActiveTab('short')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
+              activeTab === 'short'
+                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            简答题 ({shortAnswers.length}题)
+          </button>
+          <button
+            onClick={() => setActiveTab('essay')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
+              activeTab === 'essay'
+                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            论述题 ({essays.length}题)
           </button>
         </div>
 
@@ -433,7 +571,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 triggerCopy(`【${currentTerm.term}】\n${currentTerm.definition}`);
               }}
               isCopied={copied}
-              modeBadge="名词抽背"
+              modeBadge="名词解释"
             />
           </div>
 
@@ -445,7 +583,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
               >
                 <div className="flex items-center justify-between text-xs text-slate-400">
                   <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
-                    核心名词 #{currentTerm.id}
+                    名词解释 #{currentTerm.id}
                   </span>
                   <div className="flex items-center gap-2">
                     {currentTerm.source && <span className="text-slate-500">{currentTerm.source}</span>}
@@ -525,7 +663,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 );
               }}
               isCopied={copied}
-              modeBadge="单选专项"
+              modeBadge="单选题"
             />
           </div>
 
@@ -649,7 +787,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 );
               }}
               isCopied={copied}
-              modeBadge="判断改错"
+              modeBadge="判断改错题"
             />
           </div>
 
@@ -772,7 +910,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 );
               }}
               isCopied={copied}
-              modeBadge="填空专项"
+              modeBadge="填空题"
             />
           </div>
 
@@ -841,6 +979,268 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   fillStarred.includes(currentFill.id),
                   () => onToggleFillStarred(currentFill.id),
                   currentFill.chapterId
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 5: Short Answer Drill */}
+      {activeTab === 'short' && currentShort && (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-3 pt-3 sm:px-5 sm:pt-4 shrink-0">
+            <ClayQuestionNav
+              key="short"
+              currentIndex={shortIdx}
+              totalFiltered={shortAnswers.length}
+              onPrev={() => setShortIdx((p) => Math.max(0, p - 1))}
+              onNext={() => setShortIdx((p) => Math.min(shortAnswers.length - 1, p + 1))}
+              onJumpToIndex={(idx) => setShortIdx(idx)}
+              allItemIds={shortAnswers.map((q) => q.id)}
+              completedItemIds={shortMemorized}
+              starredItemIds={shortStarred}
+              isMemorized={shortMemorized.includes(currentShort.id)}
+              onToggleMemorized={() => onToggleShortMemorized(currentShort.id)}
+              actionLabel="掌握"
+              isStarred={shortStarred.includes(currentShort.id)}
+              onToggleStar={() => onToggleShortStarred(currentShort.id)}
+              revealed={showShortAnswer}
+              onToggleRevealed={() => setShowShortAnswer((p) => !p)}
+              toggleLabel="答案"
+              onCopy={() => {
+                const rubricText = (currentShort.rubricPoints || currentShort.rubrics || [])
+                  .map((r, i) => `${i + 1}. ${r.point} (${r.score}分)`)
+                  .join('\n');
+                triggerCopy(
+                  `【简答题 #${currentShort.id}】(${currentShort.totalPoints ?? currentShort.points ?? 6}分) ${currentShort.question}\n\n参考答案：\n${currentShort.sampleAnswer || currentShort.standardAnswer || ''}${rubricText ? `\n\n采分点：\n${rubricText}` : ''}`
+                );
+              }}
+              isCopied={copied}
+              modeBadge="简答题"
+            />
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
+            <div className="w-full max-w-3xl my-auto space-y-4">
+              <div className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6">
+                {/* Top Card Meta */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+                      简答题 #{currentShort.id}
+                    </span>
+                    <span className="font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                      {getChapterTitle(currentShort.chapterId)}
+                    </span>
+                    <span className="font-mono font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-xl border border-amber-200 dark:border-amber-800">
+                      {currentShort.totalPoints ?? currentShort.points ?? 6} 分
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                    第 {shortIdx + 1} / {shortAnswers.length} 题
+                  </span>
+                </div>
+
+                {/* Question & Expandable Sample Answer / Rubric */}
+                <div className="space-y-5">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                    <span className="font-mono mr-1.5">{shortIdx + 1}.</span>
+                    <span>{currentShort.question}</span>
+                  </h3>
+
+                  {!showShortAnswer ? (
+                    <div
+                      onClick={() => setShowShortAnswer(true)}
+                      className="p-5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 text-center cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition"
+                    >
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                        按 <kbd className="px-2 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-600 dark:text-slate-300 font-mono">Space</kbd> 或点击此处展开参考答案与采分点
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+                        <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
+                          参考答案
+                        </div>
+                        <div className="text-sm leading-relaxed text-slate-800 dark:text-slate-200">
+                          <MarkdownViewer content={currentShort.sampleAnswer || currentShort.standardAnswer || ''} />
+                        </div>
+                      </div>
+
+                      {(currentShort.rubricPoints || currentShort.rubrics || []).length > 0 && (
+                        <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-200/70 dark:border-amber-800/50 space-y-2.5">
+                          <div className="text-xs font-bold text-amber-800 dark:text-amber-300">
+                            分步采分点（共 {currentShort.totalPoints ?? currentShort.points ?? 6} 分）
+                          </div>
+                          <div className="space-y-1.5">
+                            {(currentShort.rubricPoints || currentShort.rubrics || []).map((r, rIdx) => (
+                              <div
+                                key={rIdx}
+                                className="flex items-start justify-between gap-3 text-xs sm:text-sm text-slate-700 dark:text-slate-300 bg-white/80 dark:bg-slate-900/50 px-3 py-2 rounded-xl border border-amber-200/50 dark:border-amber-800/30"
+                              >
+                                <span className="flex-1 leading-relaxed">
+                                  <span className="font-mono font-bold text-amber-600 mr-1.5">{rIdx + 1}.</span>
+                                  {r.point}
+                                </span>
+                                <span className="shrink-0 font-mono font-bold text-xs px-2 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
+                                  {r.score} 分
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {renderCardFooterActions(
+                  shortMemorized.includes(currentShort.id),
+                  () => onToggleShortMemorized(currentShort.id),
+                  shortStarred.includes(currentShort.id),
+                  () => onToggleShortStarred(currentShort.id),
+                  currentShort.chapterId
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 6: Essay Drill */}
+      {activeTab === 'essay' && currentEssay && (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-3 pt-3 sm:px-5 sm:pt-4 shrink-0">
+            <ClayQuestionNav
+              key="essay"
+              currentIndex={essayIdx}
+              totalFiltered={essays.length}
+              onPrev={() => setEssayIdx((p) => Math.max(0, p - 1))}
+              onNext={() => setEssayIdx((p) => Math.min(essays.length - 1, p + 1))}
+              onJumpToIndex={(idx) => setEssayIdx(idx)}
+              allItemIds={essays.map((q) => q.id)}
+              completedItemIds={essayMemorized}
+              starredItemIds={essayStarred}
+              isMemorized={essayMemorized.includes(currentEssay.id)}
+              onToggleMemorized={() => onToggleEssayMemorized(currentEssay.id)}
+              actionLabel="掌握"
+              isStarred={essayStarred.includes(currentEssay.id)}
+              onToggleStar={() => onToggleEssayStarred(currentEssay.id)}
+              revealed={showEssayAnswer}
+              onToggleRevealed={() => setShowEssayAnswer((p) => !p)}
+              toggleLabel="答案"
+              onCopy={() => {
+                triggerCopy(
+                  `【论述题 #${currentEssay.id}】${currentEssay.title} (${currentEssay.totalPoints ?? currentEssay.points ?? 20}分)\n${currentEssay.question}\n\n参考答案：\n${currentEssay.sampleAnswer || currentEssay.standardOutline || ''}`
+                );
+              }}
+              isCopied={copied}
+              modeBadge="论述题"
+            />
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
+            <div className="w-full max-w-3xl my-auto space-y-4">
+              <div className="w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-lg transition-all p-6 sm:p-8 flex flex-col justify-between gap-6">
+                {/* Top Card Meta */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+                      论述题 #{currentEssay.id}
+                    </span>
+                    <span className="font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                      {currentEssay.chapterRange} · {currentEssay.topicCategory === 'monetary-policy' ? '货币政策专题' : '金融监管专题'}
+                    </span>
+                    <span className="font-mono font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-xl border border-amber-200 dark:border-amber-800">
+                      {currentEssay.totalPoints ?? currentEssay.points ?? 20} 分
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                    第 {essayIdx + 1} / {essays.length} 题
+                  </span>
+                </div>
+
+                {/* Question & Expandable Sample Answer / Rubric */}
+                <div className="space-y-5">
+                  <div className="space-y-1.5">
+                    {currentEssay.title && (
+                      <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                        专题：{currentEssay.title}
+                      </div>
+                    )}
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                      <span className="font-mono mr-1.5">{essayIdx + 1}.</span>
+                      <span>{currentEssay.question}</span>
+                    </h3>
+                  </div>
+
+                  {!showEssayAnswer ? (
+                    <div
+                      onClick={() => setShowEssayAnswer(true)}
+                      className="p-5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 text-center cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition"
+                    >
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                        按 <kbd className="px-2 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-600 dark:text-slate-300 font-mono">Space</kbd> 或点击此处展开参考答案与评分维度
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+                        <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
+                          参考答案框架
+                        </div>
+                        <div className="text-sm leading-relaxed text-slate-800 dark:text-slate-200">
+                          <MarkdownViewer content={currentEssay.sampleAnswer || currentEssay.standardOutline || ''} />
+                        </div>
+                      </div>
+
+                      {currentEssay.rubric && (
+                        <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-200/70 dark:border-amber-800/50 space-y-2.5">
+                          <div className="text-xs font-bold text-amber-800 dark:text-amber-300">
+                            四维评分标准（共 {currentEssay.totalPoints ?? currentEssay.points ?? 20} 分）
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {(
+                              [
+                                { key: 'theory', label: '一、理论基础' },
+                                { key: 'mechanism', label: '二、作用机制' },
+                                { key: 'practice', label: '三、现实结合' },
+                                { key: 'conclusion', label: '四、政策结论' },
+                              ] as const
+                            ).map(({ key, label }) => {
+                              const dim = currentEssay.rubric[key];
+                              if (!dim) return null;
+                              return (
+                                <div
+                                  key={key}
+                                  className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/50 border border-amber-200/50 dark:border-amber-800/30 space-y-1"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">{label}</span>
+                                    <span className="font-mono font-bold text-xs px-2 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
+                                      {dim.score} 分
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{dim.desc}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {renderCardFooterActions(
+                  essayMemorized.includes(currentEssay.id),
+                  () => onToggleEssayMemorized(currentEssay.id),
+                  essayStarred.includes(currentEssay.id),
+                  () => onToggleEssayStarred(currentEssay.id),
+                  currentEssay.chapterId || 1,
+                  currentEssay.chapterRange
                 )}
               </div>
             </div>

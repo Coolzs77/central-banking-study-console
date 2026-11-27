@@ -151,7 +151,7 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
                 <span>{isMasking ? '显露关键词' : '挖空遮挡'}</span>
               </button>
             </div>
-            <MarkdownViewer content={currentQ.answer} maskKeywords={isMasking} />
+            <MarkdownViewer content={currentQ.answer} keywords={currentQ.keywords} maskKeywords={isMasking} />
           </div>
         )}
       </div>

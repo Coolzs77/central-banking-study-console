@@ -2859,3 +2859,109 @@ stateDiagram-v2
   - `tests/verifyData.ts`：`42 PASSED, 0 FAILED`；
   - `npm run build`：打包成功（5.60s，0 错误）；
   - 无头 Chrome（Selenium）实测：全书速记与平时作业本切换第 5 章均直接进入 `第 1 / N 题`（作业本第 `22.` 题），点击“下一题”→“上一题”及右栏跳题 `#25` 均准确响应，控制台 `0` 个 `SEVERE` 错误。
+
+---
+
+## 第 21 轮 [2026-11-27 13:50]：全书 PPT 深度核验与题型专项 6 题型全覆盖及 4 级高亮层级重构
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **全书课件严格对齐与主观题/词库清洗**：针对全书 4 份 Markdown 手册（`中央银行学背诵手册.md`、`中央银行学核心考点背诵手册.md`、`中央银行学课件层级大纲.md`、`中央银行学课后思考题标准答案.md` 及镜像）与网页端 `examData.ts`（特别是 20 道简答题、6 道论述题）开展逐页 PPT OCR 核验，清除非课件表述（如 `HVPS`、`垄断发行原则`、`信用保证原则`、`弹性原则`、`FSB` 等），并对 `keywords.ts` 全局词库及 54 道课后作业题关键词去噪（剔除 `第一节`、`中央银行`、`商业银行`、`金融机构`、`利息` 等泛化词）。
+- **题型专项扩展至全部 6 类考试题型**：将「题型专项」从 4 个标签扩展为全部 6 个标签，且顶部标签与 `ClayQuestionNav` 的 `modeBadge` 严格使用统一名称：`名词解释 (28题)`、`填空题 (40题)`、`单选题 (40题)`、`判断改错题 (30题)`、`简答题 (20题)`、`论述题 (6题)`，同步打通右侧答题卡矩阵、状态持久化（`shortMemorized` / `shortStarred` / `essayMemorized` / `essayStarred`）及云同步字段。
+- **MarkdownViewer 四级重要度高亮体系重构**：解决此前关键词标红过多导致视觉杂乱的问题，将渲染分层为 4 个清晰层级：
+  1. **Tier 1（绿色小标题）**：`*（一）...*` 等结构小标题保持翠绿加粗（`text-emerald-600`）；
+  2. **Tier 2（靛蓝主干引导语）**：`**...**：` 冒号前加粗引导短语使用靛蓝色加粗（`text-indigo-700`），且在挖空遮挡模式下不贴胶带，保留答题骨架提示；
+  3. **Tier 3（玫瑰粉核心得分词 + 和纸胶带遮挡）**：仅高信噪比学科关键词使用玫瑰粉（`text-rose-600`），开启挖空时覆盖可点击撕开的和纸胶带；
+  4. **Tier 4（课件出处/导语灰色降噪）**：以 `根据课件` 或 `根据教材` 开头的行渲染为次要灰色（`text-slate-500`），并跳过关键词扫描，避免 `第二节` 等出处词被误标红。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- **数据与 PPT 核验层**：
+  - [examData.ts](file:///e:/workspace/central-banking-study-console/src/data/examData.ts)：重写第 2 章简答题 #3（严格对齐课件第 11–12 页 5 个方面）及第 4 章简答题 #6（将 `垄断发行/信用保证/弹性原则` 替换为课件原文 `集中统一发行原则 / 经济发行原则 / 计划发行原则`），并将单选题 #19 中的超纲干扰项 `HVPS` 替换为 `CIPS`。
+  - [keywords.ts](file:///e:/workspace/central-banking-study-console/src/data/keywords.ts) 与 [homeworkData.ts](file:///e:/workspace/central-banking-study-console/src/data/homeworkData.ts)：将 `CENTRAL_BANKING_KEYWORDS` 从 915 词去噪精简至 700 个高信噪比核心词，同时为全部 54 道平时作业补充专属 `keywords: string[]`，并在 [HomeworkCanvas.tsx](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx) 中显式传入 `keywords={currentQ.keywords}`。
+  - [audit_exam_accuracy.ts](file:///e:/workspace/central-banking-study-console/scripts/audit_exam_accuracy.ts)：扩展支持 20 道简答题与 6 道论述题校验，将 `垄断发行原则`、`信用保证原则`、`弹性原则`、`HVPS`、`BEPS`、`SWIFT`、`LCR`、`NSFR` 等纳入 `BANNED_OUT_OF_BOOK_TERMS`。
+- **状态管理与 6 题型 UI 层**：
+  - [types.ts](file:///e:/workspace/central-banking-study-console/src/data/types.ts)、[useStudyState.ts](file:///e:/workspace/central-banking-study-console/src/hooks/useStudyState.ts)、[syncService.ts](file:///e:/workspace/central-banking-study-console/src/services/syncService.ts)、[App.tsx](file:///e:/workspace/central-banking-study-console/src/App.tsx)：新增 `HomeworkQuestion.keywords?: string[]` 与 `shortMemorized` / `shortStarred` / `essayMemorized` / `essayStarred` 本地与云端同步状态。
+  - [PracticeCanvas.tsx](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx) 与 [RightSidebar.tsx](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx)：补齐 `short`（简答题）与 `essay`（论述题）完整渲染（`ClayQuestionNav`、参考答案 `MarkdownViewer`、分步采分点、页脚 `收藏`/`掌握` 及 `J`/`K`/`Space`/`M`/`S` 快捷键）与右侧联动答题矩阵。
+- **四级高亮渲染与自动化测试层**：
+  - [MarkdownViewer.tsx](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)：实现 Tier 1–4 分层渲染逻辑。
+  - [verifyData.ts](file:///e:/workspace/central-banking-study-console/tests/verifyData.ts)、[verifyHomeworkHierarchy.ts](file:///e:/workspace/central-banking-study-console/tests/verifyHomeworkHierarchy.ts)、[verifyPracticeUI.tsx](file:///e:/workspace/central-banking-study-console/tests/verifyPracticeUI.tsx)、[verify_suite.mjs](file:///e:/workspace/central-banking-study-console/verify_suite.mjs)：更新全部断言以覆盖 6 个题型标签、4 级高亮层级、去噪关键词及主观题零超纲检查。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象 1**：扩展 `verifyData.ts` 增加主观题超纲词扫描后，检测到 `examData.ts` 第 1492、1496、1500 行仍残留旧版教材表述 `垄断发行原则`、`信用保证原则`、`弹性原则`。
+  - **根本原因 (RCA)**：此前仅重写了部分简答题，第 4 章货币发行原则简答题仍沿用旧版通用教材条目，未同步替换为课件第 4 章的三大原则。
+  - **具体解法**：重新核对第 4 章课件原文，将该简答题及对应名词解释重写为 `集中统一发行原则 / 经济发行原则 / 计划发行原则`，并将这 3 个旧词加入 `audit_exam_accuracy.ts` 与 `verifyData.ts` 禁用清单。
+- **问题现象 2**：全局关键词去噪后，`verifyHomeworkHierarchy.ts` 报告 53/54 失败（第 3 题仅匹配 2 个全局词），且 Selenium E2E 首跑在 `RecitationCanvas` 上未找到 `strong.text-rose-600`。
+  - **根本原因 (RCA)**：`verifyHomeworkHierarchy.ts` 仍用全局 `CENTRAL_BANKING_KEYWORDS` 而非 `HomeworkCanvas` 实际传入的 `q.keywords` 做校验；而 `RecitationCanvas` 默认以 `isMasking = true` 启动，核心词初始渲染为和纸胶带遮挡态（`[title="点击撕开胶带"]`），点击「遮挡」按钮后才展开玫瑰粉文本。
+  - **具体解法**：更新 `verifyHomeworkHierarchy.ts` 优先使用 `q.keywords` 对齐真实渲染行为，并在 E2E 脚本中先校验和纸胶带、再点击「遮挡」切换验证 `strong.text-rose-600`。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Line["Markdown 单行文本"] --> T4{"是否以 根据课件 / 根据教材 开头?"}
+    T4 -->|是| Gray["Tier 4: text-slate-500 灰色出处行<br/>跳过关键词扫描 (防误标红)"]
+    T4 -->|否| T1{"是否匹配 小标题 / 行内概括?"}
+    T1 -->|是| Emerald["Tier 1: text-emerald-600 翠绿小标题<br/>行内冒号后按分号拆分子要点"]
+    T1 -->|否| Inline["行内 **...** 扫描"]
+    Inline --> T2{"**...** 后紧跟冒号 : / ：?"}
+    T2 -->|是| Indigo["Tier 2: text-indigo-700 靛蓝主干词<br/>挖空模式下保持可见"]
+    T2 -->|否| T3{"命中去噪词库 / 专属 keywords?"}
+    T3 -->|是| Mask{"maskKeywords 开启?"}
+    Mask -->|是| Tape["Tier 3 (遮挡态): 和纸胶带贴纸"]
+    Mask -->|否| Rose["Tier 3 (显露态): text-rose-600 玫瑰粉"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **前置过滤防误伤**：`MarkdownViewer` 在进入行内关键词匹配前先识别 `根据课件`/`根据教材` 出处行并直接以 `text-slate-500` 输出，从源头上杜绝 `第二节` 等位置信息被错误标红或遮挡；
+- **骨架与细节分离**：Tier 2 靛蓝主干引导词与 Tier 3 玫瑰粉得分关键词解耦，用户在开启和纸胶带挖空背诵时仍能看清答题维度提示，避免盲猜。
+
+```mermaid
+flowchart TD
+    Tabs["题型专项顶部 6 标签"] --> T1["名词解释 (28题)"]
+    Tabs --> T2["填空题 (40题)"]
+    Tabs --> T3["单选题 (40题)"]
+    Tabs --> T4["判断改错题 (30题)"]
+    Tabs --> T5["简答题 (20题)"]
+    Tabs --> T6["论述题 (6题)"]
+    T5 & T6 --> Nav["ClayQuestionNav (掌握/收藏/答案/抽屉跳题)"]
+    Nav --> Viewer["MarkdownViewer (参考答案 + 分步采分点)"]
+    Nav --> State["useStudyState (localStorage + textdb.online 云同步)"]
+    State --> Sidebar["RightSidebar 6 题型动态矩阵联动"]
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **全题型统一交互**：新增的「简答题」与「论述题」复用了与客观题一致的 `ClayQuestionNav`、页脚 `收藏`/`掌握` 与键盘快捷键（`J`/`K`/`Space`/`M`/`S`），消除了长答案题型与短题型之间的操作割裂；
+- **状态双向闭环**：`shortMemorized`/`essayMemorized` 与 `shortStarred`/`essayStarred` 统一托管于 `useStudyState` 并接入 `syncService`，右侧答题卡矩阵与主画布进度统计实时保持一致。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+1. **词库信噪比提升**：`CENTRAL_BANKING_KEYWORDS` 由 915 词精简至 700 个高价值学科概念，54 道课后作业全部配备专属 `keywords` 数组，显著减少红字堆砌；
+2. **考试题型 100% 覆盖**：题型专项完整覆盖期末考试全部 6 大题型（28 名词 + 40 填空 + 40 单选 + 30 判断改错 + 20 简答 + 6 论述 = 164 题），标签与徽章命名完全统一。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console
+  npx tsx scripts/audit_exam_accuracy.ts
+  npx tsx tests/verifyData.ts
+  npx tsx tests/verifyHomeworkHierarchy.ts
+  npx tsx tests/verifyPracticeUI.tsx
+  node verify_suite.mjs
+  npm run build
+  ```
+- **实际输出与实机 E2E 结果**：
+  - `scripts/audit_exam_accuracy.ts`：0 errors（100% 源自全书 162 题 PPT 速记，0 超纲词）；
+  - `tests/verifyData.ts`：`46 PASSED, 0 FAILED`；
+  - `tests/verifyHomeworkHierarchy.ts`：`21 PASSED, 0 FAILED`；
+  - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`；
+  - `verify_suite.mjs`：`53 PASSED, 0 FAILED`；
+  - `npm run build`：打包成功（5.47s，0 错误）；
+  - 无头 Chrome（Selenium）实测：验证 4 级高亮与和纸胶带遮挡、全部 6 个题型专项标签及 `modeBadge`、简答题抽屉跳题至 `第 3 / 20 题`、刷新页面后 `已掌握: 1 / 20` 与 `已收藏: 1` 持久化保持，浏览器控制台 `0` 个 `SEVERE` 错误。

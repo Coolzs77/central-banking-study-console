@@ -16,6 +16,10 @@ const defaultState: UserMasteryState = {
   tfStarred: [],
   fillMemorized: [],
   fillStarred: [],
+  shortMemorized: [],
+  shortStarred: [],
+  essayMemorized: [],
+  essayStarred: [],
   examHistory: [],
 };
 
@@ -33,6 +37,10 @@ function normalizeState(parsed: Partial<UserMasteryState> | null | undefined): U
     tfStarred: Array.isArray(parsed.tfStarred) ? parsed.tfStarred : [],
     fillMemorized: Array.isArray(parsed.fillMemorized) ? parsed.fillMemorized : [],
     fillStarred: Array.isArray(parsed.fillStarred) ? parsed.fillStarred : [],
+    shortMemorized: Array.isArray(parsed.shortMemorized) ? parsed.shortMemorized : [],
+    shortStarred: Array.isArray(parsed.shortStarred) ? parsed.shortStarred : [],
+    essayMemorized: Array.isArray(parsed.essayMemorized) ? parsed.essayMemorized : [],
+    essayStarred: Array.isArray(parsed.essayStarred) ? parsed.essayStarred : [],
     examHistory: Array.isArray(parsed.examHistory) ? parsed.examHistory : [],
   };
 }
@@ -128,7 +136,11 @@ export function useStudyState() {
         | 'tfMemorized'
         | 'tfStarred'
         | 'fillMemorized'
-        | 'fillStarred',
+        | 'fillStarred'
+        | 'shortMemorized'
+        | 'shortStarred'
+        | 'essayMemorized'
+        | 'essayStarred',
       id: number
     ) => {
       setState((prev) => {
@@ -150,6 +162,10 @@ export function useStudyState() {
   const toggleTfStarred = useCallback((id: number) => toggleIdInField('tfStarred', id), [toggleIdInField]);
   const toggleFillMemorized = useCallback((id: number) => toggleIdInField('fillMemorized', id), [toggleIdInField]);
   const toggleFillStarred = useCallback((id: number) => toggleIdInField('fillStarred', id), [toggleIdInField]);
+  const toggleShortMemorized = useCallback((id: number) => toggleIdInField('shortMemorized', id), [toggleIdInField]);
+  const toggleShortStarred = useCallback((id: number) => toggleIdInField('shortStarred', id), [toggleIdInField]);
+  const toggleEssayMemorized = useCallback((id: number) => toggleIdInField('essayMemorized', id), [toggleIdInField]);
+  const toggleEssayStarred = useCallback((id: number) => toggleIdInField('essayStarred', id), [toggleIdInField]);
 
   const addExamRecord = useCallback((record: ExamRecord) => {
     setState((prev) => ({
@@ -181,6 +197,10 @@ export function useStudyState() {
     toggleTfStarred,
     toggleFillMemorized,
     toggleFillStarred,
+    toggleShortMemorized,
+    toggleShortStarred,
+    toggleEssayMemorized,
+    toggleEssayStarred,
     addExamRecord,
     importState,
     resetAllProgress,

@@ -16,6 +16,7 @@ import {
   essayQuestions,
   generateMockExamPaper
 } from '../src/data/index';
+import { CENTRAL_BANKING_KEYWORDS } from '../src/data/keywords';
 
 console.log('====================================================');
 console.log('   CENTRAL BANKING STUDY CONSOLE - DATA AUDIT       ');
@@ -240,6 +241,23 @@ assert(
   'Question 7 does not match Chapter 2 PPT roles'
 );
 
+const allHwHaveCuratedKeywords = homeworkQuestions.every(
+  q => Array.isArray(q.keywords) && q.keywords.length >= 2
+);
+assert(
+  allHwHaveCuratedKeywords,
+  'All 54 homework questions have curated keywords (>= 2 each)',
+  'Found homework question missing curated keywords'
+);
+
+const noiseKeywords = ['第一节', '第二节', '中央银行', '商业银行', '金融机构', '银行', '经济', '金融', '利息'];
+const leakedNoise = noiseKeywords.filter(w => CENTRAL_BANKING_KEYWORDS.includes(w));
+assert(
+  leakedNoise.length === 0,
+  'CENTRAL_BANKING_KEYWORDS is denoised (0 generic noise words)',
+  `Found generic noise words: ${leakedNoise.join(', ')}`
+);
+
 // -----------------------------------------------------------------
 // 3. Exam Question Bank Assertions (28 Terms, 40 Fill-In, 40 Choice, 30 T/F, 20 Short, 6 Essay)
 // -----------------------------------------------------------------
@@ -380,6 +398,25 @@ assert(
   allEssaysHave20PtRubric,
   'All 6 essay questions feature 20-point rubrics: theory 4pt, mechanism 8pt, practice 6pt, conclusion 2pt = 20pt',
   'Found essay with non-conforming rubric points'
+);
+
+const sa3 = shortAnswerQuestions[2];
+assert(
+  !!sa3 && sa3.sampleAnswer.includes('五个方面') && sa3.sampleAnswer.includes('政治性经济波动') && sa3.sampleAnswer.includes('财政赤字'),
+  'PPT regression: Short Answer #3 strictly matches Ch2 PPT 5-point independence rationale',
+  'Short Answer #3 does not match Ch2 PPT'
+);
+
+const bannedSubjectiveTerms = ['信用保证原则', '弹性原则', '垄断发行原则', 'HVPS', '三元悖论', '不可能三角'];
+const subjectiveCombined = [
+  ...shortAnswerQuestions.map(q => `${q.question} ${q.sampleAnswer} ${q.rubricPoints.map(r => r.point).join(' ')}`),
+  ...essayQuestions.map(e => `${e.question} ${e.sampleAnswer}`),
+].join('\n');
+const foundBannedSubjective = bannedSubjectiveTerms.filter(t => subjectiveCombined.includes(t));
+assert(
+  foundBannedSubjective.length === 0,
+  'All 20 short answers and 6 essays contain 0 out-of-book/banned terms',
+  `Found banned terms: ${foundBannedSubjective.join(', ')}`
 );
 
 // -----------------------------------------------------------------

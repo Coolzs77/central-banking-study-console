@@ -30,6 +30,14 @@ const BANNED_OUT_OF_BOOK_TERMS = [
   '名义总支出',
   'D-SIFIs',
   '三道红线',
+  'HVPS',
+  'BEPS',
+  'SWIFT',
+  'LCR',
+  'NSFR',
+  '垄断发行原则',
+  '信用保证原则',
+  '弹性原则',
 ];
 
 function findBannedTerm(text: string): string | null {
@@ -119,14 +127,46 @@ for (const t of terminologyQuestions) {
   }
 }
 for (const s of shortAnswerQuestions) {
-  const banned = findBannedTerm(`${s.question} ${s.sampleAnswer} ${s.rubricPoints.map(r => r.point).join(' ')}`);
+  if (s.chapterId < 1 || s.chapterId > 11) {
+    console.error(`[FAIL] ShortAnswer ${s.id} has invalid chapterId: ${s.chapterId}`);
+    otherErrors++;
+  }
+  if (s.totalPoints !== 6 && s.totalPoints !== 8) {
+    console.error(`[FAIL] ShortAnswer ${s.id} has invalid totalPoints: ${s.totalPoints}`);
+    otherErrors++;
+  }
+  const rubricSum = Math.round(s.rubricPoints.reduce((acc, r) => acc + r.score, 0) * 100) / 100;
+  if (Math.abs(rubricSum - s.totalPoints) > 0.01) {
+    console.error(`[FAIL] ShortAnswer ${s.id} rubric sum (${rubricSum}) !== totalPoints (${s.totalPoints})`);
+    otherErrors++;
+  }
+  const saText = `${s.question} ${s.sampleAnswer} ${s.rubricPoints.map(r => r.point).join(' ')}`;
+  const banned = findBannedTerm(saText);
   if (banned) {
     console.error(`[FAIL] ShortAnswer ${s.id} contains out-of-book term "${banned}"`);
     otherErrors++;
   }
+  if (s.id === 3 && (!saText.includes('避免政治性经济波动') || !saText.includes('决策与实施的统一'))) {
+    console.error(`[FAIL] ShortAnswer 3 does not match Ch2 PPT Slide 11-12 5 points`);
+    otherErrors++;
+  }
 }
 for (const e of essayQuestions) {
-  const banned = findBannedTerm(`${e.title} ${e.question} ${e.sampleAnswer}`);
+  if (e.chapterId < 7 || e.chapterId > 11) {
+    console.error(`[FAIL] Essay ${e.id} has invalid chapterId: ${e.chapterId}`);
+    otherErrors++;
+  }
+  if (e.totalPoints !== 20) {
+    console.error(`[FAIL] Essay ${e.id} has invalid totalPoints: ${e.totalPoints}`);
+    otherErrors++;
+  }
+  const essaySum = e.rubric.theory.score + e.rubric.mechanism.score + e.rubric.practice.score + e.rubric.conclusion.score;
+  if (essaySum !== 20) {
+    console.error(`[FAIL] Essay ${e.id} rubric sum (${essaySum}) !== 20`);
+    otherErrors++;
+  }
+  const essayText = `${e.title} ${e.question} ${e.sampleAnswer} ${e.rubric.theory.desc} ${e.rubric.mechanism.desc} ${e.rubric.practice.desc} ${e.rubric.conclusion.desc}`;
+  const banned = findBannedTerm(essayText);
   if (banned) {
     console.error(`[FAIL] Essay ${e.id} contains out-of-book term "${banned}"`);
     otherErrors++;

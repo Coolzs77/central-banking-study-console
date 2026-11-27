@@ -36,9 +36,10 @@ homeworkQuestions.forEach(q => {
   if (subheadings.length > 0) subheadingsCount++;
   if (childBullets.length > 0) childBulletsCount++;
 
-  // Check that the answer has keywords
+  // Check that the answer has keywords (using curated q.keywords if present, else CENTRAL_BANKING_KEYWORDS)
   const boldTerms = (q.answer.match(/\*\*[^*]+\*\*/g) || []).map(b => b.slice(2, -2));
-  const dictMatches = CENTRAL_BANKING_KEYWORDS.filter(k => q.answer.includes(k));
+  const activePool = q.keywords && q.keywords.length > 0 ? q.keywords : CENTRAL_BANKING_KEYWORDS;
+  const dictMatches = activePool.filter(k => q.answer.includes(k));
   const totalKeywords = new Set([...boldTerms, ...dictMatches]);
 
   if (totalKeywords.size >= 3) keywordMatchesCount++;

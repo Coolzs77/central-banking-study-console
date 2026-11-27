@@ -142,6 +142,10 @@ class CloudSyncManager {
       tfs: state.tfStarred || [],
       fm: state.fillMemorized || [],
       fs: state.fillStarred || [],
+      sm: state.shortMemorized || [],
+      ss: state.shortStarred || [],
+      em: state.essayMemorized || [],
+      es: state.essayStarred || [],
       e: state.examHistory.length
     });
 

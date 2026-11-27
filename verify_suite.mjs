@@ -81,8 +81,14 @@ async function runTests() {
     // 8. Check that outline subheadings like （一）/（二）use green text color (NO background boxes!)
     assert(mdViewerCode.includes('isSubheading') && mdViewerCode.includes('text-emerald-600') && !mdViewerCode.includes('bg-indigo-50'), 'MarkdownViewer styles summary subheadings (（一）/（二）) in distinct green text color without background boxes');
 
-    // 9. Check that keywords use cute rose-pink font (NOT black, NOT green!)
-    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-rose-500 dark:text-rose-400'), 'MarkdownViewer renders keywords in cute rose-pink font (NEITHER black NOR green)');
+    // 9. Check that keywords use cute rose-pink font (NOT black, NOT green!) and 4-tier hierarchy is present
+    assert(mdViewerCode.includes('CENTRAL_BANKING_KEYWORDS') && mdViewerCode.includes('text-rose-600 dark:text-rose-400'), 'MarkdownViewer renders keywords in cute rose-pink font (NEITHER black NOR green)');
+    assert(
+      mdViewerCode.includes('text-indigo-700 dark:text-indigo-300') &&
+      mdViewerCode.includes('根据课件|根据教材') &&
+      mdViewerCode.includes('text-slate-500 dark:text-slate-400'),
+      'MarkdownViewer implements 4-tier hierarchy (indigo lead phrases + slate-500 source lines)'
+    );
 
     // 10. Check MockExamCanvas has vertical scrolling and pinned countdown bar
     const mockExamCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/MockExamCanvas.tsx'), 'utf-8');
@@ -96,10 +102,11 @@ async function runTests() {
     assert(!recitationCode.includes('背诵与参考解答'), 'RecitationCanvas does NOT contain "背诵与参考解答" (redundant banner removed)');
     assert(recitationCode.includes('{currentQ.id}.') && recitationCode.includes('text-slate-900 dark:text-white'), 'RecitationCanvas displays question number in pure black font');
 
-    // 12. Check HomeworkCanvas restores question title and black 1. question number
+    // 12. Check HomeworkCanvas restores question title, black 1. question number, and passes curated keywords
     const homeworkCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/HomeworkCanvas.tsx'), 'utf-8');
     assert(!homeworkCode.includes('作业标准参考解答'), 'HomeworkCanvas does NOT contain "作业标准参考解答"');
     assert(homeworkCode.includes('{currentQ.id}.') && homeworkCode.includes('{currentQ.question}'), 'HomeworkCanvas correctly renders question stem and id');
+    assert(homeworkCode.includes('keywords={currentQ.keywords}'), 'HomeworkCanvas passes curated keywords={currentQ.keywords} to MarkdownViewer');
 
     // 13. Check RightSidebar does NOT contain "考点分值："
     const rightSidebarCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/RightSidebar.tsx'), 'utf-8');
@@ -118,26 +125,45 @@ async function runTests() {
     assert(practiceCode.includes('currentChoiceIndex') && practiceCode.includes('currentTfIndex'), 'PracticeCanvas supports external question index jumping');
     assert(!practiceCode.includes('揭开参考关键词 (Space)'), 'PracticeCanvas eliminated verbose 揭开参考关键词 (Space) button');
 
-    // 16. Check RightSidebar has clickable buttons for choice, truefalse, fill
-    assert(rightSidebarCode.includes('onSelectChoiceIndex') && rightSidebarCode.includes('onSelectTfIndex'), 'RightSidebar has clickable buttons for choice and truefalse drills');
+    // 16. Check RightSidebar has clickable buttons for all 6 practice types
+    assert(
+      rightSidebarCode.includes('onSelectChoiceIndex') &&
+      rightSidebarCode.includes('onSelectTfIndex') &&
+      rightSidebarCode.includes('onSelectFillIndex') &&
+      rightSidebarCode.includes('onSelectShortIndex') &&
+      rightSidebarCode.includes('onSelectEssayIndex'),
+      'RightSidebar has clickable buttons for choice, truefalse, fill, short, and essay drills'
+    );
 
     // 17. Check ClayQuestionNav has fixed concise button labels, zero hover tooltips, and NO undefined memorizedLabel
     const navCode = fs.readFileSync(path.join(ROOT_DIR, 'src/components/common/ClayQuestionNav.tsx'), 'utf-8');
     assert(navCode.includes('actionLabel') && !navCode.includes('title=') && !navCode.includes('memorizedLabel'), 'ClayQuestionNav uses invariant concise labels, zero title tooltips, and zero undefined memorizedLabel crash');
 
-    // 18. Check PracticeCanvas aligns choice/truefalse/fill UI with terminology tab (ClayQuestionNav + 掌握/收藏)
+    // 18. Check PracticeCanvas aligns all 6 practice tabs with exact labels and ClayQuestionNav + 掌握/收藏
     assert(
       practiceCode.includes('key="terms"') &&
+      practiceCode.includes('key="fill"') &&
       practiceCode.includes('key="choice"') &&
       practiceCode.includes('key="truefalse"') &&
-      practiceCode.includes('key="fill"') &&
+      practiceCode.includes('key="short"') &&
+      practiceCode.includes('key="essay"') &&
+      practiceCode.includes('modeBadge="名词解释"') &&
+      practiceCode.includes('modeBadge="填空题"') &&
+      practiceCode.includes('modeBadge="单选题"') &&
+      practiceCode.includes('modeBadge="判断改错题"') &&
+      practiceCode.includes('modeBadge="简答题"') &&
+      practiceCode.includes('modeBadge="论述题"') &&
       practiceCode.includes('onToggleChoiceMemorized') &&
       practiceCode.includes('onToggleChoiceStarred') &&
       practiceCode.includes('onToggleTfMemorized') &&
       practiceCode.includes('onToggleTfStarred') &&
       practiceCode.includes('onToggleFillMemorized') &&
-      practiceCode.includes('onToggleFillStarred'),
-      'PracticeCanvas unifies ClayQuestionNav, 掌握, and 收藏 across all 4 practice modes'
+      practiceCode.includes('onToggleFillStarred') &&
+      practiceCode.includes('onToggleShortMemorized') &&
+      practiceCode.includes('onToggleShortStarred') &&
+      practiceCode.includes('onToggleEssayMemorized') &&
+      practiceCode.includes('onToggleEssayStarred'),
+      'PracticeCanvas unifies ClayQuestionNav, exact tab/badge names, 掌握, and 收藏 across all 6 practice modes'
     );
 
     // 19. Check App.tsx resets chapter selection to index 0 and uses filtered indices (prevents jumping to last question & broken prev button)

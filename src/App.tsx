@@ -37,6 +37,10 @@ export function App() {
     toggleTfStarred,
     toggleFillMemorized,
     toggleFillStarred,
+    toggleShortMemorized,
+    toggleShortStarred,
+    toggleEssayMemorized,
+    toggleEssayStarred,
     addExamRecord,
     importState,
   } = useStudyState();
@@ -46,7 +50,7 @@ export function App() {
   const [selectedChapterId, setSelectedChapterId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'memorized' | 'unmemorized' | 'starred'>('all');
-  const [practiceTab, setPracticeTab] = useState<'terms' | 'choice' | 'truefalse' | 'fill'>('terms');
+  const [practiceTab, setPracticeTab] = useState<'terms' | 'fill' | 'choice' | 'truefalse' | 'short' | 'essay'>('terms');
 
   // Single Source of Truth for question navigation indices (0-based)
   const [recitationIndex, setRecitationIndex] = useState<number>(0);
@@ -55,6 +59,8 @@ export function App() {
   const [practiceChoiceIndex, setPracticeChoiceIndex] = useState<number>(0);
   const [practiceTfIndex, setPracticeTfIndex] = useState<number>(0);
   const [practiceFillIndex, setPracticeFillIndex] = useState<number>(0);
+  const [practiceShortIndex, setPracticeShortIndex] = useState<number>(0);
+  const [practiceEssayIndex, setPracticeEssayIndex] = useState<number>(0);
 
   // Modals & UI state
   const [syncModalOpen, setSyncModalOpen] = useState<boolean>(false);
@@ -279,6 +285,12 @@ export function App() {
               fillIns={fillInQuestions}
               currentFillIndex={practiceFillIndex}
               onJumpToFillIndex={setPracticeFillIndex}
+              shortAnswers={shortAnswerQuestions}
+              currentShortIndex={practiceShortIndex}
+              onJumpToShortIndex={setPracticeShortIndex}
+              essays={essayQuestions}
+              currentEssayIndex={practiceEssayIndex}
+              onJumpToEssayIndex={setPracticeEssayIndex}
               termMemorized={state.termMemorized}
               onToggleTermMemorized={toggleTermMemorized}
               termStarred={state.termStarred || []}
@@ -295,6 +307,14 @@ export function App() {
               onToggleFillMemorized={toggleFillMemorized}
               fillStarred={state.fillStarred || []}
               onToggleFillStarred={toggleFillStarred}
+              shortMemorized={state.shortMemorized || []}
+              onToggleShortMemorized={toggleShortMemorized}
+              shortStarred={state.shortStarred || []}
+              onToggleShortStarred={toggleShortStarred}
+              essayMemorized={state.essayMemorized || []}
+              onToggleEssayMemorized={toggleEssayMemorized}
+              essayStarred={state.essayStarred || []}
+              onToggleEssayStarred={toggleEssayStarred}
               activePracticeTab={practiceTab}
               onPracticeTabChange={setPracticeTab}
             />
@@ -346,13 +366,26 @@ export function App() {
           tfStarredList={state.tfStarred || []}
           fillMemorizedList={state.fillMemorized || []}
           fillStarredList={state.fillStarred || []}
+          shortMemorizedList={state.shortMemorized || []}
+          shortStarredList={state.shortStarred || []}
+          essayMemorizedList={state.essayMemorized || []}
+          essayStarredList={state.essayStarred || []}
           practiceTab={practiceTab}
+          choiceCount={singleChoiceQuestions.length}
+          tfCount={trueFalseQuestions.length}
+          fillCount={fillInQuestions.length}
+          shortCount={shortAnswerQuestions.length}
+          essayCount={essayQuestions.length}
           currentChoiceIndex={practiceChoiceIndex}
           onSelectChoiceIndex={setPracticeChoiceIndex}
           currentTfIndex={practiceTfIndex}
           onSelectTfIndex={setPracticeTfIndex}
           currentFillIndex={practiceFillIndex}
           onSelectFillIndex={setPracticeFillIndex}
+          currentShortIndex={practiceShortIndex}
+          onSelectShortIndex={setPracticeShortIndex}
+          currentEssayIndex={practiceEssayIndex}
+          onSelectEssayIndex={setPracticeEssayIndex}
           // Chapter metadata
           currentChapterId={
             currentMode === 'homework'

@@ -45,13 +45,26 @@ interface RightSidebarProps {
   tfStarredList?: number[];
   fillMemorizedList?: number[];
   fillStarredList?: number[];
-  practiceTab?: 'terms' | 'choice' | 'truefalse' | 'fill';
+  shortMemorizedList?: number[];
+  shortStarredList?: number[];
+  essayMemorizedList?: number[];
+  essayStarredList?: number[];
+  practiceTab?: 'terms' | 'fill' | 'choice' | 'truefalse' | 'short' | 'essay';
+  choiceCount?: number;
+  tfCount?: number;
+  fillCount?: number;
+  shortCount?: number;
+  essayCount?: number;
   currentChoiceIndex?: number;
   onSelectChoiceIndex?: (idx: number) => void;
   currentTfIndex?: number;
   onSelectTfIndex?: (idx: number) => void;
   currentFillIndex?: number;
   onSelectFillIndex?: (idx: number) => void;
+  currentShortIndex?: number;
+  onSelectShortIndex?: (idx: number) => void;
+  currentEssayIndex?: number;
+  onSelectEssayIndex?: (idx: number) => void;
   // Chapter metadata
   currentChapterId?: number;
   chapters?: ChapterMeta[];
@@ -84,13 +97,26 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   tfStarredList = [],
   fillMemorizedList = [],
   fillStarredList = [],
+  shortMemorizedList = [],
+  shortStarredList = [],
+  essayMemorizedList = [],
+  essayStarredList = [],
   practiceTab = 'terms',
+  choiceCount = 40,
+  tfCount = 30,
+  fillCount = 40,
+  shortCount = 20,
+  essayCount = 6,
   currentChoiceIndex = 0,
   onSelectChoiceIndex,
   currentTfIndex = 0,
   onSelectTfIndex,
   currentFillIndex = 0,
   onSelectFillIndex,
+  currentShortIndex = 0,
+  onSelectShortIndex,
+  currentEssayIndex = 0,
+  onSelectEssayIndex,
   currentChapterId,
   chapters = [],
   className = '',
@@ -349,16 +375,20 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <div className="flex-1 flex flex-col h-full overflow-hidden p-3.5 space-y-3">
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-800">
                 <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  {practiceTab === 'terms' && `${terminologyList.length} 核心名词速达`}
-                  {practiceTab === 'choice' && '单选题号 (40题)'}
-                  {practiceTab === 'truefalse' && '判断改错题号 (30题)'}
-                  {practiceTab === 'fill' && '填空题号 (40题)'}
+                  {practiceTab === 'terms' && `名词解释 (${terminologyList.length}题)`}
+                  {practiceTab === 'fill' && `填空题 (${fillCount}题)`}
+                  {practiceTab === 'choice' && `单选题 (${choiceCount}题)`}
+                  {practiceTab === 'truefalse' && `判断改错题 (${tfCount}题)`}
+                  {practiceTab === 'short' && `简答题 (${shortCount}题)`}
+                  {practiceTab === 'essay' && `论述题 (${essayCount}题)`}
                 </span>
                 <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800">
                   {practiceTab === 'terms' && `已掌握 ${termMemorizedList.length} / ${terminologyList.length}`}
-                  {practiceTab === 'choice' && `已掌握 ${choiceMemorizedList.length} / 40`}
-                  {practiceTab === 'truefalse' && `已掌握 ${tfMemorizedList.length} / 30`}
-                  {practiceTab === 'fill' && `已掌握 ${fillMemorizedList.length} / 40`}
+                  {practiceTab === 'fill' && `已掌握 ${fillMemorizedList.length} / ${fillCount}`}
+                  {practiceTab === 'choice' && `已掌握 ${choiceMemorizedList.length} / ${choiceCount}`}
+                  {practiceTab === 'truefalse' && `已掌握 ${tfMemorizedList.length} / ${tfCount}`}
+                  {practiceTab === 'short' && `已掌握 ${shortMemorizedList.length} / ${shortCount}`}
+                  {practiceTab === 'essay' && `已掌握 ${essayMemorizedList.length} / ${essayCount}`}
                 </span>
               </div>
 
@@ -395,7 +425,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   })}
 
                 {practiceTab === 'choice' &&
-                  Array.from({ length: 40 }, (_, i) => i + 1).map((num) => {
+                  Array.from({ length: choiceCount }, (_, i) => i + 1).map((num) => {
                     const isCurr = currentChoiceIndex === num - 1;
                     const isMem = choiceMemorizedList.includes(num);
                     const isStar = choiceStarredList.includes(num);
@@ -422,7 +452,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   })}
 
                 {practiceTab === 'truefalse' &&
-                  Array.from({ length: 30 }, (_, i) => i + 1).map((num) => {
+                  Array.from({ length: tfCount }, (_, i) => i + 1).map((num) => {
                     const isCurr = currentTfIndex === num - 1;
                     const isMem = tfMemorizedList.includes(num);
                     const isStar = tfStarredList.includes(num);
@@ -449,7 +479,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   })}
 
                 {practiceTab === 'fill' &&
-                  Array.from({ length: 40 }, (_, i) => i + 1).map((num) => {
+                  Array.from({ length: fillCount }, (_, i) => i + 1).map((num) => {
                     const isCurr = currentFillIndex === num - 1;
                     const isMem = fillMemorizedList.includes(num);
                     const isStar = fillStarredList.includes(num);
@@ -468,6 +498,60 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       <button
                         key={num}
                         onClick={() => onSelectFillIndex && onSelectFillIndex(num - 1)}
+                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${cellStyle}`}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
+
+                {practiceTab === 'short' &&
+                  Array.from({ length: shortCount }, (_, i) => i + 1).map((num) => {
+                    const isCurr = currentShortIndex === num - 1;
+                    const isMem = shortMemorizedList.includes(num);
+                    const isStar = shortStarredList.includes(num);
+
+                    let cellStyle =
+                      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700';
+                    if (isCurr) {
+                      cellStyle = 'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10';
+                    } else if (isMem) {
+                      cellStyle = 'bg-emerald-500 text-white font-bold border-emerald-600';
+                    } else if (isStar) {
+                      cellStyle = 'bg-amber-400 text-amber-950 font-bold border-amber-500';
+                    }
+
+                    return (
+                      <button
+                        key={num}
+                        onClick={() => onSelectShortIndex && onSelectShortIndex(num - 1)}
+                        className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${cellStyle}`}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
+
+                {practiceTab === 'essay' &&
+                  Array.from({ length: essayCount }, (_, i) => i + 1).map((num) => {
+                    const isCurr = currentEssayIndex === num - 1;
+                    const isMem = essayMemorizedList.includes(num);
+                    const isStar = essayStarredList.includes(num);
+
+                    let cellStyle =
+                      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700';
+                    if (isCurr) {
+                      cellStyle = 'bg-blue-600 text-white ring-2 ring-blue-400 font-bold shadow-md scale-105 z-10';
+                    } else if (isMem) {
+                      cellStyle = 'bg-emerald-500 text-white font-bold border-emerald-600';
+                    } else if (isStar) {
+                      cellStyle = 'bg-amber-400 text-amber-950 font-bold border-amber-500';
+                    }
+
+                    return (
+                      <button
+                        key={num}
+                        onClick={() => onSelectEssayIndex && onSelectEssayIndex(num - 1)}
                         className={`h-10 rounded-xl border text-xs sm:text-sm font-mono font-bold flex items-center justify-center transition cursor-pointer ${cellStyle}`}
                       >
                         {num}

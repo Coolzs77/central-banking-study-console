@@ -32,6 +32,12 @@ export interface UserMasteryState {
   // Practice fill-in memorized & starred IDs (1..40)
   fillMemorized?: number[];
   fillStarred?: number[];
+  // Practice short-answer memorized & starred IDs (1..20)
+  shortMemorized?: number[];
+  shortStarred?: number[];
+  // Practice essay memorized & starred IDs (1..6)
+  essayMemorized?: number[];
+  essayStarred?: number[];
   // User exam records
   examHistory: ExamRecord[];
 }
@@ -56,6 +62,7 @@ export interface HomeworkQuestion {
   question: string;
   answer: string; // concise handwritten-style answer
   points: number;
+  keywords?: string[];
 }
 
 export interface TerminologyQuestion {
@@ -113,12 +120,15 @@ export interface ShortAnswerRubric {
 
 export interface ShortAnswerQuestion {
   id: number;
-  title: string;
+  title?: string;
   question: string;
-  points: number; // 6 or 8 pt
+  points?: number; // 6 or 8 pt
+  totalPoints: number;
   chapterId: number;
-  standardAnswer: string;
-  rubrics: ShortAnswerRubric[];
+  standardAnswer?: string;
+  sampleAnswer: string;
+  rubrics?: ShortAnswerRubric[];
+  rubricPoints: ShortAnswerRubric[];
 }
 
 export interface EssayRubricPart {
@@ -127,15 +137,29 @@ export interface EssayRubricPart {
   criterion: string;
 }
 
+export interface EssayRubricDimension {
+  desc: string;
+  score: number;
+}
+
 export interface EssayQuestion {
   id: number;
+  chapterId?: number;
   topicCategory: 'monetary-policy' | 'financial-regulation';
   title: string;
   question: string;
-  points: number; // 20 pt
+  points?: number; // 20 pt
+  totalPoints: number;
   chapterRange: string;
-  standardOutline: string;
-  rubrics: EssayRubricPart[];
+  standardOutline?: string;
+  sampleAnswer: string;
+  rubrics?: EssayRubricPart[];
+  rubric: {
+    theory: EssayRubricDimension;
+    mechanism: EssayRubricDimension;
+    practice: EssayRubricDimension;
+    conclusion: EssayRubricDimension;
+  };
 }
 
 export interface ExamPaper {
