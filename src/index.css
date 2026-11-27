@@ -137,173 +137,221 @@
 }
 
 /* ============================================================================
-   物理级纸张质感系统 (7 套纸张纹理 + 叠纸页边 + 台灯漫反射) & 7 种舒适阅读字体
+   物理级纸张质感系统 (中性灰锚定 SVG 3D 纸纹 + 7 套纸张 + 书页舞台与翻页动效 + 7 种阅读字体)
    ============================================================================ */
 .paper-canvas {
-  --paper-grain-fine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
-  --paper-grain-coarse: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.52' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.36'/%3E%3C/svg%3E");
-  --paper-desktop: #f2ede2;
+  /* 中性灰锚定 SVG 3D 纸张纹理系统 (feTurbulence + feDiffuseLighting) */
+  --paper-tooth-fine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='tf'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%23ffffff' surfaceScale='1.15' result='light'%3E%3CfeDistantLight azimuth='45' elevation='62'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23tf)'/%3E%3C/svg%3E");
+  --paper-tooth-coarse: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='tc'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.46' numOctaves='5' stitchTiles='stitch' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%23ffffff' surfaceScale='1.75' result='light'%3E%3CfeDistantLight azimuth='45' elevation='54'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23tc)'/%3E%3C/svg%3E");
+  --paper-fiber-mesh: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='fm'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.05 0.34' numOctaves='3' stitchTiles='stitch' result='fibers'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fm)' opacity='0.28'/%3E%3C/svg%3E");
+
+  /* 阅读字号比例与 Markdown/题干字号令牌 */
+  --reader-font-scale: 1;
+  --md-base-size: calc(1rem * var(--reader-font-scale, 1));
+  --md-p-size: calc(1rem * var(--reader-font-scale, 1));
+  --md-li-size: calc(0.96875rem * var(--reader-font-scale, 1));
+  --md-h1-size: calc(1.5rem * var(--reader-font-scale, 1));
+  --md-h2-size: calc(1.25rem * var(--reader-font-scale, 1));
+  --md-h3-size: calc(1.125rem * var(--reader-font-scale, 1));
+  --md-h4-size: calc(1.03125rem * var(--reader-font-scale, 1));
+  --md-code-size: calc(0.875rem * var(--reader-font-scale, 1));
+  --md-blockquote-size: calc(0.95rem * var(--reader-font-scale, 1));
+  --book-stem-size: calc(1.125rem * var(--reader-font-scale, 1));
+
+  /* 默认纸张令牌 (道林考卷) */
+  --paper-desktop: #e7dfd0;
   --paper-surface: #fbf8f1;
-  --paper-inner: #f5efe3;
-  --paper-border: rgba(168, 150, 120, 0.34);
-  --paper-stack-1: #f4efe4;
-  --paper-stack-2: #ebe4d5;
+  --paper-inner: #f4eee1;
+  --paper-border: rgba(176, 158, 128, 0.38);
+  --paper-stack-1: #f3ede0;
+  --paper-stack-2: #eae2d1;
+  --paper-stack-3: #e0d6c2;
+  --paper-spine: rgba(92, 74, 48, 0.065);
   --paper-vignette: inset 0 0 0 0 transparent;
   --paper-pattern: none;
   --paper-pattern-size: auto;
-  --paper-grain: var(--paper-grain-fine);
-  --paper-grain-opacity: 0.22;
+  --paper-tooth: var(--paper-tooth-fine);
+  --paper-tooth-opacity: 0.24;
+  --paper-ink: #1c1917;
+  --paper-muted: #78716c;
+
   background-color: var(--paper-desktop);
-  background-image: var(--paper-grain-fine);
+  background-image: var(--paper-tooth-fine);
+  background-blend-mode: soft-light;
+  color: var(--paper-ink);
   transition: background-color 0.25s ease;
 }
 
 .dark .paper-canvas {
-  --paper-desktop: #12110f;
+  --paper-desktop: #0f0d0a;
   --paper-surface: #191815;
-  --paper-inner: #201e1a;
-  --paper-border: rgba(120, 110, 92, 0.32);
+  --paper-inner: #211f1b;
+  --paper-border: rgba(120, 110, 92, 0.34);
   --paper-stack-1: #161512;
   --paper-stack-2: #12110e;
-  --paper-grain-opacity: 0.12;
+  --paper-stack-3: #0e0d0b;
+  --paper-spine: rgba(0, 0, 0, 0.28);
+  --paper-tooth-opacity: 0.14;
+  --paper-ink: #f5f5f4;
+  --paper-muted: #a8a29e;
 }
 
 /* 1. 道林考卷纸 */
 .paper-canvas[data-paper="ivory"] {
-  --paper-desktop: #f2ede2;
+  --paper-desktop: #e7dfd0;
   --paper-surface: #fbf8f1;
   --paper-inner: #f4eee1;
-  --paper-border: rgba(176, 158, 128, 0.36);
+  --paper-border: rgba(176, 158, 128, 0.38);
   --paper-stack-1: #f3ede0;
   --paper-stack-2: #eae2d1;
-  --paper-grain: var(--paper-grain-fine);
-  --paper-grain-opacity: 0.24;
+  --paper-stack-3: #e0d6c2;
+  --paper-spine: rgba(92, 74, 48, 0.065);
+  --paper-tooth: var(--paper-tooth-fine);
+  --paper-tooth-opacity: 0.24;
 }
 .dark .paper-canvas[data-paper="ivory"] {
-  --paper-desktop: #12110f;
+  --paper-desktop: #0f0d0a;
   --paper-surface: #191815;
   --paper-inner: #211f1b;
+  --paper-border: rgba(120, 110, 92, 0.34);
   --paper-stack-1: #151411;
   --paper-stack-2: #11100d;
-  --paper-grain-opacity: 0.12;
+  --paper-stack-3: #0d0c0a;
+  --paper-tooth-opacity: 0.14;
 }
 
-/* 2. 古典羊皮纸 (双层粗纤维 + 做旧琥珀暗角) */
+/* 2. 古典羊皮纸 (粗纤维 3D 纸纹 + 做旧琥珀暗角) */
 .paper-canvas[data-paper="parchment"] {
-  --paper-desktop: #e7d8b9;
+  --paper-desktop: #e4d4b5;
   --paper-surface: #f4ead2;
   --paper-inner: #ecdfc0;
   --paper-border: rgba(154, 114, 58, 0.42);
   --paper-stack-1: #eadcc0;
   --paper-stack-2: #dfd0ae;
-  --paper-vignette: inset 0 0 46px rgba(139, 98, 42, 0.16), inset 0 1px 0 rgba(255, 250, 235, 0.7);
-  --paper-grain: var(--paper-grain-coarse);
-  --paper-grain-opacity: 0.32;
+  --paper-stack-3: #d4c29c;
+  --paper-spine: rgba(112, 76, 28, 0.09);
+  --paper-vignette: inset 0 0 48px rgba(139, 98, 42, 0.16), inset 0 1px 0 rgba(255, 250, 235, 0.72);
+  --paper-tooth: var(--paper-tooth-coarse);
+  --paper-tooth-opacity: 0.32;
 }
 .dark .paper-canvas[data-paper="parchment"] {
-  --paper-desktop: #15120d;
+  --paper-desktop: #13100b;
   --paper-surface: #1c1813;
   --paper-inner: #241f18;
   --paper-border: rgba(146, 112, 62, 0.36);
   --paper-stack-1: #18140f;
   --paper-stack-2: #13100b;
+  --paper-stack-3: #0f0c08;
+  --paper-spine: rgba(0, 0, 0, 0.34);
   --paper-vignette: inset 0 0 42px rgba(92, 64, 24, 0.24);
-  --paper-grain-opacity: 0.16;
+  --paper-tooth-opacity: 0.18;
 }
 
 /* 3. 护眼豆沙绿纸 */
 .paper-canvas[data-paper="sage"] {
-  --paper-desktop: #e3ece5;
+  --paper-desktop: #dfeae2;
   --paper-surface: #f1f7f2;
   --paper-inner: #e7f0e9;
-  --paper-border: rgba(114, 148, 124, 0.35);
+  --paper-border: rgba(114, 148, 124, 0.36);
   --paper-stack-1: #e9f2eb;
   --paper-stack-2: #dee9e0;
-  --paper-grain: var(--paper-grain-fine);
-  --paper-grain-opacity: 0.22;
+  --paper-stack-3: #d2e0d5;
+  --paper-spine: rgba(54, 88, 66, 0.06);
+  --paper-tooth: var(--paper-tooth-fine);
+  --paper-tooth-opacity: 0.22;
 }
 .dark .paper-canvas[data-paper="sage"] {
-  --paper-desktop: #0f1512;
+  --paper-desktop: #0d1310;
   --paper-surface: #141b17;
   --paper-inner: #1a231e;
-  --paper-border: rgba(82, 116, 94, 0.35);
+  --paper-border: rgba(82, 116, 94, 0.36);
   --paper-stack-1: #111714;
   --paper-stack-2: #0d1310;
-  --paper-grain-opacity: 0.12;
+  --paper-stack-3: #0a0f0c;
+  --paper-tooth-opacity: 0.14;
 }
 
 /* 4. 温润牛皮纸 */
 .paper-canvas[data-paper="kraft"] {
-  --paper-desktop: #e3d3b6;
+  --paper-desktop: #dfd0b3;
   --paper-surface: #efe3cd;
   --paper-inner: #e7d8bc;
-  --paper-border: rgba(145, 112, 72, 0.4);
+  --paper-border: rgba(145, 112, 72, 0.42);
   --paper-stack-1: #e6d8be;
   --paper-stack-2: #dccbb0;
-  --paper-vignette: inset 0 0 28px rgba(110, 80, 42, 0.1);
-  --paper-grain: var(--paper-grain-coarse);
-  --paper-grain-opacity: 0.3;
+  --paper-stack-3: #d0bda0;
+  --paper-spine: rgba(102, 72, 36, 0.085);
+  --paper-vignette: inset 0 0 30px rgba(110, 80, 42, 0.11);
+  --paper-tooth: var(--paper-tooth-coarse);
+  --paper-tooth-opacity: 0.3;
 }
 .dark .paper-canvas[data-paper="kraft"] {
-  --paper-desktop: #15110e;
+  --paper-desktop: #120f0c;
   --paper-surface: #1b1713;
   --paper-inner: #231e18;
-  --paper-border: rgba(132, 102, 68, 0.35);
+  --paper-border: rgba(132, 102, 68, 0.36);
   --paper-stack-1: #171310;
   --paper-stack-2: #120f0c;
-  --paper-grain-opacity: 0.15;
+  --paper-stack-3: #0e0b09;
+  --paper-tooth-opacity: 0.17;
 }
 
 /* 5. 康奈尔方格纸 */
 .paper-canvas[data-paper="grid"] {
-  --paper-desktop: #eff2f5;
+  --paper-desktop: #eaedf2;
   --paper-surface: #fcfaf5;
   --paper-inner: #f5f3ec;
-  --paper-border: rgba(148, 163, 184, 0.36);
+  --paper-border: rgba(148, 163, 184, 0.38);
   --paper-stack-1: #f4f2eb;
   --paper-stack-2: #ebe8df;
+  --paper-stack-3: #e0ddd2;
+  --paper-spine: rgba(71, 85, 105, 0.06);
   --paper-pattern: linear-gradient(to right, rgba(100, 116, 139, 0.085) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(100, 116, 139, 0.085) 1px, transparent 1px);
   --paper-pattern-size: 24px 24px;
-  --paper-grain: var(--paper-grain-fine);
-  --paper-grain-opacity: 0.18;
+  --paper-tooth: var(--paper-tooth-fine);
+  --paper-tooth-opacity: 0.18;
 }
 .dark .paper-canvas[data-paper="grid"] {
-  --paper-desktop: #0e1218;
+  --paper-desktop: #0c1016;
   --paper-surface: #141820;
   --paper-inner: #1a202b;
   --paper-border: rgba(71, 85, 105, 0.42);
   --paper-stack-1: #11151d;
   --paper-stack-2: #0d1016;
+  --paper-stack-3: #090c11;
   --paper-pattern: linear-gradient(to right, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
-  --paper-grain-opacity: 0.1;
+  --paper-tooth-opacity: 0.12;
 }
 
-/* 6. 横线作业纸 (含左侧淡红装订竖线) */
+/* 6. 横线稿纸 (含左侧淡红装订竖线) */
 .paper-canvas[data-paper="lined"] {
-  --paper-desktop: #f0ece3;
+  --paper-desktop: #ece7dc;
   --paper-surface: #fdfbf6;
   --paper-inner: #f6f2e8;
-  --paper-border: rgba(164, 152, 132, 0.36);
+  --paper-border: rgba(164, 152, 132, 0.38);
   --paper-stack-1: #f5f1e6;
   --paper-stack-2: #ece6d8;
+  --paper-stack-3: #e1dac9;
+  --paper-spine: rgba(100, 84, 64, 0.06);
   --paper-pattern: linear-gradient(to right, transparent 42px, rgba(225, 29, 72, 0.13) 42px, rgba(225, 29, 72, 0.13) 43px, transparent 43px, transparent 46px, rgba(225, 29, 72, 0.09) 46px, rgba(225, 29, 72, 0.09) 47px, transparent 47px),
     repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, rgba(59, 130, 246, 0.09) 27px, rgba(59, 130, 246, 0.09) 28px);
   --paper-pattern-size: 100% 28px;
-  --paper-grain: var(--paper-grain-fine);
-  --paper-grain-opacity: 0.18;
+  --paper-tooth: var(--paper-tooth-fine);
+  --paper-tooth-opacity: 0.18;
 }
 .dark .paper-canvas[data-paper="lined"] {
-  --paper-desktop: #11100f;
+  --paper-desktop: #0f0e0d;
   --paper-surface: #171614;
   --paper-inner: #1e1c19;
   --paper-border: rgba(92, 86, 76, 0.38);
   --paper-stack-1: #141311;
   --paper-stack-2: #100f0e;
+  --paper-stack-3: #0b0a09;
   --paper-pattern: linear-gradient(to right, transparent 42px, rgba(244, 63, 94, 0.16) 42px, rgba(244, 63, 94, 0.16) 43px, transparent 43px, transparent 46px, rgba(244, 63, 94, 0.1) 46px, rgba(244, 63, 94, 0.1) 47px, transparent 47px),
     repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, rgba(96, 165, 250, 0.08) 27px, rgba(96, 165, 250, 0.08) 28px);
-  --paper-grain-opacity: 0.1;
+  --paper-tooth-opacity: 0.12;
 }
 
 /* 7. 极简白纸 */
@@ -314,7 +362,10 @@
   --paper-border: rgba(203, 213, 225, 0.8);
   --paper-stack-1: #f8fafc;
   --paper-stack-2: #f1f5f9;
-  --paper-grain-opacity: 0.08;
+  --paper-stack-3: #e2e8f0;
+  --paper-spine: rgba(15, 23, 42, 0.035);
+  --paper-tooth: var(--paper-tooth-fine);
+  --paper-tooth-opacity: 0.1;
 }
 .dark .paper-canvas[data-paper="default"] {
   --paper-desktop: #0b0f17;
@@ -323,53 +374,70 @@
   --paper-border: rgba(30, 41, 59, 0.85);
   --paper-stack-1: #121824;
   --paper-stack-2: #0e131d;
-  --paper-grain-opacity: 0.06;
+  --paper-stack-3: #0a0e16;
+  --paper-spine: rgba(0, 0, 0, 0.24);
+  --paper-tooth-opacity: 0.08;
 }
 
-/* 纸张卡片与物理叠页边缘 */
+/* 书本阅读舞台与物理书页 */
+.book-stage {
+  position: relative;
+  perspective: 1800px;
+}
+
+.book-page,
 .paper-card {
   position: relative;
   background-color: var(--paper-surface) !important;
-  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, transparent 48%, rgba(60, 45, 20, 0.04) 100%), var(--paper-pattern);
-  background-size: 100% 100%, var(--paper-pattern-size);
+  background-image:
+    linear-gradient(90deg, var(--paper-spine) 0px, transparent 28px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, transparent 48%, rgba(60, 45, 20, 0.04) 100%),
+    var(--paper-pattern);
+  background-size: 100% 100%, 100% 100%, var(--paper-pattern-size);
   border-color: var(--paper-border) !important;
   box-shadow:
     var(--paper-vignette),
     0 1px 2px rgba(60, 45, 20, 0.06),
-    0 6px 0 -3px var(--paper-stack-1),
-    0 6px 2px -2px rgba(60, 45, 20, 0.06),
-    0 12px 0 -6px var(--paper-stack-2),
-    0 12px 2px -5px rgba(60, 45, 20, 0.05),
-    0 18px 34px rgba(60, 45, 20, 0.08) !important;
+    0 5px 0 -2px var(--paper-stack-1),
+    0 5px 2px -1px rgba(60, 45, 20, 0.07),
+    0 10px 0 -4px var(--paper-stack-2),
+    0 10px 2px -3px rgba(60, 45, 20, 0.06),
+    0 15px 0 -6px var(--paper-stack-3),
+    0 15px 3px -5px rgba(60, 45, 20, 0.05),
+    0 22px 44px -12px rgba(45, 34, 18, 0.14) !important;
 }
 
+.dark .book-page,
 .dark .paper-card {
-  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 55%, rgba(0, 0, 0, 0.16) 100%), var(--paper-pattern);
+  background-image:
+    linear-gradient(90deg, var(--paper-spine) 0px, transparent 28px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 55%, rgba(0, 0, 0, 0.16) 100%),
+    var(--paper-pattern);
   box-shadow:
     var(--paper-vignette),
     0 2px 6px rgba(0, 0, 0, 0.35),
-    0 6px 0 -3px var(--paper-stack-1),
-    0 6px 3px -2px rgba(0, 0, 0, 0.35),
-    0 12px 0 -6px var(--paper-stack-2),
-    0 16px 32px rgba(0, 0, 0, 0.45) !important;
+    0 5px 0 -2px var(--paper-stack-1),
+    0 5px 3px -1px rgba(0, 0, 0, 0.35),
+    0 10px 0 -4px var(--paper-stack-2),
+    0 10px 3px -3px rgba(0, 0, 0, 0.32),
+    0 15px 0 -6px var(--paper-stack-3),
+    0 22px 42px -10px rgba(0, 0, 0, 0.52) !important;
 }
 
+.book-page::before,
 .paper-card::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background-image: var(--paper-grain);
-  opacity: var(--paper-grain-opacity);
-  mix-blend-mode: multiply;
+  background-image: var(--paper-tooth), var(--paper-fiber-mesh);
+  opacity: var(--paper-tooth-opacity);
+  mix-blend-mode: soft-light;
   z-index: 1;
 }
 
-.dark .paper-card::after {
-  mix-blend-mode: soft-light;
-}
-
+.book-page > *,
 .paper-card > * {
   position: relative;
   z-index: 2;
@@ -380,28 +448,121 @@
   border-color: var(--paper-border) !important;
 }
 
+/* 书页排版细节组件 */
+.book-divider {
+  border: 0;
+  height: 1px;
+  background: var(--paper-border);
+  margin: 1rem 0;
+}
+
+.book-divider-double {
+  border: 0;
+  height: 4px;
+  border-top: 1px solid var(--paper-border);
+  border-bottom: 1px solid var(--paper-border);
+  margin: 1.125rem 0;
+}
+
+.book-marginalia {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--paper-muted);
+}
+
+.book-ribbon {
+  position: absolute;
+  top: -1px;
+  right: 1.5rem;
+  width: 1.35rem;
+  height: 2.1rem;
+  background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  box-shadow: 0 3px 6px rgba(127, 29, 29, 0.25);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* 翻页动效 */
+@keyframes bookTurnNext {
+  0% {
+    opacity: 0.65;
+    transform: perspective(1600px) rotateY(-4deg) translateX(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1600px) rotateY(0deg) translateX(0);
+  }
+}
+
+@keyframes bookTurnPrev {
+  0% {
+    opacity: 0.65;
+    transform: perspective(1600px) rotateY(4deg) translateX(-14px);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1600px) rotateY(0deg) translateX(0);
+  }
+}
+
+.book-turn-next {
+  transform-origin: left center;
+  animation: bookTurnNext 280ms var(--ease-out) both;
+}
+
+.book-turn-prev {
+  transform-origin: right center;
+  animation: bookTurnPrev 280ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paper-canvas {
+    transition: none !important;
+  }
+  .book-turn-next,
+  .book-turn-prev {
+    animation: none !important;
+  }
+}
+
 /* 7 种舒适阅读字体 (作用于中间学习区正文) */
 .paper-canvas[data-font="system"] {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --book-stem-size: calc(1.125rem * var(--reader-font-scale, 1));
 }
 .paper-canvas[data-font="song"] {
   font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", "STSong", serif;
+  --book-stem-size: calc(1.125rem * var(--reader-font-scale, 1));
 }
 .paper-canvas[data-font="kai"] {
   font-family: "LXGW WenKai", "Kaiti SC", "STKaiti", "KaiTi", "FangSong", serif;
+  --md-p-size: calc(1.03125rem * var(--reader-font-scale, 1));
+  --md-li-size: calc(1rem * var(--reader-font-scale, 1));
+  --book-stem-size: calc(1.15625rem * var(--reader-font-scale, 1));
 }
 .paper-canvas[data-font="fangsong"] {
   font-family: "FangSong", "STFangsong", "FangSong_GB2312", "Noto Serif SC", serif;
+  --md-p-size: calc(1.03125rem * var(--reader-font-scale, 1));
+  --md-li-size: calc(1rem * var(--reader-font-scale, 1));
+  --book-stem-size: calc(1.15625rem * var(--reader-font-scale, 1));
 }
 .paper-canvas[data-font="yuanti"] {
   font-family: "Hiragino Sans GB", "YouYuan", "STYuanti", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --book-stem-size: calc(1.125rem * var(--reader-font-scale, 1));
 }
 .paper-canvas[data-font="serif-mix"] {
   font-family: "Georgia", "Times New Roman", "Songti SC", "Noto Serif SC", "SimSun", serif;
+  --book-stem-size: calc(1.125rem * var(--reader-font-scale, 1));
 }
 .paper-canvas[data-font="serif-mix"] .font-mono {
   font-family: "Times New Roman", "Georgia", serif;
 }
 .paper-canvas[data-font="mono-clean"] {
   font-family: "JetBrains Mono", "Cascadia Code", "Consolas", "PingFang SC", "Microsoft YaHei", monospace;
+  --md-base-size: calc(0.95rem * var(--reader-font-scale, 1));
+  --md-p-size: calc(0.95rem * var(--reader-font-scale, 1));
+  --md-li-size: calc(0.925rem * var(--reader-font-scale, 1));
+  --book-stem-size: calc(1.0625rem * var(--reader-font-scale, 1));
 }

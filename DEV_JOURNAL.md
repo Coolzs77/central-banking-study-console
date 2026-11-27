@@ -3763,3 +3763,88 @@ sequenceDiagram
   - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
   - `verify_suite.mjs`：`54 PASSED, 0 FAILED`
   - `npm run build`：打包成功（0 错误）
+
+---
+
+## 第 33 轮 [2026-11-27 21:34]：全站实体书卷风格重构、3D 纸张颗粒触感、3D 翻页动画与 A-/A/A+ 字号调节
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：修复顶部“纸张与字体”面板被吸顶导航栏截断遮挡的错误；彻底消除全站“卡片套卡片”的 AI 式布局；重做真正可见、有物理触感的 7 套纸张质感（含古典羊皮纸）；新增 `A- / A / A+` 阅读字号调节；将整个网站重构为具有书脊、书口叠边、书签丝带与 3D 翻页动画的实体书卷风格。
+- **目标**：在不改动题库数据与现有快捷键逻辑的前提下，完成全站书卷化重构并通过全量测试与无头 Chrome E2E 实测。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+1. **全局 Z-Index 分层与暗黑透底修复（[`Header.tsx`](file:///e:/workspace/central-banking-study-console/src/components/Header.tsx)、[`ClayQuestionNav.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/ClayQuestionNav.tsx)、[`App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)、[`PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)、[`MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx)）**
+   - Header 升至 `z-40`（内部菜单 `z-50`），`ClayQuestionNav` 降至 `z-10`，移动端遮罩 `z-[42]`，移动端抽屉 `z-[45]`，Skip-to-content `z-[60]`；
+   - 移除 `PracticeCanvas` 与 `MockExamCanvas` 根容器的不透明 `bg-slate-50/50 dark:bg-[#0b0f17]`，改为 `bg-transparent` 透出书桌与纸纹。
+2. **中性灰锚定 3D SVG 纸张颗粒与 7 套质感重设（[`src/index.css`](file:///e:/workspace/central-banking-study-console/src/index.css)、[`src/data/appearance.ts`](file:///e:/workspace/central-banking-study-console/src/data/appearance.ts)、[`index.html`](file:///e:/workspace/central-banking-study-console/index.html)）**
+   - 采用 50% 中性灰锚定 `--paper-tooth-fine` / `--paper-tooth-coarse`（`feTurbulence` + `feColorMatrix`）叠加正交斜向亚麻纤维 `--paper-fiber-mesh`，明亮模式 `multiply`、暗黑模式 `soft-light`，彻底解决此前仅改色无颗粒感的问题；
+   - 7 套纸张（道林考卷、古典羊皮纸、豆沙护眼、温润牛皮、康奈尔方格、横线稿纸、极简白纸）均配备缩略预览纹与书桌背景（`#e7dfd0` / `#0f0d0a`）。
+3. **实体书卷构造与 3D 翻页动画（[`src/index.css`](file:///e:/workspace/central-banking-study-console/src/index.css)、[`src/hooks/useBookPageTurn.ts`](file:///e:/workspace/central-banking-study-console/src/hooks/useBookPageTurn.ts)）**
+   - `.book-page` 整合左侧书脊装订阴影、右侧/底部 3 层书口叠纸厚度与右上角燕尾书签丝带 `.book-ribbon`；
+   - `useBookPageTurn` 根据前后题号变化触发 `.book-turn-next` / `.book-turn-prev`（`perspective(1800px) rotateY` GPU 合成动画，支持 `prefers-reduced-motion`）。
+4. **全站去“卡片套卡片”与 `A- / A / A+` 字号调节（[`RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)、[`HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)、[`PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)、[`MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx)、[`LeftSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/LeftSidebar.tsx)、[`RightSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx)、[`SyncModal.tsx`](file:///e:/workspace/central-banking-study-console/src/components/SyncModal.tsx)、[`MarkdownViewer.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)）**
+   - 全面移除内层答案/采分点小盒与模考 54 个独立卡片，改为单页纸面 + `.book-divider-double` / `.book-marginalia`；左右侧栏与同步弹窗同步扁平化为书本目录、附录索引与 `divide-y` 分区；
+   - Header 面板新增 `A-` / `A (16px)` / `A+`（`13px–22px`）调节，通过 `--reader-font-scale` 驱动 `MarkdownViewer` 全部层级字号同步缩放，并校准暖纸次要文字至 WCAG AA（`text-stone-600 dark:text-stone-400`）。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：Header 下拉菜单上半部分被 `ClayQuestionNav` 遮挡；暗黑模式下专项练习与模考盖住纸张底纹；早期纸纹在屏幕上接近纯色。
+- **根本原因 (RCA)**：Header 与 `ClayQuestionNav` 同级 `z-30` 且 `<main>` 在 DOM 后方；两处 Canvas 硬编码不透明暗黑底色；早期 `feTurbulence` 有效对比度过低。
+- **具体解法**：建立全站 7 层 Z-Index 契约、透底改为 `bg-transparent`、重设中性灰锚定高对比度 SVG 颗粒与纤维网。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart TD
+    Desk["书桌舞台 (.paper-canvas data-paper data-font)"] --> Header["顶部书眉 (z-40) -> 样式面板 (z-50: 7纸+7字+A-/A/A+)"]
+    Desk --> Left["左侧书本目录 (TOC Rows)"]
+    Desk --> Stage["中间书卷舞台 (.book-stage perspective: 1800px)"]
+    Stage --> Page[".book-page (3D颗粒::before + 书脊 + 3层书口 + 书签丝带)"]
+    Page -->|"上/下翻页"| Turn["useBookPageTurn -> book-turn-next / book-turn-prev"]
+    Desk --> Right["右侧附录索引 (题号/大纲/名词)"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **统一书卷隐喻**：从外层书桌、目录扉页、书页正文到附录索引形成一致的实体书体验，彻底告别“卡片套卡片”堆砌。
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant Nav as 书眉翻页栏 (z-10)
+    participant Hook as useBookPageTurn
+    participant Page as .book-page
+    User->>Nav: 点击“下一题”
+    Nav->>Hook: currentIndex 递增
+    Hook-->>Page: 附加 book-turn-next (rotateY -9deg -> 0)
+    Page-->>User: GPU 合成 3D 翻页展开新题
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **零阻塞翻页动效**：仅动画化 `transform` 与 `opacity`，不触发布局重排，并在 `prefers-reduced-motion` 下自动静默降级。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 7 套纸张颗粒与羊皮纸做旧质感在亮/暗双模式下清晰可辨；
+- `A- / A / A+` 字号调节联动全站解析文本且刷新不丢失。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npx tsx scripts/audit_exam_accuracy.ts; npx tsx tests/verifyData.ts; npx tsx tests/verifyHomeworkHierarchy.ts; npx tsx tests/verifyPracticeUI.tsx; node verify_suite.mjs; npm run build
+  ```
+- **实际输出**：
+  - `scripts/audit_exam_accuracy.ts`：`0` 错误
+  - `tests/verifyData.ts`：`46 PASSED, 0 FAILED`
+  - `tests/verifyHomeworkHierarchy.ts`：`21 PASSED, 0 FAILED`
+  - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
+  - `verify_suite.mjs`：`54 PASSED, 0 FAILED`
+  - `npm run build`：`✓ built in 5.50s`（0 错误）
+  - Selenium 无头 Chrome 实测：`E2E_BOOK_PASS`（菜单无遮挡、`A+` 字号持久化、羊皮纸 3D 颗粒、`.book-turn-next` 翻页动效均通过，0 `SEVERE` 控制台错误）

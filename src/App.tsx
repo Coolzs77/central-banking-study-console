@@ -154,6 +154,15 @@ export function App() {
       return 'system';
     }
   });
+  const [fontSize, setFontSize] = useState<number>(() => {
+    try {
+      const raw = Number(localStorage.getItem('cb_font_size'));
+      if (Number.isFinite(raw) && raw >= 13 && raw <= 22) return raw;
+    } catch {
+      // Ignore storage errors
+    }
+    return 16;
+  });
 
   const handleChangePaperTheme = useCallback((next: PaperThemeId) => {
     setPaperTheme(next);
@@ -168,6 +177,16 @@ export function App() {
     setFontTheme(next);
     try {
       localStorage.setItem('cb_font_theme', next);
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  const handleChangeFontSize = useCallback((next: number) => {
+    const clamped = Math.min(22, Math.max(13, Math.round(next)));
+    setFontSize(clamped);
+    try {
+      localStorage.setItem('cb_font_size', String(clamped));
     } catch {
       // Ignore storage errors
     }
@@ -501,10 +520,10 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#eef2f7] dark:bg-[#0b0f17] text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#e7dfd0] dark:bg-[#0f0d0a] text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-xl focus:text-xs focus:font-bold focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-xl focus:text-xs focus:font-bold focus:shadow-lg"
       >
         跳至主内容
       </a>
@@ -523,6 +542,8 @@ export function App() {
         onChangePaperTheme={handleChangePaperTheme}
         fontTheme={fontTheme}
         onChangeFontTheme={handleChangeFontTheme}
+        fontSize={fontSize}
+        onChangeFontSize={handleChangeFontSize}
         activeMode={currentMode}
       />
 
@@ -539,7 +560,7 @@ export function App() {
           recitationQuestions={recitationQuestions || []}
           homeworkCompleted={state.homeworkCompleted}
           homeworkQuestions={homeworkQuestions || []}
-          className={`${mobileMenuOpen ? 'fixed inset-y-0 left-0 z-40 block shadow-2xl' : 'hidden md:flex'}`}
+          className={`${mobileMenuOpen ? 'fixed inset-y-0 left-0 z-[45] block shadow-2xl' : 'hidden md:flex'}`}
           onCloseMobile={() => setMobileMenuOpen(false)}
           isCollapsed={mobileMenuOpen ? false : leftSidebarCollapsed}
           onToggleCollapse={toggleLeftSidebarCollapsed}
@@ -548,7 +569,7 @@ export function App() {
         {/* Backdrop for Mobile Sidebar */}
         {mobileMenuOpen && (
           <div
-            className="fixed inset-0 bg-slate-900/40 z-30 md:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-900/40 z-[42] md:hidden backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}
@@ -558,6 +579,12 @@ export function App() {
           id="main-content"
           data-paper={paperTheme}
           data-font={fontTheme}
+          style={
+            {
+              '--reader-font-size': `${fontSize}px`,
+              '--reader-font-scale': String(fontSize / 16),
+            } as React.CSSProperties
+          }
           className="paper-canvas flex-1 min-w-0 h-[calc(100vh-4rem)] overflow-hidden flex flex-col"
         >
           {currentMode === 'recitation' && (
@@ -692,9 +719,9 @@ export function App() {
 
         {/* Mobile Right Matrix & Outline Drawer (< lg) */}
         {mobileRightDrawerOpen && (
-          <div className="fixed inset-0 z-40 lg:hidden flex justify-end">
+          <div className="fixed inset-0 z-[45] lg:hidden flex justify-end">
             <div
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="fixed inset-0 z-[42] bg-slate-900/40 backdrop-blur-sm"
               onClick={() => setMobileRightDrawerOpen(false)}
               aria-hidden="true"
             />
@@ -702,7 +729,7 @@ export function App() {
               role="dialog"
               aria-modal="true"
               aria-label="题号矩阵与大纲"
-              className="relative z-10 h-full max-w-full bg-white dark:bg-slate-900 shadow-2xl overscroll-contain flex"
+              className="relative z-[45] h-full max-w-full bg-white dark:bg-slate-900 shadow-2xl overscroll-contain flex"
             >
               <RightSidebar
                 {...rightSidebarProps}

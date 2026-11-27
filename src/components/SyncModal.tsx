@@ -176,12 +176,12 @@ export const SyncModal: React.FC<SyncModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5 overflow-y-auto max-h-[80vh] overscroll-contain">
+        <div className="px-6 py-4 divide-y divide-stone-200/80 dark:divide-stone-800 overflow-y-auto max-h-[80vh] overscroll-contain">
           {/* Notification banner */}
           {notice && (
             <div
               aria-live="polite"
-              className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+              className={`mb-4 p-3 rounded-lg text-xs flex items-center gap-2 ${
                 notice.type === 'ok'
                   ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800'
                   : 'bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-800'
@@ -192,11 +192,11 @@ export const SyncModal: React.FC<SyncModalProps> = ({
             </div>
           )}
 
-          {/* Account Binding Card */}
-          <div className="p-4 bg-slate-50 dark:bg-[#1a2232] rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+          {/* Account Binding Section */}
+          <div className="py-4 first:pt-1 space-y-2.5">
             <div className="text-xs font-bold text-slate-700 dark:text-slate-200">同步账号</div>
             {currentAccount ? (
-              <div className="flex items-center justify-between bg-white dark:bg-[#151b26] px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-2">
                   <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                   <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{currentAccount}</span>
@@ -223,11 +223,11 @@ export const SyncModal: React.FC<SyncModalProps> = ({
                   placeholder="输入简短账号（如：zsz 或学号）…"
                   value={accountInput}
                   onChange={(e) => setAccountInput(e.target.value)}
-                  className="flex-1 px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus:border-blue-500 bg-white dark:bg-[#151b26] text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+                  className="flex-1 px-3.5 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus:border-blue-500 bg-transparent text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-xs"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
                 >
                   绑定
                 </button>
@@ -239,11 +239,11 @@ export const SyncModal: React.FC<SyncModalProps> = ({
           </div>
 
           {/* Manual Push / Pull buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="py-4 grid grid-cols-2 gap-3">
             <button
               onClick={handleBackup}
               disabled={!currentAccount || pendingAction !== null}
-              className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100/80 dark:hover:bg-blue-950/60 disabled:opacity-40 border border-blue-200 dark:border-blue-800/70 text-blue-900 dark:text-blue-200 flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="p-3 rounded-lg bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100/80 dark:hover:bg-blue-950/60 disabled:opacity-40 border border-blue-200 dark:border-blue-800/70 text-blue-900 dark:text-blue-200 flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               {pendingAction === 'backup' ? (
                 <Loader2 className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-spin" aria-hidden="true" />
@@ -256,7 +256,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
             <button
               onClick={handlePull}
               disabled={!currentAccount || pendingAction !== null}
-              className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100/80 dark:hover:bg-emerald-950/60 disabled:opacity-40 border border-emerald-200 dark:border-emerald-800/70 text-emerald-900 dark:text-emerald-200 flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="p-3 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/40 hover:bg-emerald-100/80 dark:hover:bg-emerald-950/60 disabled:opacity-40 border border-emerald-200 dark:border-emerald-800/70 text-emerald-900 dark:text-emerald-200 flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               {pendingAction === 'pull' ? (
                 <Loader2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 animate-spin" aria-hidden="true" />
@@ -269,32 +269,34 @@ export const SyncModal: React.FC<SyncModalProps> = ({
 
           {/* QR Code Section for Mobile */}
           {currentAccount && qrDataUrl && (
-            <div className="p-4 bg-slate-50 dark:bg-[#1a2232] rounded-2xl border border-slate-200/80 dark:border-slate-800 flex flex-col items-center space-y-3">
+            <div className="py-4 flex flex-col items-center space-y-3">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
                 <QrCode className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
                 <span>扫码同步</span>
               </div>
-              <div className="p-2 bg-white rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <img src={qrDataUrl} alt="跨设备同步二维码" width={144} height={144} className="w-36 h-36 rounded-lg" />
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleCopyLink}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-white dark:bg-[#151b26] hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer shadow-xs"
-                >
-                  {copiedLink ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" aria-hidden="true" />
-                  )}
-                  <span>{copiedLink ? '已复制同步链接' : '复制直达链接'}</span>
-                </button>
-              </div>
+              <img
+                src={qrDataUrl}
+                alt="跨设备同步二维码"
+                width={144}
+                height={144}
+                className="w-36 h-36 rounded-lg border border-slate-200 dark:border-slate-700 bg-white p-1"
+              />
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-1 px-3 py-1.5 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+              >
+                {copiedLink ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                )}
+                <span>{copiedLink ? '已复制同步链接' : '复制直达链接'}</span>
+              </button>
             </div>
           )}
 
           {/* Auto Sync Toggle */}
-          <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 px-1 pt-1">
+          <div className="py-4 last:pb-1 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"

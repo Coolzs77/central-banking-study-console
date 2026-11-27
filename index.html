@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#eef2f7" />
+    <meta name="theme-color" content="#e7dfd0" />
     <title>中央银行学</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230284c7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='12' x='2' y='6' rx='2'/><circle cx='12' cy='12' r='2'/><path d='M6 12h.01M18 12h.01'/></svg>" />
     <script>
@@ -13,15 +13,15 @@
         const metaTheme = document.querySelector('meta[name="theme-color"]');
         if (isDark) {
           document.documentElement.classList.add('dark');
-          if (metaTheme) metaTheme.setAttribute('content', '#0b0f17');
+          if (metaTheme) metaTheme.setAttribute('content', '#0f0d0a');
         } else {
           document.documentElement.classList.remove('dark');
-          if (metaTheme) metaTheme.setAttribute('content', '#eef2f7');
+          if (metaTheme) metaTheme.setAttribute('content', '#e7dfd0');
         }
       } catch (e) {}
     </script>
   </head>
-  <body class="bg-[#eef2f7] text-slate-800 dark:bg-[#0b0f17] dark:text-slate-100 antialiased selection:bg-blue-500 selection:text-white min-h-screen overflow-x-hidden">
+  <body class="bg-[#e7dfd0] text-stone-900 dark:bg-[#0f0d0a] dark:text-stone-100 antialiased selection:bg-blue-500 selection:text-white min-h-screen overflow-x-hidden">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

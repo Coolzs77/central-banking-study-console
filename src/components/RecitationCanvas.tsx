@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Award,
   Zap,
   BookOpen,
+  Bookmark,
 } from 'lucide-react';
 import { RecitationQuestion, ChapterMeta } from '../data/types';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
 import { MarkdownViewer } from './common/MarkdownViewer';
 import { RECITATION_PPT_REFS, stripTrailingPptTag } from '../data/pptRefs';
+import { useBookPageTurn } from '../hooks/useBookPageTurn';
 
 type RecitationFilter = 'all' | 'memorized' | 'unmemorized' | 'starred';
 
@@ -56,6 +57,7 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
   // Safe bounded current question
   const safeIndex = Math.min(Math.max(0, currentIndex), Math.max(0, questions.length - 1));
   const currentQ = questions[safeIndex] || questions[0];
+  const turnClass = useBookPageTurn(currentQ?.id ?? 0, safeIndex);
 
   const handleCopyCurrent = () => {
     if (!currentQ) return;
@@ -126,14 +128,14 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
                 aria-pressed={isActive}
                 className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
                   isActive
-                    ? 'bg-sky-600 text-white border-sky-700 shadow-sm'
-                    : 'bg-white/90 dark:bg-[#151b26] text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700 hover:text-sky-600 dark:hover:text-sky-400'
+                    ? 'bg-sky-600 text-white border-sky-700'
+                    : 'bg-transparent text-stone-600 dark:text-stone-400 border-stone-300/80 dark:border-stone-700/80 hover:border-sky-400 dark:hover:border-sky-600 hover:text-sky-700 dark:hover:text-sky-300'
                 }`}
               >
                 <span>{item.label}</span>
                 <span
                   className={`tabular-nums text-[11px] ${
-                    isActive ? 'text-sky-100' : 'text-slate-400 dark:text-slate-500'
+                    isActive ? 'text-sky-100' : 'text-stone-400 dark:text-stone-500'
                   }`}
                 >
                   {item.count}
@@ -152,7 +154,7 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
             const val = e.target.value;
             onSelectChapter(val ? Number(val) : null);
           }}
-          className="ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-white dark:bg-[#151b26] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 cursor-pointer max-w-[220px] truncate"
+          className="ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-white/80 dark:bg-[#1c1917] text-stone-700 dark:text-stone-200 border border-stone-300/80 dark:border-stone-700/80 hover:border-sky-400 dark:hover:border-sky-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 cursor-pointer max-w-[220px] truncate"
         >
           <option value="">全部章节</option>
           {chapters.map((ch) => {
@@ -172,18 +174,20 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
     return (
       <div className="flex-1 min-w-0 flex flex-col gap-3 p-3 sm:p-5 lg:p-6 overflow-y-auto max-h-[calc(100vh-4rem)]">
         {filterPills}
-        <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400">
-          <BookOpen className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" />
-          <p className="text-base font-medium mb-3">未找到符合条件的背诵题</p>
-          {onSelectFilter && (
-            <button
-              type="button"
-              onClick={() => onSelectFilter('all')}
-              className="clay-button-shadow clay-squash px-4 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white hover:bg-sky-700 transition-colors cursor-pointer"
-            >
-              查看全部
-            </button>
-          )}
+        <div className="book-stage flex-1 flex flex-col items-center justify-center">
+          <div className="book-page w-full max-w-2xl p-10 text-center flex flex-col items-center text-stone-600 dark:text-stone-400">
+            <BookOpen className="w-12 h-12 mb-3 text-stone-300 dark:text-stone-600" />
+            <p className="text-base font-medium mb-3">未找到符合条件的背诵题</p>
+            {onSelectFilter && (
+              <button
+                type="button"
+                onClick={() => onSelectFilter('all')}
+                className="px-4 py-1.5 rounded-md text-xs font-bold bg-sky-600 text-white hover:bg-sky-700 transition-colors cursor-pointer"
+              >
+                查看全部
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -220,42 +224,57 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
 
       {filterPills}
 
-      {/* 2. Main Question Card (Paper-textured spacious typography) */}
-      <div className="paper-card bg-white dark:bg-[#151b26] rounded-3xl p-5 sm:p-7 border border-slate-200/80 dark:border-slate-800/80 transition-colors">
-        {/* Top Badges (Minimal, crisp) */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800/80">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
-              第 {currentQ.id} 题 · {currentQ.chapterTitle.split(' ')[0]}
-            </span>
-            {currentQ.isCore && (
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 flex items-center gap-1">
-                <Zap className="w-3.5 h-3.5 text-rose-500" />
-                核心必背
+      {/* 2. Main Book Page */}
+      <div className="book-stage">
+        <article className={`book-page ${turnClass} p-6 sm:p-9 lg:px-11 lg:py-9`}>
+          <button
+            type="button"
+            onClick={() => onToggleStar(currentQ.id)}
+            aria-label={isStarred ? '取消收藏' : '收藏本题'}
+            aria-pressed={isStarred}
+            data-starred={isStarred}
+            className={`book-ribbon ${isStarred ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
+          >
+            <Bookmark className={`w-4 h-4 ${isStarred ? 'fill-amber-500 text-amber-500' : ''}`} />
+          </button>
+
+          {/* Top Marginalia */}
+          <div className="book-marginalia flex flex-wrap items-center justify-between gap-2.5 pr-10 pb-3 text-xs text-stone-600 dark:text-stone-400">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
+                第 {currentQ.id} 题 · {currentQ.chapterTitle.split(' ')[0]}
+              </span>
+              {currentQ.isCore && (
+                <span className="inline-flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400">
+                  <Zap className="w-3.5 h-3.5" />
+                  核心必背
+                </span>
+              )}
+            </div>
+
+            <div className="font-medium text-stone-600 dark:text-stone-400">
+              {currentQ.sectionTitle}
+            </div>
+          </div>
+
+          {/* Question Title with 1. style (Black font) + trailing PPT page ref */}
+          <h2 className="py-4 text-[length:var(--book-stem-size,1.15rem)] font-bold leading-relaxed text-slate-900 dark:text-white">
+            <span className="font-mono font-bold mr-1.5 text-slate-900 dark:text-white">{currentQ.id}.</span>
+            <span>{stripTrailingPptTag(currentQ.title)}</span>
+            {RECITATION_PPT_REFS[currentQ.id] && (
+              <span className="font-mono text-sm sm:text-base font-semibold text-stone-600 dark:text-stone-400 ml-1">
+                （{RECITATION_PPT_REFS[currentQ.id]}）
               </span>
             )}
+          </h2>
+
+          <hr className="book-divider-double my-3" />
+
+          {/* 3. Question Content / Answer Area (printed directly on page) */}
+          <div className="pt-2">
+            <MarkdownViewer content={currentQ.content} keywords={currentQ.keywords} maskKeywords={isMasking} />
           </div>
-
-          <div className="text-xs text-slate-500 font-medium">
-            {currentQ.sectionTitle}
-          </div>
-        </div>
-
-        {/* Question Title with 1. style (Black font) + trailing PPT page ref */}
-        <h2 className="py-4 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-white">
-          <span className="font-mono font-bold mr-1.5 text-slate-900 dark:text-white">{currentQ.id}.</span>
-          <span>{stripTrailingPptTag(currentQ.title)}</span>
-          {RECITATION_PPT_REFS[currentQ.id] && (
-            <span className="font-mono text-sm sm:text-base font-semibold text-slate-500 dark:text-slate-400 ml-1">
-              （{RECITATION_PPT_REFS[currentQ.id]}）
-            </span>
-          )}
-        </h2>
-
-        {/* 3. Question Content / Answer Area */}
-        <div className="paper-inner mt-2 p-5 sm:p-6 rounded-2xl bg-slate-50/80 dark:bg-[#18202e] border border-slate-200/80 dark:border-slate-800/80">
-          <MarkdownViewer content={currentQ.content} keywords={currentQ.keywords} maskKeywords={isMasking} />
-        </div>
+        </article>
       </div>
     </div>
   );

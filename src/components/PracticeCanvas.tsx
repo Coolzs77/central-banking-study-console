@@ -6,6 +6,7 @@ import {
   X,
   Star,
   RotateCcw,
+  Bookmark,
 } from 'lucide-react';
 import {
   TerminologyQuestion,
@@ -18,6 +19,7 @@ import {
 import { chaptersMeta } from '../data/chapters';
 import { MarkdownViewer } from './common/MarkdownViewer';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
+import { useBookPageTurn } from '../hooks/useBookPageTurn';
 import {
   TERM_PPT_REFS,
   FILL_PPT_REFS,
@@ -718,6 +720,34 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     { id: 'starred', label: '收藏', count: pillCounts.starred },
   ];
 
+  const activeBookKey =
+    activeTab === 'terms'
+      ? `terms-${currentTerm?.id ?? 0}`
+      : activeTab === 'choice'
+      ? `choice-${currentChoice?.id ?? 0}`
+      : activeTab === 'truefalse'
+      ? `tf-${currentTF?.id ?? 0}`
+      : activeTab === 'fill'
+      ? `fill-${currentFill?.id ?? 0}`
+      : activeTab === 'short'
+      ? `short-${currentShort?.id ?? 0}`
+      : `essay-${currentEssay?.id ?? 0}`;
+
+  const activeBookIdx =
+    activeTab === 'terms'
+      ? activeTermIdx
+      : activeTab === 'choice'
+      ? choiceIdx
+      : activeTab === 'truefalse'
+      ? tfIdx
+      : activeTab === 'fill'
+      ? fillIdx
+      : activeTab === 'short'
+      ? shortIdx
+      : essayIdx;
+
+  const bookTurnClass = useBookPageTurn(activeBookKey, activeBookIdx);
+
   const renderCardFooterActions = (
     isMemorized: boolean,
     onToggleMemorized: () => void,
@@ -726,42 +756,44 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     chapterId: number,
     chapterTitleOverride?: string
   ) => (
-    <div className="flex flex-wrap items-center justify-between gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-      <span className="text-xs text-slate-400">
+    <div className="flex flex-wrap items-center justify-between gap-2 pt-4 mt-2 border-t border-dashed border-stone-300/70 dark:border-stone-700/70">
+      <span className="text-xs text-stone-600 dark:text-stone-400">
         {chapterTitleOverride || getChapterTitle(chapterId)}
       </span>
 
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation();
             onToggleStar();
           }}
-          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition cursor-pointer ${
             isStarred
-              ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-50 hover:text-amber-500'
+              ? 'bg-amber-500 text-white border-amber-500'
+              : 'bg-transparent text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-400'
           }`}
         >
-          <Star className={`w-4 h-4 ${isStarred ? 'fill-white text-white' : 'text-slate-400'}`} />
+          <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-white text-white' : 'text-stone-400'}`} />
           <span>收藏</span>
         </button>
 
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation();
             onToggleMemorized();
           }}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-bold border transition cursor-pointer ${
             isMemorized
-              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-50 hover:text-emerald-600'
+              ? 'bg-emerald-600 text-white border-emerald-600'
+              : 'bg-transparent text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400'
           }`}
         >
           {isMemorized ? (
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle2 className="w-3.5 h-3.5" />
           ) : (
-            <Circle className="w-4 h-4 text-slate-400" />
+            <Circle className="w-3.5 h-3.5 text-stone-400" />
           )}
           <span>掌握</span>
         </button>
@@ -770,14 +802,14 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50/50 dark:bg-[#0b0f17] overflow-hidden select-text">
-      {/* Top Mode Sub-Tabs */}
-      <div className="bg-white dark:bg-[#151b26] border-b border-slate-200/80 dark:border-slate-800 px-4 py-2.5 flex flex-col gap-2 shadow-xs shrink-0">
+    <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden select-text">
+      {/* Top Mode Sub-Tabs (Underline Book Tabs) */}
+      <div className="bg-transparent border-b border-stone-300/70 dark:border-stone-800 px-4 pt-2.5 pb-2 flex flex-col gap-2 shrink-0">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div
             role="tablist"
             aria-label="专项练习题型"
-            className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-2xl flex-wrap"
+            className="flex items-center gap-4 sm:gap-5 flex-wrap border-b border-stone-300/50 dark:border-stone-800"
           >
             {tabItems.map((tab) => (
               <button
@@ -785,10 +817,10 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 role="tab"
                 aria-selected={activeTab === tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
+                className={`pb-2 -mb-px text-xs sm:text-[13px] font-bold border-b-2 transition-colors cursor-pointer ${
                   activeTab === tab.id
-                    ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'border-sky-600 dark:border-sky-400 text-sky-700 dark:text-sky-400'
+                    : 'border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
                 }`}
               >
                 {tab.label} (<span className="tabular-nums">{tab.count}</span>题)
@@ -796,12 +828,12 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             ))}
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+          <div className="flex items-center gap-3 text-xs text-stone-600 dark:text-stone-400 font-medium">
             <span>
-              已掌握: <span className="font-bold text-emerald-600 tabular-nums">{activeStats.mastered}</span> / <span className="tabular-nums">{activeStats.total}</span>
+              已掌握: <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">{activeStats.mastered}</span> / <span className="tabular-nums">{activeStats.total}</span>
             </span>
             <span>
-              已收藏: <span className="font-bold text-amber-500 tabular-nums">{activeStats.starred}</span>
+              已收藏: <span className="font-bold text-amber-600 dark:text-amber-400 tabular-nums">{activeStats.starred}</span>
             </span>
           </div>
         </div>
@@ -818,16 +850,14 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   onClick={() => setStatusFilter(pill.id)}
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${
                     isActive
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                      : 'bg-slate-50 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-sky-600 text-white border-sky-700'
+                      : 'bg-transparent text-stone-600 dark:text-stone-400 border-stone-300/80 dark:border-stone-700/80 hover:border-sky-400 hover:text-sky-700 dark:hover:text-sky-300'
                   }`}
                 >
                   <span>{pill.label}</span>
                   <span
-                    className={`tabular-nums text-[11px] px-1.5 py-0.2 rounded-full ${
-                      isActive
-                        ? 'bg-white/20 text-white'
-                        : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                    className={`tabular-nums text-[11px] ${
+                      isActive ? 'text-sky-100' : 'text-stone-400 dark:text-stone-500'
                     }`}
                   >
                     {pill.count}
@@ -837,7 +867,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             })}
           </div>
           {normalizedQuery && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-stone-500 dark:text-stone-400">
               搜索: “{searchQuery.trim()}”
             </span>
           )}
@@ -847,23 +877,25 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
       {/* Empty State when filtered list is empty */}
       {activeTabMeta.filtered.length === 0 && (
         <div className="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center">
-          <div className="w-full max-w-md bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-sm p-8 text-center space-y-4">
-            <div className="text-base font-bold text-slate-800 dark:text-slate-100">
-              当前筛选条件下暂无题目
+          <div className="book-stage w-full max-w-md">
+            <div className="book-page p-8 text-center space-y-4">
+              <div className="text-base font-bold text-slate-900 dark:text-white">
+                当前筛选条件下暂无题目
+              </div>
+              <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
+                {normalizedQuery
+                  ? '没有匹配当前搜索关键词与状态筛选的题目，请调整搜索词或重置筛选条件。'
+                  : '当前状态分类下暂时没有题目，点击下方按钮可恢复显示全部题目。'}
+              </p>
+              <button
+                type="button"
+                onClick={resetStatusFilter}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>重置筛选</span>
+              </button>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              {normalizedQuery
-                ? '没有匹配当前搜索关键词与状态筛选的题目，请调整搜索词或重置筛选条件。'
-                : '当前状态分类下暂时没有题目，点击下方按钮可恢复显示全部题目。'}
-            </p>
-            <button
-              type="button"
-              onClick={resetStatusFilter}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>重置筛选</span>
-            </button>
           </div>
         </div>
       )}
@@ -899,47 +931,65 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="w-full max-w-3xl my-auto space-y-4">
-              <div
+            <div className="book-stage w-full max-w-3xl my-auto">
+              <article
                 onClick={() => setIsFlipped((prev) => !prev)}
-                className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between cursor-pointer select-none group"
+                className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between cursor-pointer select-none group`}
               >
-                <div className="flex items-center justify-between text-xs text-slate-400">
-                  <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleTermStarred(currentTerm.id);
+                  }}
+                  aria-label={termStarred.includes(currentTerm.id) ? '取消收藏' : '收藏本题'}
+                  aria-pressed={termStarred.includes(currentTerm.id)}
+                  data-starred={termStarred.includes(currentTerm.id)}
+                  className={`book-ribbon ${termStarred.includes(currentTerm.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
+                >
+                  <Bookmark className={`w-4 h-4 ${termStarred.includes(currentTerm.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                </button>
+
+                <div className="book-marginalia flex items-center justify-between pr-10 text-xs text-stone-600 dark:text-stone-400">
+                  <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                     名词解释 #{currentTerm.id}
                   </span>
-                  {currentTerm.source && <span className="text-slate-500">{currentTerm.source}</span>}
+                  {currentTerm.source && <span>{currentTerm.source}</span>}
                 </div>
 
                 <div className="my-8 text-center">
                   {!isFlipped ? (
                     <div className="space-y-4">
-                      <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight group-hover:text-blue-600 transition-colors">
+                      <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
                         {currentTerm.term}
                         {TERM_PPT_REFS[currentTerm.id] && (
-                          <span className="font-mono text-base sm:text-lg font-semibold text-slate-500 dark:text-slate-400 ml-1.5 align-middle">
+                          <span className="font-mono text-base sm:text-lg font-semibold text-stone-600 dark:text-stone-400 ml-1.5 align-middle">
                             （{TERM_PPT_REFS[currentTerm.id]}）
                           </span>
                         )}
                       </h2>
-                      <p className="text-sm text-slate-400 font-medium">
+                      <p className="text-sm text-stone-500 dark:text-stone-400 font-medium">
                         查看定义
                       </p>
                     </div>
                   ) : (
                     <div className="text-left space-y-4">
                       <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                        <span className="w-2 h-2 rounded-full bg-sky-600"></span>
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                           {currentTerm.term}
                           {TERM_PPT_REFS[currentTerm.id] && (
-                            <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
+                            <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
                               （{TERM_PPT_REFS[currentTerm.id]}）
                             </span>
                           )}
                         </h3>
                       </div>
-                      <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-base leading-relaxed text-slate-800 dark:text-slate-200">
+                      <hr className="book-divider" />
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-base leading-relaxed text-slate-800 dark:text-slate-200 select-text cursor-auto"
+                      >
                         <MarkdownViewer content={currentTerm.definition} maskKeywords={isMasking} />
                       </div>
                     </div>
@@ -954,7 +1004,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   currentTerm.chapterId,
                   currentTerm.chapterTitle
                 )}
-              </div>
+              </article>
             </div>
           </div>
         </div>
@@ -996,86 +1046,101 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="w-full max-w-3xl my-auto space-y-4">
-              <div className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6">
-                {/* Top Card Meta */}
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+            <div className="book-stage w-full max-w-3xl my-auto">
+              <article className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6`}>
+                <button
+                  type="button"
+                  onClick={() => onToggleChoiceStarred(currentChoice.id)}
+                  aria-label={choiceStarred.includes(currentChoice.id) ? '取消收藏' : '收藏本题'}
+                  aria-pressed={choiceStarred.includes(currentChoice.id)}
+                  data-starred={choiceStarred.includes(currentChoice.id)}
+                  className={`book-ribbon ${choiceStarred.includes(currentChoice.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
+                >
+                  <Bookmark className={`w-4 h-4 ${choiceStarred.includes(currentChoice.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                </button>
+
+                {/* Top Marginalia */}
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       单选专项 #{currentChoice.id}
                     </span>
                     {currentChoice.recitationQuestionId && (
-                      <span className="font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <span className="font-medium">
                         源自全书速记 #{currentChoice.recitationQuestionId}
                       </span>
                     )}
                   </div>
-                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                  <span className="font-mono font-medium tabular-nums">
                     第 {choiceIdx + 1} / {filteredChoices.length} 题
                   </span>
                 </div>
 
                 {/* Question Stem & Options */}
                 <div className="space-y-5">
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                  <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
                     <span className="font-mono mr-1.5">{choiceIdx + 1}.</span>
                     <span>{currentChoice.stem}</span>
                     {CHOICE_PPT_REFS[currentChoice.id] && (
-                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
+                      <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
                         （{CHOICE_PPT_REFS[currentChoice.id]}）
                       </span>
                     )}
                   </h3>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {(['A', 'B', 'C', 'D'] as const).map((key) => {
                       const text = currentChoice.options[key];
                       const isSelected = selectedOption === key;
                       const isCorrect = key === currentChoice.correctKey;
 
                       let optClass =
-                        'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200';
+                        'border-stone-300/80 dark:border-stone-700/80 hover:bg-stone-50/70 dark:hover:bg-stone-800/40 text-slate-800 dark:text-slate-200';
 
                       if (showChoiceExplanation) {
                         if (isCorrect) {
                           optClass =
-                            'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold';
+                            'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold';
                         } else if (isSelected) {
                           optClass =
-                            'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-900 dark:text-rose-200';
+                            'bg-rose-50/80 dark:bg-rose-950/40 border-rose-500 text-rose-900 dark:text-rose-200';
                         }
                       } else if (isSelected) {
                         optClass =
-                          'border-blue-500 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 font-bold';
+                          'border-sky-500 bg-sky-50/60 dark:bg-sky-950/40 text-sky-900 dark:text-sky-100 font-bold';
                       }
 
                       return (
                         <button
                           key={key}
+                          type="button"
                           onClick={() => {
                             setSelectedOption(key);
                             setShowChoiceExplanation(true);
                           }}
-                          className={`w-full p-4 rounded-2xl border text-left flex items-start gap-3 transition cursor-pointer text-sm ${optClass}`}
+                          className={`w-full px-4 py-3 rounded-lg border text-left flex items-start gap-3 transition cursor-pointer text-sm ${optClass}`}
                         >
-                          <span className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-xs shrink-0">
-                            {key}
+                          <span className="font-mono font-bold text-xs pt-0.5 shrink-0">
+                            {key}.
                           </span>
-                          <span className="flex-1 pt-0.5">{text}</span>
+                          <span className="flex-1">{text}</span>
                         </button>
                       );
                     })}
                   </div>
 
                   {showChoiceExplanation && (
-                    <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
-                      <div className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">
-                        正确答案：【{currentChoice.correctKey}】
+                    <>
+                      <hr className="book-divider" />
+                      <div className="space-y-2 text-xs">
+                        <div className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">
+                          正确答案：【{currentChoice.correctKey}】
+                        </div>
+                        <div className="text-stone-700 dark:text-stone-300 leading-relaxed text-xs sm:text-sm">
+                          {currentChoice.rationale}
+                        </div>
                       </div>
-                      <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
-                        {currentChoice.rationale}
-                      </div>
-                    </div>
+                    </>
                   )}
                 </div>
 
@@ -1086,7 +1151,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   () => onToggleChoiceStarred(currentChoice.id),
                   currentChoice.chapterId
                 )}
-              </div>
+              </article>
             </div>
           </div>
         </div>
@@ -1125,32 +1190,43 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="w-full max-w-3xl my-auto space-y-4">
-              <div className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6">
-                {/* Top Card Meta */}
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+            <div className="book-stage w-full max-w-3xl my-auto">
+              <article className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6`}>
+                <button
+                  type="button"
+                  onClick={() => onToggleTfStarred(currentTF.id)}
+                  aria-label={tfStarred.includes(currentTF.id) ? '取消收藏' : '收藏本题'}
+                  aria-pressed={tfStarred.includes(currentTF.id)}
+                  data-starred={tfStarred.includes(currentTF.id)}
+                  className={`book-ribbon ${tfStarred.includes(currentTF.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
+                >
+                  <Bookmark className={`w-4 h-4 ${tfStarred.includes(currentTF.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                </button>
+
+                {/* Top Marginalia */}
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       判断改错 #{currentTF.id}
                     </span>
                     {currentTF.recitationQuestionId && (
-                      <span className="font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <span className="font-medium">
                         源自全书速记 #{currentTF.recitationQuestionId}
                       </span>
                     )}
                   </div>
-                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                  <span className="font-mono font-medium tabular-nums">
                     第 {tfIdx + 1} / {filteredTrueFalse.length} 题
                   </span>
                 </div>
 
                 {/* Statement & Answer Buttons */}
                 <div className="space-y-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                  <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
                     <span className="font-mono mr-1.5">{tfIdx + 1}.</span>
                     <span>{currentTF.statement}</span>
                     {TF_PPT_REFS[currentTF.id] && (
-                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
+                      <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
                         （{TF_PPT_REFS[currentTF.id]}）
                       </span>
                     )}
@@ -1158,36 +1234,38 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <button
+                      type="button"
                       onClick={() => {
                         setSelectedTf(true);
                         setShowTfExplanation(true);
                       }}
-                      className={`p-4 rounded-2xl border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
+                      className={`p-3.5 rounded-lg border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
                         showTfExplanation
                           ? currentTF.isCorrect
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-bold'
+                            ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-bold'
                             : selectedTf === true
-                            ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-200'
-                            : 'border-slate-200 dark:border-slate-700 text-slate-500'
-                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                            ? 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-200'
+                            : 'border-stone-300/80 dark:border-stone-700/80 text-stone-500'
+                          : 'border-stone-300/80 dark:border-stone-700/80 hover:bg-stone-50/70 dark:hover:bg-stone-800/40 text-slate-800 dark:text-slate-200'
                       }`}
                     >
                       <Check className="w-4 h-4 text-emerald-600" />
                       <span>正确 (√)</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => {
                         setSelectedTf(false);
                         setShowTfExplanation(true);
                       }}
-                      className={`p-4 rounded-2xl border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
+                      className={`p-3.5 rounded-lg border flex items-center justify-center gap-2 font-bold transition text-sm cursor-pointer ${
                         showTfExplanation
                           ? !currentTF.isCorrect
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-bold'
+                            ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-bold'
                             : selectedTf === false
-                            ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-200'
-                            : 'border-slate-200 dark:border-slate-700 text-slate-500'
-                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                            ? 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-200'
+                            : 'border-stone-300/80 dark:border-stone-700/80 text-stone-500'
+                          : 'border-stone-300/80 dark:border-stone-700/80 hover:bg-stone-50/70 dark:hover:bg-stone-800/40 text-slate-800 dark:text-slate-200'
                       }`}
                     >
                       <X className="w-4 h-4 text-rose-600" />
@@ -1196,14 +1274,17 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   </div>
 
                   {showTfExplanation && (
-                    <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
-                      <div className="font-bold text-slate-900 dark:text-white text-sm">
-                        判断结果：本题陈述【{currentTF.isCorrect ? '正确 (√)' : '错误 (×)'}】
+                    <>
+                      <hr className="book-divider" />
+                      <div className="space-y-2 text-xs">
+                        <div className="font-bold text-slate-900 dark:text-white text-sm">
+                          判断结果：本题陈述【{currentTF.isCorrect ? '正确 (√)' : '错误 (×)'}】
+                        </div>
+                        <div className="text-stone-700 dark:text-stone-300 leading-relaxed text-xs sm:text-sm">
+                          {currentTF.errorCorrection}
+                        </div>
                       </div>
-                      <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
-                        {currentTF.errorCorrection}
-                      </div>
-                    </div>
+                    </>
                   )}
                 </div>
 
@@ -1214,7 +1295,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   () => onToggleTfStarred(currentTF.id),
                   currentTF.chapterId
                 )}
-              </div>
+              </article>
             </div>
           </div>
         </div>
@@ -1253,63 +1334,83 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="w-full max-w-3xl my-auto space-y-4">
-              <div
+            <div className="book-stage w-full max-w-3xl my-auto">
+              <article
                 onClick={() => setShowFillAnswer((prev) => !prev)}
-                className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6 cursor-pointer select-none"
+                className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6 cursor-pointer select-none`}
               >
-                {/* Top Card Meta */}
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFillStarred(currentFill.id);
+                  }}
+                  aria-label={fillStarred.includes(currentFill.id) ? '取消收藏' : '收藏本题'}
+                  aria-pressed={fillStarred.includes(currentFill.id)}
+                  data-starred={fillStarred.includes(currentFill.id)}
+                  className={`book-ribbon ${fillStarred.includes(currentFill.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
+                >
+                  <Bookmark className={`w-4 h-4 ${fillStarred.includes(currentFill.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                </button>
+
+                {/* Top Marginalia */}
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       填空专项 #{currentFill.id}
                     </span>
                     {currentFill.recitationQuestionId && (
-                      <span className="font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <span className="font-medium">
                         源自全书速记 #{currentFill.recitationQuestionId}
                       </span>
                     )}
                   </div>
+                  <span className="font-mono font-medium tabular-nums">
+                    第 {fillIdx + 1} / {filteredFillIns.length} 题
+                  </span>
                 </div>
 
                 {/* Stem & Answer */}
                 <div className="space-y-6 my-4">
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                  <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
                     <span className="font-mono mr-1.5">{fillIdx + 1}.</span>
                     <span>{currentFill.stem}</span>
                     {FILL_PPT_REFS[currentFill.id] && (
-                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
+                      <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
                         （{FILL_PPT_REFS[currentFill.id]}）
                       </span>
                     )}
                   </h3>
 
                   {!showFillAnswer ? (
-                    <p className="text-sm text-slate-400 font-medium">
+                    <p className="text-sm text-stone-500 dark:text-stone-400 font-medium">
                       查看答案
                     </p>
                   ) : (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2.5 text-xs select-text cursor-auto"
-                    >
-                      <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex flex-wrap items-center gap-2">
-                        <span>参考答案：</span>
-                        {currentFill.answers.map((ans, aIdx) => (
-                          <span
-                            key={aIdx}
-                            className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 rounded-lg font-bold"
-                          >
-                            {ans}
-                          </span>
-                        ))}
-                      </div>
-                      {currentFill.explanation && (
-                        <div className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
-                          解析：{currentFill.explanation}
+                    <>
+                      <hr className="book-divider" />
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="space-y-2.5 text-xs select-text cursor-auto"
+                      >
+                        <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex flex-wrap items-center gap-2">
+                          <span>参考答案：</span>
+                          {currentFill.answers.map((ans, aIdx) => (
+                            <span
+                              key={aIdx}
+                              className="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-b-2 border-emerald-500 font-bold"
+                            >
+                              {ans}
+                            </span>
+                          ))}
                         </div>
-                      )}
-                    </div>
+                        {currentFill.explanation && (
+                          <div className="text-stone-700 dark:text-stone-300 leading-relaxed text-xs sm:text-sm">
+                            解析：{currentFill.explanation}
+                          </div>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
 
@@ -1320,7 +1421,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   () => onToggleFillStarred(currentFill.id),
                   currentFill.chapterId
                 )}
-              </div>
+              </article>
             </div>
           </div>
         </div>
@@ -1362,50 +1463,61 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="w-full max-w-3xl my-auto space-y-4">
-              <div className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6">
-                {/* Top Card Meta */}
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+            <div className="book-stage w-full max-w-3xl my-auto">
+              <article className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6`}>
+                <button
+                  type="button"
+                  onClick={() => onToggleShortStarred(currentShort.id)}
+                  aria-label={shortStarred.includes(currentShort.id) ? '取消收藏' : '收藏本题'}
+                  aria-pressed={shortStarred.includes(currentShort.id)}
+                  data-starred={shortStarred.includes(currentShort.id)}
+                  className={`book-ribbon ${shortStarred.includes(currentShort.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
+                >
+                  <Bookmark className={`w-4 h-4 ${shortStarred.includes(currentShort.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                </button>
+
+                {/* Top Marginalia */}
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       简答题 #{currentShort.id}
                     </span>
-                    <span className="font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
-                      {getChapterTitle(currentShort.chapterId)}
-                    </span>
-                    <span className="font-mono font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-xl border border-amber-200 dark:border-amber-800">
+                    <span>{getChapterTitle(currentShort.chapterId)}</span>
+                    <span className="font-mono font-bold text-amber-700 dark:text-amber-400">
                       {currentShort.totalPoints ?? currentShort.points ?? 6} 分
                     </span>
                   </div>
-                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                  <span className="font-mono font-medium tabular-nums">
                     第 {shortIdx + 1} / {filteredShortAnswers.length} 题
                   </span>
                 </div>
 
                 {/* Question & Expandable Sample Answer / Rubric */}
                 <div className="space-y-5">
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                  <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
                     <span className="font-mono mr-1.5">{shortIdx + 1}.</span>
                     <span>{currentShort.question}</span>
                     {SHORT_PPT_REFS[currentShort.id] && (
-                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
+                      <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
                         （{SHORT_PPT_REFS[currentShort.id]}）
                       </span>
                     )}
                   </h3>
 
                   {!showShortAnswer ? (
-                    <div
+                    <button
+                      type="button"
                       onClick={() => setShowShortAnswer(true)}
-                      className="p-5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 text-center cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition"
+                      className="w-full py-4 border-y border-dashed border-stone-300/80 dark:border-stone-700/80 text-center cursor-pointer hover:bg-stone-50/40 dark:hover:bg-stone-800/30 transition"
                     >
-                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                      <span className="text-sm text-stone-600 dark:text-stone-400 font-medium">
                         展开参考答案
-                      </p>
-                    </div>
+                      </span>
+                    </button>
                   ) : (
-                    <div className="space-y-4">
-                      <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+                    <div className="space-y-5">
+                      <hr className="book-divider" />
+                      <div className="space-y-2.5">
                         <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
                           参考答案
                         </div>
@@ -1415,27 +1527,30 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       </div>
 
                       {(currentShort.rubricPoints || currentShort.rubrics || []).length > 0 && (
-                        <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-200/70 dark:border-amber-800/50 space-y-2.5">
-                          <div className="text-xs font-bold text-amber-800 dark:text-amber-300">
-                            分步采分点（共 {currentShort.totalPoints ?? currentShort.points ?? 6} 分）
+                        <>
+                          <hr className="book-divider" />
+                          <div className="space-y-2">
+                            <div className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                              分步采分点（共 {currentShort.totalPoints ?? currentShort.points ?? 6} 分）
+                            </div>
+                            <div className="divide-y divide-dashed divide-stone-300/70 dark:divide-stone-700/70">
+                              {(currentShort.rubricPoints || currentShort.rubrics || []).map((r, rIdx) => (
+                                <div
+                                  key={rIdx}
+                                  className="flex items-start justify-between gap-3 py-2 text-xs sm:text-sm text-stone-700 dark:text-stone-300"
+                                >
+                                  <span className="flex-1 leading-relaxed">
+                                    <span className="font-mono font-bold text-amber-600 dark:text-amber-400 mr-1.5">{rIdx + 1}.</span>
+                                    {r.point}
+                                  </span>
+                                  <span className="shrink-0 font-mono font-bold text-xs text-amber-700 dark:text-amber-300 tabular-nums">
+                                    {r.score} 分
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="space-y-1.5">
-                            {(currentShort.rubricPoints || currentShort.rubrics || []).map((r, rIdx) => (
-                              <div
-                                key={rIdx}
-                                className="flex items-start justify-between gap-3 text-xs sm:text-sm text-slate-700 dark:text-slate-300 bg-white/80 dark:bg-slate-900/50 px-3 py-2 rounded-xl border border-amber-200/50 dark:border-amber-800/30"
-                              >
-                                <span className="flex-1 leading-relaxed">
-                                  <span className="font-mono font-bold text-amber-600 mr-1.5">{rIdx + 1}.</span>
-                                  {r.point}
-                                </span>
-                                <span className="shrink-0 font-mono font-bold text-xs px-2 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
-                                  {r.score} 分
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                        </>
                       )}
                     </div>
                   )}
@@ -1448,7 +1563,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   () => onToggleShortStarred(currentShort.id),
                   currentShort.chapterId
                 )}
-              </div>
+              </article>
             </div>
           </div>
         </div>
@@ -1487,22 +1602,33 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="w-full max-w-3xl my-auto space-y-4">
-              <div className="paper-card w-full min-h-[320px] bg-white dark:bg-[#151b26] rounded-3xl border border-slate-200/90 dark:border-slate-800 transition-colors p-6 sm:p-8 flex flex-col justify-between gap-6">
-                {/* Top Card Meta */}
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
+            <div className="book-stage w-full max-w-3xl my-auto">
+              <article className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6`}>
+                <button
+                  type="button"
+                  onClick={() => onToggleEssayStarred(currentEssay.id)}
+                  aria-label={essayStarred.includes(currentEssay.id) ? '取消收藏' : '收藏本题'}
+                  aria-pressed={essayStarred.includes(currentEssay.id)}
+                  data-starred={essayStarred.includes(currentEssay.id)}
+                  className={`book-ribbon ${essayStarred.includes(currentEssay.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
+                >
+                  <Bookmark className={`w-4 h-4 ${essayStarred.includes(currentEssay.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
+                </button>
+
+                {/* Top Marginalia */}
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       论述题 #{currentEssay.id}
                     </span>
-                    <span className="font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span>
                       {currentEssay.chapterRange} · {currentEssay.topicCategory === 'monetary-policy' ? '货币政策专题' : '金融监管专题'}
                     </span>
-                    <span className="font-mono font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-xl border border-amber-200 dark:border-amber-800">
+                    <span className="font-mono font-bold text-amber-700 dark:text-amber-400">
                       {currentEssay.totalPoints ?? currentEssay.points ?? 20} 分
                     </span>
                   </div>
-                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                  <span className="font-mono font-medium tabular-nums">
                     第 {essayIdx + 1} / {filteredEssays.length} 题
                   </span>
                 </div>
@@ -1515,11 +1641,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                         专题：{currentEssay.title}
                       </div>
                     )}
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                    <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
                       <span className="font-mono mr-1.5">{essayIdx + 1}.</span>
                       <span>{currentEssay.question}</span>
                       {ESSAY_PPT_REFS[currentEssay.id] && (
-                        <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
+                        <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
                           （{ESSAY_PPT_REFS[currentEssay.id]}）
                         </span>
                       )}
@@ -1527,17 +1653,19 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   </div>
 
                   {!showEssayAnswer ? (
-                    <div
+                    <button
+                      type="button"
                       onClick={() => setShowEssayAnswer(true)}
-                      className="p-5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 text-center cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition"
+                      className="w-full py-4 border-y border-dashed border-stone-300/80 dark:border-stone-700/80 text-center cursor-pointer hover:bg-stone-50/40 dark:hover:bg-stone-800/30 transition"
                     >
-                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                      <span className="text-sm text-stone-600 dark:text-stone-400 font-medium">
                         展开参考答案
-                      </p>
-                    </div>
+                      </span>
+                    </button>
                   ) : (
-                    <div className="space-y-4">
-                      <div className="paper-inner p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+                    <div className="space-y-5">
+                      <hr className="book-divider" />
+                      <div className="space-y-2.5">
                         <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
                           参考答案框架
                         </div>
@@ -1547,38 +1675,38 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       </div>
 
                       {currentEssay.rubric && (
-                        <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-200/70 dark:border-amber-800/50 space-y-2.5">
-                          <div className="text-xs font-bold text-amber-800 dark:text-amber-300">
-                            四维评分标准（共 {currentEssay.totalPoints ?? currentEssay.points ?? 20} 分）
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {(
-                              [
-                                { key: 'theory', label: '一、理论基础' },
-                                { key: 'mechanism', label: '二、作用机制' },
-                                { key: 'practice', label: '三、现实结合' },
-                                { key: 'conclusion', label: '四、政策结论' },
-                              ] as const
-                            ).map(({ key, label }) => {
-                              const dim = currentEssay.rubric[key];
-                              if (!dim) return null;
-                              return (
-                                <div
-                                  key={key}
-                                  className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/50 border border-amber-200/50 dark:border-amber-800/30 space-y-1"
-                                >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">{label}</span>
-                                    <span className="font-mono font-bold text-xs px-2 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
-                                      {dim.score} 分
-                                    </span>
+                        <>
+                          <hr className="book-divider" />
+                          <div className="space-y-2">
+                            <div className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                              四维评分标准（共 {currentEssay.totalPoints ?? currentEssay.points ?? 20} 分）
+                            </div>
+                            <div className="divide-y divide-dashed divide-stone-300/70 dark:divide-stone-700/70">
+                              {(
+                                [
+                                  { key: 'theory', label: '一、理论基础' },
+                                  { key: 'mechanism', label: '二、作用机制' },
+                                  { key: 'practice', label: '三、现实结合' },
+                                  { key: 'conclusion', label: '四、政策结论' },
+                                ] as const
+                              ).map(({ key, label }) => {
+                                const dim = currentEssay.rubric[key];
+                                if (!dim) return null;
+                                return (
+                                  <div key={key} className="py-2.5 space-y-1">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">{label}</span>
+                                      <span className="font-mono font-bold text-xs text-amber-700 dark:text-amber-300 tabular-nums">
+                                        {dim.score} 分
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">{dim.desc}</p>
                                   </div>
-                                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{dim.desc}</p>
-                                </div>
-                              );
-                            })}
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
+                        </>
                       )}
                     </div>
                   )}
@@ -1592,7 +1720,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   currentEssay.chapterId || 1,
                   currentEssay.chapterRange
                 )}
-              </div>
+              </article>
             </div>
           </div>
         </div>

@@ -395,14 +395,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   return (
     <aside
       aria-label="辅助导航栏"
-      className={`w-80 shrink-0 h-[calc(100vh-4rem)] sticky top-16 bg-white/95 dark:bg-[#151b26]/95 border-l border-slate-200/80 dark:border-slate-800 flex flex-col overflow-hidden text-slate-800 dark:text-slate-200 backdrop-blur-md ${className}`}
+      className={`w-80 shrink-0 h-[calc(100vh-4rem)] sticky top-16 bg-[#f6f1e7]/95 dark:bg-[#161411]/95 border-l border-stone-300/70 dark:border-stone-800 flex flex-col overflow-hidden text-stone-800 dark:text-stone-200 backdrop-blur-md ${className}`}
     >
       {/* Top Header: 3-Tab Segmented Control + Collapse Button */}
-      <div className="px-3 py-2.5 border-b border-slate-200/80 dark:border-slate-800 flex items-center gap-2 shrink-0">
+      <div className="px-3 py-2.5 border-b border-stone-300/70 dark:border-stone-800 flex items-center gap-2 shrink-0">
         <div
           role="tablist"
           aria-label="右侧栏视图"
-          className="flex-1 grid grid-cols-3 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80"
+          className="flex-1 grid grid-cols-3 p-0.5 rounded-md bg-stone-200/70 dark:bg-stone-800/80"
         >
           {(
             [
@@ -419,10 +419,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 role="tab"
                 aria-selected={selected}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                className={`py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
                   selected
-                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-[#fbf8f1] dark:bg-stone-900 text-stone-900 dark:text-amber-300 shadow-xs'
+                    : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
                 }`}
               >
                 {tab.label}
@@ -436,7 +436,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             type="button"
             onClick={onToggleCollapse}
             aria-label="折叠右侧栏"
-            className="hidden lg:inline-flex w-8 h-8 rounded-lg items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+            className="hidden lg:inline-flex w-8 h-8 rounded-md items-center justify-center text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors cursor-pointer shrink-0"
           >
             <PanelRightClose className="w-4 h-4" />
           </button>
@@ -447,25 +447,25 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       {activeTab === 'matrix' && (
         <div role="tabpanel" className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {currentMode === 'exam' ? (
-            <div className="flex-1 overflow-y-auto overscroll-contain p-3.5 space-y-2.5">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200/80 dark:border-slate-800">
-                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-3.5 space-y-2">
+              <div className="flex items-center justify-between pb-2 border-b border-stone-300/70 dark:border-stone-800">
+                <span className="text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   <span>试卷大题跳转</span>
                 </span>
-                <span className="text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-mono tabular-nums text-stone-500 dark:text-stone-400">
                   100分
                 </span>
               </div>
-              <div className="space-y-1.5">
+              <div className="divide-y divide-stone-200/80 dark:divide-stone-800/80">
                 {EXAM_SECTIONS.map((sec) => (
                   <button
                     key={sec.id}
                     type="button"
                     onClick={() => scrollToExamSection(sec.id)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 hover:bg-purple-50/70 dark:hover:bg-purple-950/30 hover:border-purple-300 dark:hover:border-purple-700 flex items-center justify-between text-left transition-colors cursor-pointer"
+                    className="w-full px-2 py-2.5 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 flex items-center justify-between text-left transition-colors cursor-pointer"
                   >
-                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    <span className="text-xs font-semibold text-stone-800 dark:text-stone-200">
                       {sec.title}
                     </span>
                     <span className="text-xs font-mono tabular-nums text-purple-600 dark:text-purple-400">
@@ -548,44 +548,42 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       {/* Tab 2: Clickable Chapter & Section Outline */}
       {activeTab === 'outline' && (
         <div role="tabpanel" className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div className="px-3.5 py-2.5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0">
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+          <div className="px-3.5 py-2.5 border-b border-stone-300/70 dark:border-stone-800 flex items-center justify-between shrink-0">
+            <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">
               章节大纲
             </span>
-            <span className="text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-mono tabular-nums text-stone-500 dark:text-stone-400">
               {chapters.length} 章
             </span>
           </div>
-          <div className="flex-1 overflow-y-auto overscroll-contain p-3 space-y-2">
+          <div className="flex-1 overflow-y-auto overscroll-contain px-3 divide-y divide-stone-200/80 dark:divide-stone-800/80">
             {chapters.map((ch) => {
               const isCurrChapter = ch.id === currentChapterId;
               const firstSectionId = ch.sections?.[0]?.id || '';
               return (
                 <div
                   key={ch.id}
-                  className={`rounded-xl border transition-colors ${
-                    isCurrChapter
-                      ? 'border-blue-300 dark:border-blue-700 bg-blue-50/40 dark:bg-blue-950/25'
-                      : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/30'
+                  className={`py-2 transition-colors ${
+                    isCurrChapter ? 'border-l-2 border-l-amber-600 dark:border-l-amber-400 pl-2' : ''
                   }`}
                 >
                   <button
                     type="button"
                     onClick={() => onSelectSection?.(ch.id, firstSectionId)}
-                    className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center justify-between gap-2 rounded-t-xl transition-colors cursor-pointer ${
+                    className={`w-full px-1 py-1 text-left text-xs font-semibold flex items-center justify-between gap-2 transition-colors cursor-pointer ${
                       isCurrChapter
-                        ? 'text-blue-700 dark:text-blue-300'
-                        : 'text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400'
+                        ? 'text-amber-800 dark:text-amber-300'
+                        : 'text-stone-800 dark:text-stone-200 hover:text-amber-700 dark:hover:text-amber-400'
                     }`}
                   >
                     <span className="truncate">{ch.title}</span>
-                    <span className="text-[11px] font-mono tabular-nums text-slate-400 shrink-0">
+                    <span className="text-[11px] font-mono tabular-nums text-stone-400 shrink-0">
                       {ch.totalQuestions}题
                     </span>
                   </button>
 
                   {ch.sections && ch.sections.length > 0 && (
-                    <div className="px-2 pb-2 space-y-0.5">
+                    <div className="pl-2 pt-1 space-y-0.5">
                       {ch.sections.map((sec) => {
                         const isCurrSec = isCurrChapter && sec.id === currentSectionId;
                         const stats = sectionStatsMap.get(`${ch.id}:${sec.id}`);
@@ -597,18 +595,18 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                             key={sec.id}
                             type="button"
                             onClick={() => onSelectSection?.(ch.id, sec.id)}
-                            className={`w-full px-2.5 py-1.5 rounded-lg text-left text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer ${
+                            className={`w-full px-2 py-1 rounded text-left text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer ${
                               isCurrSec
-                                ? 'bg-blue-600 text-white font-medium'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
+                                ? 'bg-amber-600 text-white font-medium'
+                                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/60 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-200'
                             }`}
                           >
                             <span className="truncate">{sec.title}</span>
                             <span
                               className={`text-[11px] font-mono tabular-nums shrink-0 ${
                                 isCurrSec
-                                  ? 'text-blue-100'
-                                  : 'text-slate-400 dark:text-slate-500'
+                                  ? 'text-amber-100'
+                                  : 'text-stone-400 dark:text-stone-500'
                               }`}
                             >
                               {memorized}/{total}
@@ -629,33 +627,33 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       {activeTab === 'terms' && (
         <div role="tabpanel" className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* Header & Search */}
-          <div className="p-3 border-b border-slate-200/80 dark:border-slate-800 space-y-2 shrink-0">
+          <div className="p-3 border-b border-stone-300/70 dark:border-stone-800 space-y-2 shrink-0">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+              <span className="font-semibold text-stone-700 dark:text-stone-300 tabular-nums">
                 名词 ({terminologyList.length})
               </span>
               {termSearch.trim() && (
-                <span className="text-[11px] font-mono tabular-nums text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] font-mono tabular-nums text-stone-500 dark:text-stone-400">
                   匹配 {sortedFilteredTerms.length} 条
                 </span>
               )}
             </div>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
               <input
                 type="text"
                 aria-label="搜索核心名词"
                 placeholder="搜索名词或释义…"
                 value={termSearch}
                 onChange={(e) => setTermSearch(e.target.value)}
-                className="w-full pl-8 pr-8 py-1.5 text-xs rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full pl-8 pr-8 py-1.5 text-xs rounded-md bg-white/70 dark:bg-stone-900 border border-stone-300/80 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:border-amber-600 transition-colors"
               />
               {termSearch && (
                 <button
                   type="button"
                   onClick={() => setTermSearch('')}
                   aria-label="清空搜索"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -663,10 +661,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             </div>
           </div>
 
-          {/* Accordion List */}
-          <div className="flex-1 overflow-y-auto overscroll-contain p-3 space-y-1.5">
+          {/* Accordion Index List */}
+          <div className="flex-1 overflow-y-auto overscroll-contain px-3 divide-y divide-stone-200/80 dark:divide-stone-800/80">
             {sortedFilteredTerms.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
+              <div className="py-8 text-center text-xs text-stone-400 dark:text-stone-500">
                 未找到匹配名词
               </div>
             ) : (
@@ -677,23 +675,21 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 return (
                   <div
                     key={t.id}
-                    className={`rounded-xl border transition-colors ${
-                      isExpanded
-                        ? 'border-blue-300 dark:border-blue-700 bg-blue-50/30 dark:bg-blue-950/20'
-                        : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                    className={`transition-colors ${
+                      isExpanded ? 'bg-amber-500/5 dark:bg-amber-500/5' : ''
                     }`}
                   >
                     <button
                       type="button"
                       aria-expanded={isExpanded}
                       onClick={() => setExpandedTermId(isExpanded ? null : t.id)}
-                      className="w-full px-3 py-2 text-left flex items-center justify-between gap-2 cursor-pointer"
+                      className="w-full px-1 py-2.5 text-left flex items-center justify-between gap-2 cursor-pointer"
                     >
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[11px] font-mono tabular-nums text-slate-400 shrink-0">
+                        <span className="text-[11px] font-mono tabular-nums text-stone-400 shrink-0">
                           {t.id}
                         </span>
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
+                        <span className="text-xs font-semibold text-stone-800 dark:text-stone-100 truncate">
                           {t.term}
                         </span>
                         {isRelated && (
@@ -707,7 +703,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                           <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         )}
                         <ChevronDown
-                          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 ${
+                          className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ${
                             isExpanded ? 'rotate-180' : ''
                           }`}
                         />
@@ -715,14 +711,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     </button>
 
                     {isExpanded && (
-                      <div className="px-3 pb-3 pt-1.5 border-t border-slate-200/70 dark:border-slate-800 space-y-2.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                      <div className="px-2 pb-3 pt-1.5 border-t border-dashed border-stone-200/80 dark:border-stone-800 space-y-2.5 text-xs leading-relaxed text-stone-600 dark:text-stone-300">
                         <MarkdownViewer content={t.definition} maskKeywords={false} />
                         {onJumpToPracticeTerm && (
                           <div className="flex justify-end">
                             <button
                               type="button"
                               onClick={() => onJumpToPracticeTerm(t.id)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 transition-colors cursor-pointer"
                             >
                               <span>专项练习</span>
                               <ArrowRight className="w-3 h-3" />

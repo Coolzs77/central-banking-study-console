@@ -37,6 +37,8 @@ interface HeaderProps {
   onChangePaperTheme?: (p: PaperThemeId) => void;
   fontTheme?: FontThemeId;
   onChangeFontTheme?: (f: FontThemeId) => void;
+  fontSize?: number;
+  onChangeFontSize?: (size: number) => void;
   activeMode: string;
 }
 
@@ -54,6 +56,8 @@ export const Header: React.FC<HeaderProps> = ({
   onChangePaperTheme,
   fontTheme = 'system',
   onChangeFontTheme,
+  fontSize = 16,
+  onChangeFontSize,
 }) => {
   // Theme state
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -67,11 +71,11 @@ export const Header: React.FC<HeaderProps> = ({
     if (nextDark) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('cb_theme', 'dark');
-      if (metaTheme) metaTheme.setAttribute('content', '#0b0f17');
+      if (metaTheme) metaTheme.setAttribute('content', '#0f0d0a');
     } else {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('cb_theme', 'light');
-      if (metaTheme) metaTheme.setAttribute('content', '#eef2f7');
+      if (metaTheme) metaTheme.setAttribute('content', '#e7dfd0');
     }
   };
 
@@ -175,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-white/75 dark:bg-slate-900/80 border-b border-slate-200/80 dark:border-slate-800 transition-colors">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#faf6ed]/90 dark:bg-[#161411]/90 border-b border-stone-300/70 dark:border-stone-800 transition-colors">
       <div className="w-full px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Left: Mobile Menu Trigger + Brand Title (Strictly clean, zero marketing fluff) */}
         <div className="flex items-center gap-3">
@@ -359,7 +363,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* Paper & Font Style Selector */}
-          {(onChangePaperTheme || onChangeFontTheme) && (
+          {(onChangePaperTheme || onChangeFontTheme || onChangeFontSize) && (
             <div className="relative" ref={styleMenuRef}>
               <button
                 type="button"
@@ -405,7 +409,10 @@ export const Header: React.FC<HeaderProps> = ({
                             >
                               <span
                                 className="w-4 h-4 rounded-md border border-black/15 dark:border-white/20 shrink-0"
-                                style={{ backgroundColor: isDark ? p.darkSwatch : p.swatch }}
+                                style={{
+                                  backgroundColor: isDark ? p.darkSwatch : p.swatch,
+                                  backgroundImage: p.previewPattern,
+                                }}
                                 aria-hidden="true"
                               />
                               <span className="truncate">{p.name}</span>
@@ -442,6 +449,43 @@ export const Header: React.FC<HeaderProps> = ({
                             </button>
                           );
                         })}
+                      </div>
+                    </div>
+                  )}
+
+                  {onChangeFontSize && (
+                    <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        正文字号
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => onChangeFontSize(Math.max(13, fontSize - 1))}
+                          disabled={fontSize <= 13}
+                          aria-label="减小字号"
+                          className="py-1.5 rounded-xl text-xs font-bold border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70 disabled:opacity-40 transition-colors cursor-pointer"
+                        >
+                          A-
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onChangeFontSize(16)}
+                          aria-label="恢复默认字号 16px"
+                          aria-live="polite"
+                          className="py-1.5 rounded-xl text-xs font-semibold border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer tabular-nums"
+                        >
+                          A {fontSize}px
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onChangeFontSize(Math.min(22, fontSize + 1))}
+                          disabled={fontSize >= 22}
+                          aria-label="增大字号"
+                          className="py-1.5 rounded-xl text-xs font-bold border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/70 disabled:opacity-40 transition-colors cursor-pointer"
+                        >
+                          A+
+                        </button>
                       </div>
                     </div>
                   )}
