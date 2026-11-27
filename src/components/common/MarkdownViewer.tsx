@@ -48,7 +48,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
 
   let globalClozeIdx = 0;
 
-  const toggleCloze = (idx: number, e: React.MouseEvent) => {
+  const toggleCloze = (idx: number, e: React.SyntheticEvent) => {
     e.stopPropagation();
     setRevealedSet((prev) => {
       const next = new Set(prev);
@@ -59,6 +59,13 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
       }
       return next;
     });
+  };
+
+  const handleClozeKeyDown = (idx: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleCloze(idx, e);
+    }
   };
 
   /**
@@ -90,9 +97,13 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
           return (
             <span
               key={`${keyPrefix}-${pIdx}`}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isRevealed}
               onClick={(e) => toggleCloze(clozeId, e)}
+              onKeyDown={(e) => handleClozeKeyDown(clozeId, e)}
               title="点击撕开胶带"
-              className="inline-flex items-center justify-center relative mx-1 px-1.5 py-0.5 rounded cursor-pointer select-none transition-all duration-150 hover:scale-[1.03] active:scale-[0.97] align-baseline shadow-xs"
+              className="inline-flex items-center justify-center relative mx-1 px-1.5 py-0.5 rounded cursor-pointer select-none transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97] align-baseline shadow-xs"
               style={{
                 background:
                   'repeating-linear-gradient(135deg, rgba(254, 215, 170, 0.95) 0px, rgba(254, 215, 170, 0.95) 6px, rgba(251, 207, 232, 0.95) 6px, rgba(251, 207, 232, 0.95) 12px)',
@@ -195,9 +206,13 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
                 return (
                   <span
                     key={i}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isRevealed}
                     onClick={(e) => toggleCloze(clozeId, e)}
+                    onKeyDown={(e) => handleClozeKeyDown(clozeId, e)}
                     title="点击撕开胶带"
-                    className="inline-flex items-center justify-center relative mx-1 px-1.5 py-0.5 rounded cursor-pointer select-none transition-all duration-150 hover:scale-[1.03] active:scale-[0.97] align-baseline shadow-xs"
+                    className="inline-flex items-center justify-center relative mx-1 px-1.5 py-0.5 rounded cursor-pointer select-none transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97] align-baseline shadow-xs"
                     style={{
                       background:
                         'repeating-linear-gradient(135deg, rgba(254, 215, 170, 0.95) 0px, rgba(254, 215, 170, 0.95) 6px, rgba(251, 207, 232, 0.95) 6px, rgba(251, 207, 232, 0.95) 12px)',

@@ -124,7 +124,7 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
               第 {currentQ.id} 题 · {currentQ.chapterTitle.split(' ')[0]}
             </span>
             {currentQ.isCore && (
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 flex items-center gap-1">
                 <Zap className="w-3.5 h-3.5 text-rose-500" />
                 核心必背
               </span>

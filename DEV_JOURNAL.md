@@ -3325,3 +3325,83 @@ stateDiagram-v2
 - **实际输出**：
   - `npm run build`：打包成功（0 错误）
   - `node verify_suite.mjs`：`53 PASSED, 0 FAILED`
+
+---
+
+## 第 27 轮 [2026-11-27 17:15]：移动端右侧矩阵抽屉、题型专项筛选联动与分包性能升级
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：通过 Swarm 多代理协作落地 Web Interface Guidelines 深度审查结果：补齐移动端右侧矩阵抽屉、打通题型专项的全局搜索与状态筛选、完成键盘无障碍与动效收口，并优化首屏 JS 分包体积。
+- **目标**：实现全端响应式功能闭环、零 `window.confirm` 残留、和纸胶带键盘可达，以及 `React.lazy` 路由/模式级懒加载分包。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+1. **移动端右侧栏抽屉（[`Header.tsx`](file:///e:/workspace/central-banking-study-console/src/components/Header.tsx)、[`App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)）**
+   - `Header.tsx` 新增 `lg:hidden` 右侧抽屉触发按钮（`aria-label="打开题号矩阵与大纲"`）；
+   - `App.tsx` 新增 `mobileRightDrawerOpen` 状态、`Escape` 关闭监听及 `< lg` 右侧滑出抽屉（`role="dialog"`、`aria-modal="true"`、`overscroll-contain`），并透传 `searchQuery` 至 `<PracticeCanvas>`。
+2. **题型专项搜索与状态筛选（[`PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)、[`useStudyState.ts`](file:///e:/workspace/central-banking-study-console/src/hooks/useStudyState.ts)）**
+   - `PracticeCanvas.tsx` 接入 `searchQuery` 与 `statusFilter`（`全部` / `未掌握` / `已掌握` / `收藏`，带 `tabular-nums` 计数），覆盖 6 大题型（28 名词 + 40 填空 + 40 单选 + 30 判断 + 20 简答 + 6 论述）；
+   - 6 大题型标签栏补充 `role="tablist"` / `role="tab"` / `aria-selected`，空筛选结果展示友好空状态与「重置筛选」按钮；
+   - `useStudyState.ts` 移除残留的 `window.confirm`。
+3. **无障碍与动效规范收口（[`MarkdownViewer.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)、[`ClayQuestionNav.tsx`](file:///e:/workspace/central-banking-study-console/src/components/common/ClayQuestionNav.tsx)、[`RightSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx)、[`RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)）**
+   - `MarkdownViewer.tsx` 为和纸胶带遮挡词条补充 `role="button"`、`tabIndex={0}`、`aria-pressed` 与 `Enter`/`Space` 键盘切换，`transition-all` 收敛为 `transition-transform`；
+   - `ClayQuestionNav.tsx` 与 `RightSidebar.tsx` 将 `transition-all` 收敛为 `transition-colors`，补充 `tabular-nums` 与 `overscroll-contain`；
+   - `RecitationCanvas.tsx` 为「核心必背」徽章补充 `dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800/60`。
+4. **首屏懒加载与 Vite 分包（[`App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)、[`vite.config.ts`](file:///e:/workspace/central-banking-study-console/vite.config.ts)）**
+   - 使用 `React.lazy` + `<Suspense>` 懒加载 `PracticeCanvas`、`MockExamCanvas` 与 `SyncModal`；
+   - `vite.config.ts` 配置 `manualChunks` 拆分 `react-vendor`（`react`、`react-dom`、`lucide-react`）与 `qrcode`。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：`< 1024px` 屏幕下 `RightSidebar` 完全不可见；题型专项无法通过顶部搜索框检索或集中刷收藏/未掌握题；首屏主包达 `775 kB`。
+- **根本原因 (RCA)**：`RightSidebar` 仅配置 `hidden lg:flex` 未做小屏抽屉；`PracticeCanvas` 未接收 `searchQuery`；所有页面模块与第三方库同步打包在单一入口 chunk。
+- **具体解法**：拆分为 `layout-split`、`practice-ux`、`a11y-polish` 三个并行 Swarm 子任务同步落地并通过全量测试。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart TD
+    Swarm["Swarm 并行分工"] --> W1["practice-ux<br/>6题型搜索+状态筛选 / 移除confirm"]
+    Swarm --> W2["a11y-polish<br/>胶带键盘可达 / transition收敛 / dark徽章"]
+    Swarm --> W3["layout-split<br/>移动端右侧抽屉 / React.lazy + manualChunks"]
+    W1 & W2 & W3 --> Build["Vite 分包构建 (主包 gzip 228kB -> 154kB)"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **无冲突并行**：3 名 Worker 严格按文件边界拆分各自负责的组件，互不重叠，一次性合入并通过 TypeScript 与 5 套自动化校验。
+
+```mermaid
+flowchart LR
+    Entry["首屏入口 index.js (520 kB / gzip 154 kB)"] --> Vendor["react-vendor.js (157 kB)"]
+    Entry -->|"按需懒加载"| Practice["PracticeCanvas.js (37 kB)"]
+    Entry -->|"按需懒加载"| Exam["MockExamCanvas.js (32 kB)"]
+    Entry -->|"按需懒加载"| Sync["SyncModal.js (9.7 kB) + qrcode.js (25 kB)"]
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **按需加载与长期缓存**：React 核心与图标库独立打入 `react-vendor`，题型专项、期末模考与二维码同步仅在用户打开对应功能时才加载。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 主包 gzip 体积由 `228.81 kB` 降至 `154.62 kB`；
+- 全端（桌面/平板/手机）均可访问题号矩阵、30 核心名词词典与章节大纲。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npx tsx scripts/audit_exam_accuracy.ts; npx tsx tests/verifyData.ts; npx tsx tests/verifyHomeworkHierarchy.ts; npx tsx tests/verifyPracticeUI.tsx; node verify_suite.mjs; npm run build
+  ```
+- **实际输出**：
+  - `scripts/audit_exam_accuracy.ts`：`0` 错误
+  - `tests/verifyData.ts`：`46 PASSED, 0 FAILED`
+  - `tests/verifyHomeworkHierarchy.ts`：`21 PASSED, 0 FAILED`
+  - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
+  - `verify_suite.mjs`：`53 PASSED, 0 FAILED`
+  - `npm run build`：`✓ built in 3.48s`（`0` 错误，成功拆分 6 个独立 chunk）

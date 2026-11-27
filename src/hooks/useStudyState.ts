@@ -179,9 +179,7 @@ export function useStudyState() {
   }, []);
 
   const resetAllProgress = useCallback(() => {
-    if (window.confirm('确定要清空所有背诵、作业和做题记录吗？')) {
-      setState(defaultState);
-    }
+    setState(defaultState);
   }, []);
 
   return {

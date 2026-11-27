@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   CheckCircle2,
   Circle,
   Check,
   X,
   Star,
+  RotateCcw,
 } from 'lucide-react';
 import {
   TerminologyQuestion,
@@ -19,8 +20,72 @@ import { MarkdownViewer } from './common/MarkdownViewer';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
 
 export type PracticeTab = 'terms' | 'fill' | 'choice' | 'truefalse' | 'short' | 'essay';
+export type StatusFilter = 'all' | 'unmemorized' | 'memorized' | 'starred';
+
+function useFilteredTabIndex<T extends { id: number }>(
+  rawList: T[],
+  filteredList: T[],
+  propIndex: number | undefined,
+  onJumpProp: ((idx: number) => void) | undefined,
+  statusFilter: StatusFilter,
+  onResetStatusFilter: () => void
+) {
+  const [internalIdx, setInternalIdx] = useState<number>(0);
+  const lastEmittedRef = useRef<number | undefined>(undefined);
+  const prevPropRef = useRef<number | undefined>(propIndex);
+
+  useEffect(() => {
+    if (
+      propIndex !== undefined &&
+      propIndex !== prevPropRef.current &&
+      propIndex !== lastEmittedRef.current
+    ) {
+      const target = rawList[propIndex];
+      if (target && !filteredList.some((item) => item.id === target.id) && statusFilter !== 'all') {
+        onResetStatusFilter();
+      }
+    }
+    prevPropRef.current = propIndex;
+  }, [propIndex, rawList, filteredList, statusFilter, onResetStatusFilter]);
+
+  const rawUnfilteredIdx = propIndex ?? internalIdx;
+  const targetItem = rawList[rawUnfilteredIdx];
+  const matchedFilteredIdx = targetItem
+    ? filteredList.findIndex((item) => item.id === targetItem.id)
+    : -1;
+
+  const activeIdx =
+    filteredList.length === 0
+      ? 0
+      : Math.min(
+          Math.max(0, matchedFilteredIdx !== -1 ? matchedFilteredIdx : 0),
+          Math.max(0, filteredList.length - 1)
+        );
+
+  const setActiveIdx = (fnOrVal: number | ((prev: number) => number)) => {
+    if (filteredList.length === 0) return;
+    const nextFiltered = typeof fnOrVal === 'function' ? fnOrVal(activeIdx) : fnOrVal;
+    const boundedFiltered = Math.min(
+      Math.max(0, nextFiltered),
+      Math.max(0, filteredList.length - 1)
+    );
+    const nextItem = filteredList[boundedFiltered];
+    const nextUnfiltered = nextItem ? rawList.findIndex((item) => item.id === nextItem.id) : 0;
+    const safeUnfiltered = nextUnfiltered !== -1 ? nextUnfiltered : 0;
+    lastEmittedRef.current = safeUnfiltered;
+    if (onJumpProp) onJumpProp(safeUnfiltered);
+    else setInternalIdx(safeUnfiltered);
+  };
+
+  return {
+    activeIdx,
+    setActiveIdx,
+    currentItem: filteredList[activeIdx] as T | undefined,
+  };
+}
 
 interface PracticeCanvasProps {
+  searchQuery?: string;
   terms: TerminologyQuestion[];
   singleChoices: SingleChoiceQuestion[];
   trueFalse: TrueFalseQuestion[];
@@ -68,6 +133,7 @@ interface PracticeCanvasProps {
 }
 
 export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
+  searchQuery = '',
   terms,
   singleChoices,
   trueFalse,
@@ -132,106 +198,220 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     return chaptersMeta.find((c) => c.id === chapterId)?.title || `第 ${chapterId} 章`;
   };
 
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const resetStatusFilter = useCallback(() => setStatusFilter('all'), []);
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const matchesStatus = useCallback(
+    (id: number, memorized: number[], starred: number[]) => {
+      if (statusFilter === 'unmemorized') return !memorized.includes(id);
+      if (statusFilter === 'memorized') return memorized.includes(id);
+      if (statusFilter === 'starred') return starred.includes(id);
+      return true;
+    },
+    [statusFilter]
+  );
+
+  // Search-matched lists (before statusFilter, used for accurate pill counts)
+  const searchTerms = useMemo(() => {
+    if (!normalizedQuery) return terms;
+    return terms.filter((t) =>
+      [t.term, t.definition, t.chapterTitle, t.source]
+        .filter(Boolean)
+        .some((v) => v!.toLowerCase().includes(normalizedQuery))
+    );
+  }, [terms, normalizedQuery]);
+
+  const searchFillIns = useMemo(() => {
+    if (!normalizedQuery) return fillIns;
+    return fillIns.filter((q) =>
+      [q.stem, q.answers.join(' '), q.explanation]
+        .filter(Boolean)
+        .some((v) => v!.toLowerCase().includes(normalizedQuery))
+    );
+  }, [fillIns, normalizedQuery]);
+
+  const searchChoices = useMemo(() => {
+    if (!normalizedQuery) return singleChoices;
+    return singleChoices.filter((q) =>
+      [q.stem, q.options.A, q.options.B, q.options.C, q.options.D, q.rationale]
+        .filter(Boolean)
+        .some((v) => v!.toLowerCase().includes(normalizedQuery))
+    );
+  }, [singleChoices, normalizedQuery]);
+
+  const searchTrueFalse = useMemo(() => {
+    if (!normalizedQuery) return trueFalse;
+    return trueFalse.filter((q) =>
+      [q.statement, q.errorCorrection]
+        .filter(Boolean)
+        .some((v) => v!.toLowerCase().includes(normalizedQuery))
+    );
+  }, [trueFalse, normalizedQuery]);
+
+  const searchShortAnswers = useMemo(() => {
+    if (!normalizedQuery) return shortAnswers;
+    return shortAnswers.filter((q) =>
+      [q.title, q.question, q.sampleAnswer, q.standardAnswer]
+        .filter(Boolean)
+        .some((v) => v!.toLowerCase().includes(normalizedQuery))
+    );
+  }, [shortAnswers, normalizedQuery]);
+
+  const searchEssays = useMemo(() => {
+    if (!normalizedQuery) return essays;
+    return essays.filter((q) =>
+      [q.title, q.question, q.sampleAnswer, q.standardOutline]
+        .filter(Boolean)
+        .some((v) => v!.toLowerCase().includes(normalizedQuery))
+    );
+  }, [essays, normalizedQuery]);
+
+  // Filtered lists (searchQuery + statusFilter)
+  const filteredTerms = useMemo(
+    () => searchTerms.filter((q) => matchesStatus(q.id, termMemorized, termStarred)),
+    [searchTerms, matchesStatus, termMemorized, termStarred]
+  );
+  const filteredFillIns = useMemo(
+    () => searchFillIns.filter((q) => matchesStatus(q.id, fillMemorized, fillStarred)),
+    [searchFillIns, matchesStatus, fillMemorized, fillStarred]
+  );
+  const filteredChoices = useMemo(
+    () => searchChoices.filter((q) => matchesStatus(q.id, choiceMemorized, choiceStarred)),
+    [searchChoices, matchesStatus, choiceMemorized, choiceStarred]
+  );
+  const filteredTrueFalse = useMemo(
+    () => searchTrueFalse.filter((q) => matchesStatus(q.id, tfMemorized, tfStarred)),
+    [searchTrueFalse, matchesStatus, tfMemorized, tfStarred]
+  );
+  const filteredShortAnswers = useMemo(
+    () => searchShortAnswers.filter((q) => matchesStatus(q.id, shortMemorized, shortStarred)),
+    [searchShortAnswers, matchesStatus, shortMemorized, shortStarred]
+  );
+  const filteredEssays = useMemo(
+    () => searchEssays.filter((q) => matchesStatus(q.id, essayMemorized, essayStarred)),
+    [searchEssays, matchesStatus, essayMemorized, essayStarred]
+  );
+
   // Term Flashcards State
-  const [internalTermIdx, setInternalTermIdx] = useState<number>(0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [isMasking] = useState<boolean>(false);
-
-  const activeTermIdx = Math.min(Math.max(0, currentTermIndex ?? internalTermIdx), Math.max(0, terms.length - 1));
-  const currentTerm = terms[activeTermIdx] || terms[0];
+  const {
+    activeIdx: activeTermIdx,
+    setActiveIdx: setTermIdx,
+    currentItem: currentTerm,
+  } = useFilteredTabIndex(
+    terms,
+    filteredTerms,
+    currentTermIndex,
+    onJumpToTermIndex,
+    statusFilter,
+    resetStatusFilter
+  );
 
   const handleSetTermIdx = (idx: number) => {
-    if (onJumpToTermIndex) {
-      onJumpToTermIndex(idx);
-    } else {
-      setInternalTermIdx(idx);
-    }
+    setTermIdx(idx);
     setIsFlipped(false);
   };
 
-  // Choice drill state (40 questions)
-  const [internalChoiceIdx, setInternalChoiceIdx] = useState<number>(0);
-  const rawChoiceIdx = currentChoiceIndex ?? internalChoiceIdx;
-  const choiceIdx = Math.min(Math.max(0, rawChoiceIdx), Math.max(0, singleChoices.length - 1));
-  const setChoiceIdx = (fnOrVal: number | ((p: number) => number)) => {
-    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(choiceIdx) : fnOrVal;
-    if (onJumpToChoiceIndex) onJumpToChoiceIndex(nextVal);
-    else setInternalChoiceIdx(nextVal);
-  };
+  // Choice drill state
+  const {
+    activeIdx: choiceIdx,
+    setActiveIdx: setChoiceIdx,
+    currentItem: currentChoice,
+  } = useFilteredTabIndex(
+    singleChoices,
+    filteredChoices,
+    currentChoiceIndex,
+    onJumpToChoiceIndex,
+    statusFilter,
+    resetStatusFilter
+  );
   const [selectedOption, setSelectedOption] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
   const [showChoiceExplanation, setShowChoiceExplanation] = useState<boolean>(false);
-  const currentChoice = singleChoices[choiceIdx] || singleChoices[0];
 
   useEffect(() => {
     setSelectedOption(null);
     setShowChoiceExplanation(false);
-  }, [choiceIdx]);
+  }, [choiceIdx, currentChoice?.id]);
 
-  // True/False drill state (30 questions)
-  const [internalTfIdx, setInternalTfIdx] = useState<number>(0);
-  const rawTfIdx = currentTfIndex ?? internalTfIdx;
-  const tfIdx = Math.min(Math.max(0, rawTfIdx), Math.max(0, trueFalse.length - 1));
-  const setTfIdx = (fnOrVal: number | ((p: number) => number)) => {
-    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(tfIdx) : fnOrVal;
-    if (onJumpToTfIndex) onJumpToTfIndex(nextVal);
-    else setInternalTfIdx(nextVal);
-  };
+  // True/False drill state
+  const {
+    activeIdx: tfIdx,
+    setActiveIdx: setTfIdx,
+    currentItem: currentTF,
+  } = useFilteredTabIndex(
+    trueFalse,
+    filteredTrueFalse,
+    currentTfIndex,
+    onJumpToTfIndex,
+    statusFilter,
+    resetStatusFilter
+  );
   const [selectedTf, setSelectedTf] = useState<boolean | null>(null);
   const [showTfExplanation, setShowTfExplanation] = useState<boolean>(false);
-  const currentTF = trueFalse[tfIdx] || trueFalse[0];
 
   useEffect(() => {
     setSelectedTf(null);
     setShowTfExplanation(false);
-  }, [tfIdx]);
+  }, [tfIdx, currentTF?.id]);
 
-  // Fill drill state (40 questions)
-  const [internalFillIdx, setInternalFillIdx] = useState<number>(0);
-  const rawFillIdx = currentFillIndex ?? internalFillIdx;
-  const fillIdx = Math.min(Math.max(0, rawFillIdx), Math.max(0, fillIns.length - 1));
-  const setFillIdx = (fnOrVal: number | ((p: number) => number)) => {
-    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(fillIdx) : fnOrVal;
-    if (onJumpToFillIndex) onJumpToFillIndex(nextVal);
-    else setInternalFillIdx(nextVal);
-  };
+  // Fill drill state
+  const {
+    activeIdx: fillIdx,
+    setActiveIdx: setFillIdx,
+    currentItem: currentFill,
+  } = useFilteredTabIndex(
+    fillIns,
+    filteredFillIns,
+    currentFillIndex,
+    onJumpToFillIndex,
+    statusFilter,
+    resetStatusFilter
+  );
   const [showFillAnswer, setShowFillAnswer] = useState<boolean>(false);
-  const currentFill = fillIns[fillIdx] || fillIns[0];
 
   useEffect(() => {
     setShowFillAnswer(false);
-  }, [fillIdx]);
+  }, [fillIdx, currentFill?.id]);
 
-  // Short Answer drill state (20 questions)
-  const [internalShortIdx, setInternalShortIdx] = useState<number>(0);
-  const rawShortIdx = currentShortIndex ?? internalShortIdx;
-  const shortIdx = Math.min(Math.max(0, rawShortIdx), Math.max(0, shortAnswers.length - 1));
-  const setShortIdx = (fnOrVal: number | ((p: number) => number)) => {
-    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(shortIdx) : fnOrVal;
-    if (onJumpToShortIndex) onJumpToShortIndex(nextVal);
-    else setInternalShortIdx(nextVal);
-  };
+  // Short Answer drill state
+  const {
+    activeIdx: shortIdx,
+    setActiveIdx: setShortIdx,
+    currentItem: currentShort,
+  } = useFilteredTabIndex(
+    shortAnswers,
+    filteredShortAnswers,
+    currentShortIndex,
+    onJumpToShortIndex,
+    statusFilter,
+    resetStatusFilter
+  );
   const [showShortAnswer, setShowShortAnswer] = useState<boolean>(false);
-  const currentShort = shortAnswers[shortIdx] || shortAnswers[0];
 
   useEffect(() => {
     setShowShortAnswer(false);
-  }, [shortIdx]);
+  }, [shortIdx, currentShort?.id]);
 
-  // Essay drill state (6 questions)
-  const [internalEssayIdx, setInternalEssayIdx] = useState<number>(0);
-  const rawEssayIdx = currentEssayIndex ?? internalEssayIdx;
-  const essayIdx = Math.min(Math.max(0, rawEssayIdx), Math.max(0, essays.length - 1));
-  const setEssayIdx = (fnOrVal: number | ((p: number) => number)) => {
-    const nextVal = typeof fnOrVal === 'function' ? fnOrVal(essayIdx) : fnOrVal;
-    if (onJumpToEssayIndex) onJumpToEssayIndex(nextVal);
-    else setInternalEssayIdx(nextVal);
-  };
+  // Essay drill state
+  const {
+    activeIdx: essayIdx,
+    setActiveIdx: setEssayIdx,
+    currentItem: currentEssay,
+  } = useFilteredTabIndex(
+    essays,
+    filteredEssays,
+    currentEssayIndex,
+    onJumpToEssayIndex,
+    statusFilter,
+    resetStatusFilter
+  );
   const [showEssayAnswer, setShowEssayAnswer] = useState<boolean>(false);
-  const currentEssay = essays[essayIdx] || essays[0];
 
   useEffect(() => {
     setShowEssayAnswer(false);
-  }, [essayIdx]);
+  }, [essayIdx, currentEssay?.id]);
 
   // Reset copied badge on item or tab change
   useEffect(() => {
@@ -252,7 +432,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           handleSetTermIdx(Math.max(0, activeTermIdx - 1));
         } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
           e.preventDefault();
-          handleSetTermIdx(Math.min(terms.length - 1, activeTermIdx + 1));
+          handleSetTermIdx(Math.min(Math.max(0, filteredTerms.length - 1), activeTermIdx + 1));
         } else if (e.key === 'm' || e.key === 'M') {
           if (currentTerm) {
             e.preventDefault();
@@ -270,7 +450,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           setChoiceIdx((p) => Math.max(0, p - 1));
         } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
           e.preventDefault();
-          setChoiceIdx((p) => Math.min(singleChoices.length - 1, p + 1));
+          setChoiceIdx((p) => Math.min(Math.max(0, filteredChoices.length - 1), p + 1));
         } else if (e.code === 'Space') {
           e.preventDefault();
           setShowChoiceExplanation((p) => !p);
@@ -291,7 +471,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           setTfIdx((p) => Math.max(0, p - 1));
         } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
           e.preventDefault();
-          setTfIdx((p) => Math.min(trueFalse.length - 1, p + 1));
+          setTfIdx((p) => Math.min(Math.max(0, filteredTrueFalse.length - 1), p + 1));
         } else if (e.code === 'Space') {
           e.preventDefault();
           setShowTfExplanation((p) => !p);
@@ -312,7 +492,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           setFillIdx((p) => Math.max(0, p - 1));
         } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
           e.preventDefault();
-          setFillIdx((p) => Math.min(fillIns.length - 1, p + 1));
+          setFillIdx((p) => Math.min(Math.max(0, filteredFillIns.length - 1), p + 1));
         } else if (e.code === 'Space') {
           e.preventDefault();
           setShowFillAnswer((p) => !p);
@@ -333,7 +513,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           setShortIdx((p) => Math.max(0, p - 1));
         } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
           e.preventDefault();
-          setShortIdx((p) => Math.min(shortAnswers.length - 1, p + 1));
+          setShortIdx((p) => Math.min(Math.max(0, filteredShortAnswers.length - 1), p + 1));
         } else if (e.code === 'Space') {
           e.preventDefault();
           setShowShortAnswer((p) => !p);
@@ -354,7 +534,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           setEssayIdx((p) => Math.max(0, p - 1));
         } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowRight') {
           e.preventDefault();
-          setEssayIdx((p) => Math.min(essays.length - 1, p + 1));
+          setEssayIdx((p) => Math.min(Math.max(0, filteredEssays.length - 1), p + 1));
         } else if (e.code === 'Space') {
           e.preventDefault();
           setShowEssayAnswer((p) => !p);
@@ -376,18 +556,18 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     activeTab,
-    terms.length,
+    filteredTerms.length,
     currentTerm,
     activeTermIdx,
-    singleChoices.length,
+    filteredChoices.length,
     currentChoice,
-    trueFalse.length,
+    filteredTrueFalse.length,
     currentTF,
-    fillIns.length,
+    filteredFillIns.length,
     currentFill,
-    shortAnswers.length,
+    filteredShortAnswers.length,
     currentShort,
-    essays.length,
+    filteredEssays.length,
     currentEssay,
     onToggleTermMemorized,
     onToggleTermStarred,
@@ -403,19 +583,132 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
     onToggleEssayStarred,
   ]);
 
-  // Active tab summary stats
-  const activeStats =
-    activeTab === 'terms'
-      ? { mastered: termMemorized.length, starred: termStarred.length, total: terms.length }
-      : activeTab === 'fill'
-      ? { mastered: fillMemorized.length, starred: fillStarred.length, total: fillIns.length }
-      : activeTab === 'choice'
-      ? { mastered: choiceMemorized.length, starred: choiceStarred.length, total: singleChoices.length }
-      : activeTab === 'truefalse'
-      ? { mastered: tfMemorized.length, starred: tfStarred.length, total: trueFalse.length }
-      : activeTab === 'short'
-      ? { mastered: shortMemorized.length, starred: shortStarred.length, total: shortAnswers.length }
-      : { mastered: essayMemorized.length, starred: essayStarred.length, total: essays.length };
+  // Active tab summary stats & filter pill counts
+  const activeTabMeta = useMemo(() => {
+    switch (activeTab) {
+      case 'terms':
+        return {
+          items: searchTerms,
+          filtered: filteredTerms,
+          memorized: termMemorized,
+          starred: termStarred,
+          total: terms.length,
+        };
+      case 'fill':
+        return {
+          items: searchFillIns,
+          filtered: filteredFillIns,
+          memorized: fillMemorized,
+          starred: fillStarred,
+          total: fillIns.length,
+        };
+      case 'choice':
+        return {
+          items: searchChoices,
+          filtered: filteredChoices,
+          memorized: choiceMemorized,
+          starred: choiceStarred,
+          total: singleChoices.length,
+        };
+      case 'truefalse':
+        return {
+          items: searchTrueFalse,
+          filtered: filteredTrueFalse,
+          memorized: tfMemorized,
+          starred: tfStarred,
+          total: trueFalse.length,
+        };
+      case 'short':
+        return {
+          items: searchShortAnswers,
+          filtered: filteredShortAnswers,
+          memorized: shortMemorized,
+          starred: shortStarred,
+          total: shortAnswers.length,
+        };
+      case 'essay':
+      default:
+        return {
+          items: searchEssays,
+          filtered: filteredEssays,
+          memorized: essayMemorized,
+          starred: essayStarred,
+          total: essays.length,
+        };
+    }
+  }, [
+    activeTab,
+    searchTerms,
+    filteredTerms,
+    termMemorized,
+    termStarred,
+    terms.length,
+    searchFillIns,
+    filteredFillIns,
+    fillMemorized,
+    fillStarred,
+    fillIns.length,
+    searchChoices,
+    filteredChoices,
+    choiceMemorized,
+    choiceStarred,
+    singleChoices.length,
+    searchTrueFalse,
+    filteredTrueFalse,
+    tfMemorized,
+    tfStarred,
+    trueFalse.length,
+    searchShortAnswers,
+    filteredShortAnswers,
+    shortMemorized,
+    shortStarred,
+    shortAnswers.length,
+    searchEssays,
+    filteredEssays,
+    essayMemorized,
+    essayStarred,
+    essays.length,
+  ]);
+
+  const activeStats = {
+    mastered: activeTabMeta.memorized.length,
+    starred: activeTabMeta.starred.length,
+    total: activeTabMeta.total,
+  };
+
+  const pillCounts = useMemo(() => {
+    const { items, memorized, starred } = activeTabMeta;
+    let memorizedCount = 0;
+    let unmemorizedCount = 0;
+    let starredCount = 0;
+    for (const item of items) {
+      if (memorized.includes(item.id)) memorizedCount++;
+      else unmemorizedCount++;
+      if (starred.includes(item.id)) starredCount++;
+    }
+    return {
+      all: items.length,
+      unmemorized: unmemorizedCount,
+      memorized: memorizedCount,
+      starred: starredCount,
+    };
+  }, [activeTabMeta]);
+
+  const tabItems: { id: PracticeTab; label: string; count: number }[] = [
+    { id: 'terms', label: '名词解释', count: filteredTerms.length },
+    { id: 'fill', label: '填空题', count: filteredFillIns.length },
+    { id: 'choice', label: '单选题', count: filteredChoices.length },
+    { id: 'truefalse', label: '判断改错题', count: filteredTrueFalse.length },
+    { id: 'short', label: '简答题', count: filteredShortAnswers.length },
+    { id: 'essay', label: '论述题', count: filteredEssays.length },
+  ];
+
+  const filterPills: { id: StatusFilter; label: string; count: number }[] = [
+    { id: 'all', label: '全部', count: pillCounts.all },
+    { id: 'unmemorized', label: '未掌握', count: pillCounts.unmemorized },
+    { id: 'memorized', label: '已掌握', count: pillCounts.memorized },
+    { id: 'starred', label: '收藏', count: pillCounts.starred },
+  ];
 
   const renderCardFooterActions = (
     isMemorized: boolean,
@@ -471,79 +764,101 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50/50 dark:bg-[#0b0f17] overflow-hidden select-text">
       {/* Top Mode Sub-Tabs */}
-      <div className="bg-white dark:bg-[#151b26] border-b border-slate-200/80 dark:border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-xs shrink-0">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-2xl flex-wrap">
-          <button
-            onClick={() => setActiveTab('terms')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
-              activeTab === 'terms'
-                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+      <div className="bg-white dark:bg-[#151b26] border-b border-slate-200/80 dark:border-slate-800 px-4 py-2.5 flex flex-col gap-2 shadow-xs shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div
+            role="tablist"
+            aria-label="专项练习题型"
+            className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-2xl flex-wrap"
           >
-            名词解释 ({terms.length}题)
-          </button>
-          <button
-            onClick={() => setActiveTab('fill')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
-              activeTab === 'fill'
-                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            填空题 ({fillIns.length}题)
-          </button>
-          <button
-            onClick={() => setActiveTab('choice')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
-              activeTab === 'choice'
-                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            单选题 ({singleChoices.length}题)
-          </button>
-          <button
-            onClick={() => setActiveTab('truefalse')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
-              activeTab === 'truefalse'
-                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            判断改错题 ({trueFalse.length}题)
-          </button>
-          <button
-            onClick={() => setActiveTab('short')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
-              activeTab === 'short'
-                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            简答题 ({shortAnswers.length}题)
-          </button>
-          <button
-            onClick={() => setActiveTab('essay')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
-              activeTab === 'essay'
-                ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            论述题 ({essays.length}题)
-          </button>
+            {tabItems.map((tab) => (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer ${
+                  activeTab === tab.id
+                    ? 'bg-white dark:bg-[#1f283b] text-blue-600 dark:text-blue-400 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                {tab.label} (<span className="tabular-nums">{tab.count}</span>题)
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+            <span>
+              已掌握: <span className="font-bold text-emerald-600 tabular-nums">{activeStats.mastered}</span> / <span className="tabular-nums">{activeStats.total}</span>
+            </span>
+            <span>
+              已收藏: <span className="font-bold text-amber-500 tabular-nums">{activeStats.starred}</span>
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
-          <span>
-            已掌握: <span className="font-bold text-emerald-600">{activeStats.mastered}</span> / {activeStats.total}
-          </span>
-          <span>
-            已收藏: <span className="font-bold text-amber-500">{activeStats.starred}</span>
-          </span>
+        {/* Compact Status Filter Pill Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {filterPills.map((pill) => {
+              const isActive = statusFilter === pill.id;
+              return (
+                <button
+                  key={pill.id}
+                  type="button"
+                  onClick={() => setStatusFilter(pill.id)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${
+                    isActive
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                      : 'bg-slate-50 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <span>{pill.label}</span>
+                  <span
+                    className={`tabular-nums text-[11px] px-1.5 py-0.2 rounded-full ${
+                      isActive
+                        ? 'bg-white/20 text-white'
+                        : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                    }`}
+                  >
+                    {pill.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {normalizedQuery && (
+            <span className="text-xs text-slate-400">
+              搜索: “{searchQuery.trim()}”
+            </span>
+          )}
         </div>
       </div>
+
+      {/* Empty State when filtered list is empty */}
+      {activeTabMeta.filtered.length === 0 && (
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center">
+          <div className="w-full max-w-md bg-white dark:bg-[#151b26] rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-sm p-8 text-center space-y-4">
+            <div className="text-base font-bold text-slate-800 dark:text-slate-100">
+              当前筛选条件下暂无题目
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              {normalizedQuery
+                ? '没有匹配当前搜索关键词与状态筛选的题目，请调整搜索词或重置筛选条件。'
+                : '当前状态分类下暂时没有题目，点击下方按钮可恢复显示全部题目。'}
+            </p>
+            <button
+              type="button"
+              onClick={resetStatusFilter}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>重置筛选</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tab 1: Terminology Flashcards */}
       {activeTab === 'terms' && currentTerm && (
@@ -552,11 +867,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             <ClayQuestionNav
               key="terms"
               currentIndex={activeTermIdx}
-              totalFiltered={terms.length}
+              totalFiltered={filteredTerms.length}
               onPrev={() => handleSetTermIdx(Math.max(0, activeTermIdx - 1))}
-              onNext={() => handleSetTermIdx(Math.min(terms.length - 1, activeTermIdx + 1))}
+              onNext={() => handleSetTermIdx(Math.min(Math.max(0, filteredTerms.length - 1), activeTermIdx + 1))}
               onJumpToIndex={handleSetTermIdx}
-              allItemIds={terms.map((t) => t.id)}
+              allItemIds={filteredTerms.map((t) => t.id)}
               completedItemIds={termMemorized}
               starredItemIds={termStarred}
               isMemorized={termMemorized.includes(currentTerm.id)}
@@ -639,11 +954,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             <ClayQuestionNav
               key="choice"
               currentIndex={choiceIdx}
-              totalFiltered={singleChoices.length}
+              totalFiltered={filteredChoices.length}
               onPrev={() => setChoiceIdx((p) => Math.max(0, p - 1))}
-              onNext={() => setChoiceIdx((p) => Math.min(singleChoices.length - 1, p + 1))}
+              onNext={() => setChoiceIdx((p) => Math.min(Math.max(0, filteredChoices.length - 1), p + 1))}
               onJumpToIndex={(idx) => setChoiceIdx(idx)}
-              allItemIds={singleChoices.map((q) => q.id)}
+              allItemIds={filteredChoices.map((q) => q.id)}
               completedItemIds={choiceMemorized}
               starredItemIds={choiceStarred}
               isMemorized={choiceMemorized.includes(currentChoice.id)}
@@ -683,7 +998,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     )}
                   </div>
                   <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                    第 {choiceIdx + 1} / {singleChoices.length} 题
+                    第 {choiceIdx + 1} / {filteredChoices.length} 题
                   </span>
                 </div>
 
@@ -766,11 +1081,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             <ClayQuestionNav
               key="truefalse"
               currentIndex={tfIdx}
-              totalFiltered={trueFalse.length}
+              totalFiltered={filteredTrueFalse.length}
               onPrev={() => setTfIdx((p) => Math.max(0, p - 1))}
-              onNext={() => setTfIdx((p) => Math.min(trueFalse.length - 1, p + 1))}
+              onNext={() => setTfIdx((p) => Math.min(Math.max(0, filteredTrueFalse.length - 1), p + 1))}
               onJumpToIndex={(idx) => setTfIdx(idx)}
-              allItemIds={trueFalse.map((q) => q.id)}
+              allItemIds={filteredTrueFalse.map((q) => q.id)}
               completedItemIds={tfMemorized}
               starredItemIds={tfStarred}
               isMemorized={tfMemorized.includes(currentTF.id)}
@@ -807,7 +1122,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     )}
                   </div>
                   <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                    第 {tfIdx + 1} / {trueFalse.length} 题
+                    第 {tfIdx + 1} / {filteredTrueFalse.length} 题
                   </span>
                 </div>
 
@@ -889,11 +1204,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             <ClayQuestionNav
               key="fill"
               currentIndex={fillIdx}
-              totalFiltered={fillIns.length}
+              totalFiltered={filteredFillIns.length}
               onPrev={() => setFillIdx((p) => Math.max(0, p - 1))}
-              onNext={() => setFillIdx((p) => Math.min(fillIns.length - 1, p + 1))}
+              onNext={() => setFillIdx((p) => Math.min(Math.max(0, filteredFillIns.length - 1), p + 1))}
               onJumpToIndex={(idx) => setFillIdx(idx)}
-              allItemIds={fillIns.map((q) => q.id)}
+              allItemIds={filteredFillIns.map((q) => q.id)}
               completedItemIds={fillMemorized}
               starredItemIds={fillStarred}
               isMemorized={fillMemorized.includes(currentFill.id)}
@@ -993,11 +1308,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             <ClayQuestionNav
               key="short"
               currentIndex={shortIdx}
-              totalFiltered={shortAnswers.length}
+              totalFiltered={filteredShortAnswers.length}
               onPrev={() => setShortIdx((p) => Math.max(0, p - 1))}
-              onNext={() => setShortIdx((p) => Math.min(shortAnswers.length - 1, p + 1))}
+              onNext={() => setShortIdx((p) => Math.min(Math.max(0, filteredShortAnswers.length - 1), p + 1))}
               onJumpToIndex={(idx) => setShortIdx(idx)}
-              allItemIds={shortAnswers.map((q) => q.id)}
+              allItemIds={filteredShortAnswers.map((q) => q.id)}
               completedItemIds={shortMemorized}
               starredItemIds={shortStarred}
               isMemorized={shortMemorized.includes(currentShort.id)}
@@ -1038,7 +1353,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     </span>
                   </div>
                   <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                    第 {shortIdx + 1} / {shortAnswers.length} 题
+                    第 {shortIdx + 1} / {filteredShortAnswers.length} 题
                   </span>
                 </div>
 
@@ -1116,11 +1431,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
             <ClayQuestionNav
               key="essay"
               currentIndex={essayIdx}
-              totalFiltered={essays.length}
+              totalFiltered={filteredEssays.length}
               onPrev={() => setEssayIdx((p) => Math.max(0, p - 1))}
-              onNext={() => setEssayIdx((p) => Math.min(essays.length - 1, p + 1))}
+              onNext={() => setEssayIdx((p) => Math.min(Math.max(0, filteredEssays.length - 1), p + 1))}
               onJumpToIndex={(idx) => setEssayIdx(idx)}
-              allItemIds={essays.map((q) => q.id)}
+              allItemIds={filteredEssays.map((q) => q.id)}
               completedItemIds={essayMemorized}
               starredItemIds={essayStarred}
               isMemorized={essayMemorized.includes(currentEssay.id)}
@@ -1158,7 +1473,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     </span>
                   </div>
                   <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                    第 {essayIdx + 1} / {essays.length} 题
+                    第 {essayIdx + 1} / {filteredEssays.length} 题
                   </span>
                 </div>
 

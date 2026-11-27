@@ -1,14 +1,21 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
 import { LeftSidebar, AppMode } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
 import { RecitationCanvas } from './components/RecitationCanvas';
 import { HomeworkCanvas } from './components/HomeworkCanvas';
-import { MockExamCanvas } from './components/MockExamCanvas';
-import { PracticeCanvas } from './components/PracticeCanvas';
-import { SyncModal } from './components/SyncModal';
 import { useStudyState } from './hooks/useStudyState';
 import { syncService } from './services/syncService';
+
+const MockExamCanvas = lazy(() =>
+  import('./components/MockExamCanvas').then((m) => ({ default: m.MockExamCanvas }))
+);
+const PracticeCanvas = lazy(() =>
+  import('./components/PracticeCanvas').then((m) => ({ default: m.PracticeCanvas }))
+);
+const SyncModal = lazy(() =>
+  import('./components/SyncModal').then((m) => ({ default: m.SyncModal }))
+);
 
 // Authoritative datasets
 import { chaptersMeta } from './data/chapters';
@@ -116,6 +123,7 @@ export function App() {
   // Modals & UI state
   const [syncModalOpen, setSyncModalOpen] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [mobileRightDrawerOpen, setMobileRightDrawerOpen] = useState<boolean>(false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem('cb_left_sidebar_collapsed') === 'true';
@@ -123,6 +131,18 @@ export function App() {
       return false;
     }
   });
+
+  // Close mobile right drawer on Escape
+  useEffect(() => {
+    if (!mobileRightDrawerOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileRightDrawerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileRightDrawerOpen]);
 
   const toggleLeftSidebarCollapsed = useCallback(() => {
     setLeftSidebarCollapsed((prev) => {
@@ -248,6 +268,66 @@ export function App() {
     }
   }, [importState]);
 
+  const rightSidebarProps = {
+    currentMode: (currentMode === 'mock-exam' ? 'exam' : currentMode) as 'recitation' | 'homework' | 'practice' | 'exam',
+    // Recitation props
+    recitationQuestions,
+    currentRecitationQuestionId: currentRecitationQ?.id || 1,
+    onSelectRecitationQuestionId: handleJumpToRecitationId,
+    memorizedList: state.memorized,
+    starredList: state.starred,
+    activeFilter,
+    onSelectFilter: setActiveFilter,
+    // Homework props
+    homeworkQuestions,
+    currentHomeworkQuestionId: currentHomeworkQ?.id || 1,
+    onSelectHomeworkQuestionId: handleJumpToHomeworkId,
+    homeworkCompletedList: state.homeworkCompleted,
+    selectedHomeworkChapter: selectedChapterId,
+    onSelectHomeworkChapter: handleSelectChapter,
+    // Terminology & Practice props
+    terminologyList,
+    currentTermId: currentTerm?.id || 1,
+    onSelectTermId: (termId: number) => {
+      const tIdx = terminologyList.findIndex((t) => t.id === termId);
+      if (tIdx !== -1) setPracticeTermIndex(tIdx);
+    },
+    termMemorizedList: state.termMemorized,
+    termStarredList: state.termStarred || [],
+    choiceMemorizedList: state.choiceMemorized || [],
+    choiceStarredList: state.choiceStarred || [],
+    tfMemorizedList: state.tfMemorized || [],
+    tfStarredList: state.tfStarred || [],
+    fillMemorizedList: state.fillMemorized || [],
+    fillStarredList: state.fillStarred || [],
+    shortMemorizedList: state.shortMemorized || [],
+    shortStarredList: state.shortStarred || [],
+    essayMemorizedList: state.essayMemorized || [],
+    essayStarredList: state.essayStarred || [],
+    practiceTab,
+    choiceCount: singleChoiceQuestions.length,
+    tfCount: trueFalseQuestions.length,
+    fillCount: fillInQuestions.length,
+    shortCount: shortAnswerQuestions.length,
+    essayCount: essayQuestions.length,
+    currentChoiceIndex: practiceChoiceIndex,
+    onSelectChoiceIndex: setPracticeChoiceIndex,
+    currentTfIndex: practiceTfIndex,
+    onSelectTfIndex: setPracticeTfIndex,
+    currentFillIndex: practiceFillIndex,
+    onSelectFillIndex: setPracticeFillIndex,
+    currentShortIndex: practiceShortIndex,
+    onSelectShortIndex: setPracticeShortIndex,
+    currentEssayIndex: practiceEssayIndex,
+    onSelectEssayIndex: setPracticeEssayIndex,
+    // Chapter metadata
+    currentChapterId:
+      currentMode === 'homework'
+        ? currentHomeworkQ?.chapterId || 1
+        : currentRecitationQ?.chapterId || 1,
+    chapters: chaptersMeta,
+  };
+
   return (
     <div className="min-h-screen bg-[#eef2f7] dark:bg-[#0b0f17] text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       <a
@@ -262,6 +342,7 @@ export function App() {
         onSearchChange={setSearchQuery}
         onOpenSync={() => setSyncModalOpen(true)}
         onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+        onToggleMobileRightDrawer={() => setMobileRightDrawerOpen((prev) => !prev)}
         isLeftCollapsed={leftSidebarCollapsed}
         onToggleLeftCollapsed={toggleLeftSidebarCollapsed}
         activeMode={currentMode}
@@ -329,138 +410,124 @@ export function App() {
           )}
 
           {currentMode === 'practice' && (
-            <PracticeCanvas
-              terms={terminologyList}
-              currentTermIndex={practiceTermIndex}
-              onJumpToTermIndex={setPracticeTermIndex}
-              singleChoices={singleChoiceQuestions}
-              currentChoiceIndex={practiceChoiceIndex}
-              onJumpToChoiceIndex={setPracticeChoiceIndex}
-              trueFalse={trueFalseQuestions}
-              currentTfIndex={practiceTfIndex}
-              onJumpToTfIndex={setPracticeTfIndex}
-              fillIns={fillInQuestions}
-              currentFillIndex={practiceFillIndex}
-              onJumpToFillIndex={setPracticeFillIndex}
-              shortAnswers={shortAnswerQuestions}
-              currentShortIndex={practiceShortIndex}
-              onJumpToShortIndex={setPracticeShortIndex}
-              essays={essayQuestions}
-              currentEssayIndex={practiceEssayIndex}
-              onJumpToEssayIndex={setPracticeEssayIndex}
-              termMemorized={state.termMemorized}
-              onToggleTermMemorized={toggleTermMemorized}
-              termStarred={state.termStarred || []}
-              onToggleTermStarred={toggleTermStarred}
-              choiceMemorized={state.choiceMemorized || []}
-              onToggleChoiceMemorized={toggleChoiceMemorized}
-              choiceStarred={state.choiceStarred || []}
-              onToggleChoiceStarred={toggleChoiceStarred}
-              tfMemorized={state.tfMemorized || []}
-              onToggleTfMemorized={toggleTfMemorized}
-              tfStarred={state.tfStarred || []}
-              onToggleTfStarred={toggleTfStarred}
-              fillMemorized={state.fillMemorized || []}
-              onToggleFillMemorized={toggleFillMemorized}
-              fillStarred={state.fillStarred || []}
-              onToggleFillStarred={toggleFillStarred}
-              shortMemorized={state.shortMemorized || []}
-              onToggleShortMemorized={toggleShortMemorized}
-              shortStarred={state.shortStarred || []}
-              onToggleShortStarred={toggleShortStarred}
-              essayMemorized={state.essayMemorized || []}
-              onToggleEssayMemorized={toggleEssayMemorized}
-              essayStarred={state.essayStarred || []}
-              onToggleEssayStarred={toggleEssayStarred}
-              activePracticeTab={practiceTab}
-              onPracticeTabChange={setPracticeTab}
-            />
+            <Suspense
+              fallback={
+                <div className="flex-1 flex items-center justify-center text-sm text-slate-500 dark:text-slate-400">
+                  加载中…
+                </div>
+              }
+            >
+              <PracticeCanvas
+                terms={terminologyList}
+                currentTermIndex={practiceTermIndex}
+                onJumpToTermIndex={setPracticeTermIndex}
+                singleChoices={singleChoiceQuestions}
+                currentChoiceIndex={practiceChoiceIndex}
+                onJumpToChoiceIndex={setPracticeChoiceIndex}
+                trueFalse={trueFalseQuestions}
+                currentTfIndex={practiceTfIndex}
+                onJumpToTfIndex={setPracticeTfIndex}
+                fillIns={fillInQuestions}
+                currentFillIndex={practiceFillIndex}
+                onJumpToFillIndex={setPracticeFillIndex}
+                shortAnswers={shortAnswerQuestions}
+                currentShortIndex={practiceShortIndex}
+                onJumpToShortIndex={setPracticeShortIndex}
+                essays={essayQuestions}
+                currentEssayIndex={practiceEssayIndex}
+                onJumpToEssayIndex={setPracticeEssayIndex}
+                termMemorized={state.termMemorized}
+                onToggleTermMemorized={toggleTermMemorized}
+                termStarred={state.termStarred || []}
+                onToggleTermStarred={toggleTermStarred}
+                choiceMemorized={state.choiceMemorized || []}
+                onToggleChoiceMemorized={toggleChoiceMemorized}
+                choiceStarred={state.choiceStarred || []}
+                onToggleChoiceStarred={toggleChoiceStarred}
+                tfMemorized={state.tfMemorized || []}
+                onToggleTfMemorized={toggleTfMemorized}
+                tfStarred={state.tfStarred || []}
+                onToggleTfStarred={toggleTfStarred}
+                fillMemorized={state.fillMemorized || []}
+                onToggleFillMemorized={toggleFillMemorized}
+                fillStarred={state.fillStarred || []}
+                onToggleFillStarred={toggleFillStarred}
+                shortMemorized={state.shortMemorized || []}
+                onToggleShortMemorized={toggleShortMemorized}
+                shortStarred={state.shortStarred || []}
+                onToggleShortStarred={toggleShortStarred}
+                essayMemorized={state.essayMemorized || []}
+                onToggleEssayMemorized={toggleEssayMemorized}
+                essayStarred={state.essayStarred || []}
+                onToggleEssayStarred={toggleEssayStarred}
+                activePracticeTab={practiceTab}
+                onPracticeTabChange={setPracticeTab}
+                searchQuery={searchQuery}
+              />
+            </Suspense>
           )}
 
           {currentMode === 'mock-exam' && (
-            <MockExamCanvas
-              termsBank={terminologyList}
-              fillInsBank={fillInQuestions}
-              singleChoicesBank={singleChoiceQuestions}
-              trueFalseBank={trueFalseQuestions}
-              shortAnswersBank={shortAnswerQuestions}
-              essaysBank={essayQuestions}
-              onFinishExam={addExamRecord}
-            />
+            <Suspense
+              fallback={
+                <div className="flex-1 flex items-center justify-center text-sm text-slate-500 dark:text-slate-400">
+                  加载中…
+                </div>
+              }
+            >
+              <MockExamCanvas
+                termsBank={terminologyList}
+                fillInsBank={fillInQuestions}
+                singleChoicesBank={singleChoiceQuestions}
+                trueFalseBank={trueFalseQuestions}
+                shortAnswersBank={shortAnswerQuestions}
+                essaysBank={essayQuestions}
+                onFinishExam={addExamRecord}
+              />
+            </Suspense>
           )}
         </main>
 
-        {/* Right Sidebar (Tri-column present across ALL 4 modes) */}
-        <RightSidebar
-          currentMode={currentMode === 'mock-exam' ? 'exam' : currentMode}
-          // Recitation props
-          recitationQuestions={recitationQuestions}
-          currentRecitationQuestionId={currentRecitationQ?.id || 1}
-          onSelectRecitationQuestionId={handleJumpToRecitationId}
-          memorizedList={state.memorized}
-          starredList={state.starred}
-          activeFilter={activeFilter}
-          onSelectFilter={setActiveFilter}
-          // Homework props
-          homeworkQuestions={homeworkQuestions}
-          currentHomeworkQuestionId={currentHomeworkQ?.id || 1}
-          onSelectHomeworkQuestionId={handleJumpToHomeworkId}
-          homeworkCompletedList={state.homeworkCompleted}
-          selectedHomeworkChapter={selectedChapterId}
-          onSelectHomeworkChapter={handleSelectChapter}
-          // Terminology & Practice props
-          terminologyList={terminologyList}
-          currentTermId={currentTerm?.id || 1}
-          onSelectTermId={(termId) => {
-            const tIdx = terminologyList.findIndex((t) => t.id === termId);
-            if (tIdx !== -1) setPracticeTermIndex(tIdx);
-          }}
-          termMemorizedList={state.termMemorized}
-          termStarredList={state.termStarred || []}
-          choiceMemorizedList={state.choiceMemorized || []}
-          choiceStarredList={state.choiceStarred || []}
-          tfMemorizedList={state.tfMemorized || []}
-          tfStarredList={state.tfStarred || []}
-          fillMemorizedList={state.fillMemorized || []}
-          fillStarredList={state.fillStarred || []}
-          shortMemorizedList={state.shortMemorized || []}
-          shortStarredList={state.shortStarred || []}
-          essayMemorizedList={state.essayMemorized || []}
-          essayStarredList={state.essayStarred || []}
-          practiceTab={practiceTab}
-          choiceCount={singleChoiceQuestions.length}
-          tfCount={trueFalseQuestions.length}
-          fillCount={fillInQuestions.length}
-          shortCount={shortAnswerQuestions.length}
-          essayCount={essayQuestions.length}
-          currentChoiceIndex={practiceChoiceIndex}
-          onSelectChoiceIndex={setPracticeChoiceIndex}
-          currentTfIndex={practiceTfIndex}
-          onSelectTfIndex={setPracticeTfIndex}
-          currentFillIndex={practiceFillIndex}
-          onSelectFillIndex={setPracticeFillIndex}
-          currentShortIndex={practiceShortIndex}
-          onSelectShortIndex={setPracticeShortIndex}
-          currentEssayIndex={practiceEssayIndex}
-          onSelectEssayIndex={setPracticeEssayIndex}
-          // Chapter metadata
-          currentChapterId={
-            currentMode === 'homework'
-              ? currentHomeworkQ?.chapterId || 1
-              : currentRecitationQ?.chapterId || 1
-          }
-          chapters={chaptersMeta}
-          className="hidden lg:flex"
-        />
+        {/* Right Sidebar (Desktop) */}
+        <RightSidebar {...rightSidebarProps} className="hidden lg:flex" />
+
+        {/* Mobile Right Matrix & Outline Drawer (< lg) */}
+        {mobileRightDrawerOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden flex justify-end">
+            <div
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={() => setMobileRightDrawerOpen(false)}
+              aria-hidden="true"
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="题号矩阵与大纲"
+              className="relative z-10 h-full max-w-full bg-white dark:bg-slate-900 shadow-2xl overscroll-contain flex"
+            >
+              <RightSidebar {...rightSidebarProps} className="flex h-full" />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 3. Multi-device Short Account Sync Modal */}
-      <SyncModal
-        isOpen={syncModalOpen}
-        onClose={() => setSyncModalOpen(false)}
-        state={state}
-        onImportState={importState}
-      />
+      <Suspense
+        fallback={
+          syncModalOpen ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm text-sm text-white">
+              加载中…
+            </div>
+          ) : null
+        }
+      >
+        <SyncModal
+          isOpen={syncModalOpen}
+          onClose={() => setSyncModalOpen(false)}
+          state={state}
+          onImportState={importState}
+        />
+      </Suspense>
     </div>
   );
 }

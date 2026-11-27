@@ -12,6 +12,7 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
+  PanelRightOpen,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -19,6 +20,7 @@ interface HeaderProps {
   onSearchChange: (q: string) => void;
   onOpenSync: () => void;
   onToggleMobileMenu?: () => void;
+  onToggleMobileRightDrawer?: () => void;
   isLeftCollapsed?: boolean;
   onToggleLeftCollapsed?: () => void;
   activeMode: string;
@@ -29,6 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   onOpenSync,
   onToggleMobileMenu,
+  onToggleMobileRightDrawer,
   isLeftCollapsed = false,
   onToggleLeftCollapsed,
 }) => {
@@ -344,6 +347,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {isDark ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
           </button>
+
+          {/* Mobile Right Matrix & Outline Drawer Toggle */}
+          {onToggleMobileRightDrawer && (
+            <button
+              onClick={onToggleMobileRightDrawer}
+              aria-label="打开题号矩阵与大纲"
+              title="题号矩阵与大纲"
+              className="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 clay-button-shadow clay-squash"
+            >
+              <PanelRightOpen className="w-4 h-4" aria-hidden="true" />
+            </button>
+          )}
         </div>
       </div>
 

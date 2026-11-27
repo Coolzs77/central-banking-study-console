@@ -9,5 +9,13 @@ export default defineConfig({
     emptyOutDir: true,
     assetsDir: 'assets',
     chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'lucide-react'],
+          qrcode: ['qrcode'],
+        },
+      },
+    },
   }
 });

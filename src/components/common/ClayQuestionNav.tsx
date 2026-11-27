@@ -58,7 +58,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
   return (
     <div className="flex flex-col gap-2">
       {/* Sticky Clay Navigation Bar */}
-      <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 p-2.5 sm:p-3 rounded-2xl bg-white/95 dark:bg-[#151b26]/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 clay-badge-shadow transition-all">
+      <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 p-2.5 sm:p-3 rounded-2xl bg-white/95 dark:bg-[#151b26]/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 clay-badge-shadow transition-colors">
         {/* Left: Prev / Jump Dropdown / Next */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {modeBadge && (
@@ -70,7 +70,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
           <button
             onClick={onPrev}
             disabled={currentIndex <= 0}
-            className="clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 hover:bg-slate-50 border border-slate-200 dark:border-slate-700 disabled:opacity-30 transition-all flex items-center gap-1 cursor-pointer"
+            className="clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 hover:bg-slate-50 border border-slate-200 dark:border-slate-700 disabled:opacity-30 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>上一题</span>
@@ -87,7 +87,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
           <button
             onClick={onNext}
             disabled={currentIndex >= totalFiltered - 1}
-            className="clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 hover:bg-slate-50 border border-slate-200 dark:border-slate-700 disabled:opacity-30 transition-all flex items-center gap-1 cursor-pointer"
+            className="clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 hover:bg-slate-50 border border-slate-200 dark:border-slate-700 disabled:opacity-30 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <span>下一题</span>
             <ChevronRight className="w-4 h-4" />
@@ -100,7 +100,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
           {onToggleRevealed && (
             <button
               onClick={onToggleRevealed}
-              className={`clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`clay-button-shadow clay-squash px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
                 revealed
                   ? 'bg-emerald-600 text-white border-emerald-700 shadow-md'
                   : 'bg-white dark:bg-[#1a2232] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
@@ -114,7 +114,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
           {/* Memorized / Completed Button (✓) - Fixed label, state by color! */}
           <button
             onClick={onToggleMemorized}
-            className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-all flex items-center gap-1 text-xs font-bold cursor-pointer ${
+            className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer ${
               isMemorized
                 ? 'bg-emerald-600 text-white border-emerald-700 shadow-md'
                 : 'bg-white dark:bg-[#1a2232] text-slate-600 dark:text-slate-400 hover:text-emerald-600 border-slate-200 dark:border-slate-700'
@@ -127,7 +127,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
           {/* Star Button - Fixed label, state by color! */}
           <button
             onClick={onToggleStar}
-            className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-all flex items-center gap-1 text-xs font-bold cursor-pointer ${
+            className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer ${
               isStarred
                 ? 'bg-amber-500 text-white border-amber-600 shadow-md'
                 : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-amber-500 border-slate-200 dark:border-slate-700'
@@ -140,7 +140,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
           {/* Copy Button - Fixed label! */}
           <button
             onClick={onCopy}
-            className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-all flex items-center gap-1 text-xs font-bold cursor-pointer ${
+            className={`clay-button-shadow clay-squash px-2.5 py-1.5 rounded-xl border transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer ${
               isCopied
                 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border-emerald-300 dark:border-emerald-700'
                 : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 border-slate-200 dark:border-slate-700'
@@ -198,7 +198,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
                     onJumpToIndex(idx);
                     setJumpDrawerOpen(false);
                   }}
-                  className={`w-7 h-7 rounded-lg text-xs font-bold font-mono transition-all relative cursor-pointer ${btnStyle}`}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold font-mono transition-colors relative cursor-pointer ${btnStyle}`}
                 >
                   {idx + 1}
                   {isDone && !isCurr && (
