@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
-  HelpCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { HomeworkQuestion, ChapterMeta } from '../data/types';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
@@ -251,14 +252,19 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsMasking((prev) => !prev)}
-                    className={`px-2.5 py-1 rounded-md text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+                    aria-label={isMasking ? '显露关键词' : '挖空遮挡'}
+                    aria-pressed={isMasking}
+                    className={`w-8 h-8 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
                       isMasking
                         ? 'bg-rose-500 text-white border-rose-600'
                         : 'bg-transparent text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:text-rose-500 hover:border-rose-400'
                     }`}
                   >
-                    <HelpCircle className="w-3.5 h-3.5" />
-                    <span>{isMasking ? '显露关键词' : '挖空遮挡'}</span>
+                    {isMasking ? (
+                      <EyeOff className="w-4 h-4" aria-hidden="true" />
+                    ) : (
+                      <Eye className="w-4 h-4" aria-hidden="true" />
+                    )}
                   </button>
                 </div>
                 <MarkdownViewer content={currentQ.answer} keywords={currentQ.keywords} maskKeywords={isMasking} />

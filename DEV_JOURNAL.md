@@ -3931,3 +3931,49 @@ flowchart TD
   - `verify_suite.mjs`: `54 PASSED, 0 FAILED`
   - `npm run build`: `✓ built in 5.08s`（`dist/` 产物就绪）
   - 无头 Chrome E2E：`E2E_BOOK_PASS: body_px 18.02px -> 20.14px, 0 ribbons, 1 left-collapse btn, rounded-2xl nav, tabs=['名词解释', '填空题', '单选题', '判断改错题', '简答题', '论述题', '题号', '大纲', '名词'], 0 SEVERE errors.`
+
+
+---
+
+## 第 35 轮 [2026-11-27 22:18]：作业本挖空遮挡按钮精简为纯眼睛开关图标
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- 用户要求将平时作业本参考解析右上角的「挖空遮挡 / 显露关键词」文字按钮精简为纯粹的打开/关闭眼睛图标按钮，去除所有文字标签，保持页面整洁。
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- [HomeworkCanvas.tsx](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)：
+  - 替换 `lucide-react` 图标引入：`HelpCircle` → `Eye`、`EyeOff`；
+  - 将参考解析右上角按钮改为 `w-8 h-8 rounded-lg` 纯图标按钮，未遮挡时显示 `Eye`（睁眼），点击开启挖空遮挡后切换为 `EyeOff`（闭眼），并通过 `aria-label` 与 `aria-pressed` 保留无障碍语义。
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：原按钮同时包含 `HelpCircle` 问号图标与「挖空遮挡 / 显露关键词」文字，在纸张界面右侧显得偏长且表意不够直观。
+- **根本原因 (RCA)**：早期沿用了问答式文案按钮设计，而阅读界面更适合以「睁眼=可见 / 闭眼=遮挡」图标直接表达状态。
+- **具体解法**：移除 `<span>` 文案节点，改用 `Eye` / `EyeOff` 图标二态切换。
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Visible: "isMasking = false (显示 Eye 睁眼图标)"
+    Visible --> Masked: "点击图标 -> setIsMasking(true)"
+    Masked --> Visible: "点击图标 -> setIsMasking(false)"
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **图标态与遮挡态严格映射**：`isMasking = false` 时展示 `Eye`，`MarkdownViewer` 正常显示玫瑰红关键词；点击切换为 `isMasking = true` 后展示 `EyeOff`，`MarkdownViewer` 将关键词替换为胶带遮罩。
+
+```mermaid
+flowchart LR
+    Btn["HomeworkCanvas 纯图标按钮<br/>aria-pressed={isMasking}"] -->|"传递 maskKeywords={isMasking}"| Viewer["MarkdownViewer"]
+    Viewer -->|"false"| Show["正常渲染关键词"]
+    Viewer -->|"true"| Hide["渲染贴纸胶带遮罩"]
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **单向数据流与无障碍支持**：视觉上移除所有文字以保持纸面留白，同时保留 `aria-label` 供屏幕阅读器识别当前状态。
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 按钮尺寸收窄为 `32px × 32px`（`w-8 h-8`），与参考解析标题栏对齐更紧凑。
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- 执行 `npx tsx tests/verifyHomeworkHierarchy.ts`、`node verify_suite.mjs`、`npm run build`、`npm run deploy` 验证通过并完成线上发布。
