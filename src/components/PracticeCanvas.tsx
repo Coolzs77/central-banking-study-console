@@ -907,7 +907,6 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 <div className="flex items-center justify-between text-xs text-slate-400">
                   <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-xl font-bold border border-blue-200 dark:border-blue-800">
                     名词解释 #{currentTerm.id}
-                    {TERM_PPT_REFS[currentTerm.id] && `（${TERM_PPT_REFS[currentTerm.id]}）`}
                   </span>
                   {currentTerm.source && <span className="text-slate-500">{currentTerm.source}</span>}
                 </div>
@@ -917,6 +916,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     <div className="space-y-4">
                       <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight group-hover:text-blue-600 transition-colors">
                         {currentTerm.term}
+                        {TERM_PPT_REFS[currentTerm.id] && (
+                          <span className="font-mono text-base sm:text-lg font-semibold text-slate-500 dark:text-slate-400 ml-1.5 align-middle">
+                            （{TERM_PPT_REFS[currentTerm.id]}）
+                          </span>
+                        )}
                       </h2>
                       <p className="text-sm text-slate-400 font-medium">
                         查看定义
@@ -928,6 +932,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                         <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                           {currentTerm.term}
+                          {TERM_PPT_REFS[currentTerm.id] && (
+                            <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
+                              （{TERM_PPT_REFS[currentTerm.id]}）
+                            </span>
+                          )}
                         </h3>
                       </div>
                       <div className="p-5 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-base leading-relaxed text-slate-800 dark:text-slate-200">
@@ -1009,13 +1018,13 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 {/* Question Stem & Options */}
                 <div className="space-y-5">
                   <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
-                    <span className="font-mono mr-1">{choiceIdx + 1}.</span>
+                    <span className="font-mono mr-1.5">{choiceIdx + 1}.</span>
+                    <span>{currentChoice.stem}</span>
                     {CHOICE_PPT_REFS[currentChoice.id] && (
-                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 mr-1.5">
+                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
                         （{CHOICE_PPT_REFS[currentChoice.id]}）
                       </span>
                     )}
-                    <span>{currentChoice.stem}</span>
                   </h3>
 
                   <div className="space-y-3">
@@ -1138,13 +1147,13 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 {/* Statement & Answer Buttons */}
                 <div className="space-y-6">
                   <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
-                    <span className="font-mono mr-1">{tfIdx + 1}.</span>
+                    <span className="font-mono mr-1.5">{tfIdx + 1}.</span>
+                    <span>{currentTF.statement}</span>
                     {TF_PPT_REFS[currentTF.id] && (
-                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 mr-1.5">
+                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
                         （{TF_PPT_REFS[currentTF.id]}）
                       </span>
                     )}
-                    <span>{currentTF.statement}</span>
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -1266,13 +1275,13 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 {/* Stem & Answer */}
                 <div className="space-y-6 my-4">
                   <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
-                    <span className="font-mono mr-1">{fillIdx + 1}.</span>
+                    <span className="font-mono mr-1.5">{fillIdx + 1}.</span>
+                    <span>{currentFill.stem}</span>
                     {FILL_PPT_REFS[currentFill.id] && (
-                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 mr-1.5">
+                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
                         （{FILL_PPT_REFS[currentFill.id]}）
                       </span>
                     )}
-                    <span>{currentFill.stem}</span>
                   </h3>
 
                   {!showFillAnswer ? (
@@ -1376,13 +1385,13 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 {/* Question & Expandable Sample Answer / Rubric */}
                 <div className="space-y-5">
                   <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
-                    <span className="font-mono mr-1">{shortIdx + 1}.</span>
+                    <span className="font-mono mr-1.5">{shortIdx + 1}.</span>
+                    <span>{currentShort.question}</span>
                     {SHORT_PPT_REFS[currentShort.id] && (
-                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 mr-1.5">
+                      <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
                         （{SHORT_PPT_REFS[currentShort.id]}）
                       </span>
                     )}
-                    <span>{currentShort.question}</span>
                   </h3>
 
                   {!showShortAnswer ? (
@@ -1507,13 +1516,13 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       </div>
                     )}
                     <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
-                      <span className="font-mono mr-1">{essayIdx + 1}.</span>
+                      <span className="font-mono mr-1.5">{essayIdx + 1}.</span>
+                      <span>{currentEssay.question}</span>
                       {ESSAY_PPT_REFS[currentEssay.id] && (
-                        <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 mr-1.5">
+                        <span className="font-mono text-sm font-semibold text-slate-500 dark:text-slate-400 ml-1">
                           （{ESSAY_PPT_REFS[currentEssay.id]}）
                         </span>
                       )}
-                      <span>{currentEssay.question}</span>
                     </h3>
                   </div>
 

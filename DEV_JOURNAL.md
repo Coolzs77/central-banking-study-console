@@ -3616,3 +3616,74 @@ sequenceDiagram
 - **实际输出**：
   - `npm run build`：打包成功（0 错误）
   - `node verify_suite.mjs`：`54 PASSED, 0 FAILED`
+
+---
+
+## 第 31 轮 [2026-11-27 19:15]：基于去重版 PDF 课件校准全量页码并后置至题干末尾
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：以 `E:\Downloads\文档类\第二学位\中央银行学\课件\` 中的 11 份去重版 PDF 页码为准（第 6–11 章去重后页数分别为 32/29/21/37/22/24 页，明显少于早期未去重 OCR 文档的 34/31/27/53/27/53 页），重算全部题目页码；并将 `（p章_起-止）` 从题号后统一移至题干末尾。
+- **目标**：消除第 6–11 章旧版 `p38-53` 越界页码，保证全站所有题目的页码 100% 落在去重版 PDF 实际页数范围内，并统一渲染于题干后面。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+1. **去重版 PDF 逐页识别与校准（[`src/data/pptRefs.ts`](file:///e:/workspace/central-banking-study-console/src/data/pptRefs.ts)）**
+   - 使用 `pymupdf` 渲染去重版第 6–11 章 PDF（165 页）并调用 Windows 内置 WinRT 简体中文 OCR 引擎提取每页文本；
+   - 第 1–5 章沿用与去重版页数一致的精确页码，第 6–11 章全量对照去重版 PDF 文本重新 4-gram 匹配计算，并执行严格越界校验（0 越界）。
+2. **页码后置至题干末尾（[`RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)、[`HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)、[`PracticeCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)）**
+   - 将所有题型（全书速记、平时作业本及题型专项全部 6 类题型）的 `（p章_起-止）` 移至题干/名词标题末尾展示。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：第 6–11 章早期题目末尾带有 `(p38-41, 49-52)` 等页码，超出用户去重版 PDF 实际页数（第 9 章 37 页、第 11 章 24 页）。
+- **根本原因 (RCA)**：早期 OCR 源包含重复过渡页，未与去重版 PDF 对齐。
+- **具体解法**：直接对去重版第 6–11 章 PDF 逐页 OCR 并重算 `pptRefs.ts`，同时加上 `MAX_PAGES` 断言拦截越界页码。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    PDF["去重版 PDF (Ch6-11 共165页)"] -->|"pymupdf + WinRT OCR"| DedupOCR["dedup_ch6_11_ocr.json"]
+    Ch15["Ch1-5 (与去重版页数1:1一致)"] --> Calibrate["4-gram 校准 + MAX_PAGES 越界校验"]
+    DedupOCR --> Calibrate
+    Calibrate --> Refs["src/data/pptRefs.ts (0 越界)"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **页码绝对对齐**：第 6–11 章彻底脱离旧版未去重页码体系，直接锚定用户本地去重版 PDF 实际页码。
+
+```mermaid
+sequenceDiagram
+    participant UI as Canvas 组件
+    participant Refs as pptRefs.ts
+    UI->>Refs: 查询当前题 p{章}_{页}
+    UI-->>UI: 渲染 "1. 题干正文 （p章_起-止）"
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **阅读顺序更自然**：题号与题干正文连贯阅读，页码出处自然附在题干末尾，不再打断题号与题干。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 全站 380 题页码与用户手中去重版 PDF 严格对齐（`0` 越界）；
+- 所有题型视觉顺序统一为「题号 + 题干 + `（p章_起-止）`」。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npx tsx scripts/audit_exam_accuracy.ts; npx tsx tests/verifyData.ts; npx tsx tests/verifyHomeworkHierarchy.ts; npx tsx tests/verifyPracticeUI.tsx; node verify_suite.mjs; npm run build
+  ```
+- **实际输出**：
+  - `scripts/audit_exam_accuracy.ts`：`0` 错误
+  - `tests/verifyData.ts`：`46 PASSED, 0 FAILED`
+  - `tests/verifyHomeworkHierarchy.ts`：`21 PASSED, 0 FAILED`
+  - `tests/verifyPracticeUI.tsx`：`36 PASSED, 0 FAILED`
+  - `verify_suite.mjs`：`54 PASSED, 0 FAILED`
+  - `npm run build`：打包成功（0 错误）

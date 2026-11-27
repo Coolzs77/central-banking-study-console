@@ -230,15 +230,15 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
           </div>
         </div>
 
-        {/* Question Title with 1. style (Black font) + PPT page ref */}
+        {/* Question Title with 1. style (Black font) + trailing PPT page ref */}
         <h2 className="py-4 text-lg sm:text-xl font-bold leading-relaxed text-slate-900 dark:text-white">
-          <span className="font-mono font-bold mr-1 text-slate-900 dark:text-white">{currentQ.id}.</span>
+          <span className="font-mono font-bold mr-1.5 text-slate-900 dark:text-white">{currentQ.id}.</span>
+          <span>{currentQ.question}</span>
           {HOMEWORK_PPT_REFS[currentQ.id] && (
-            <span className="font-mono text-sm sm:text-base font-semibold text-slate-500 dark:text-slate-400 mr-1.5">
+            <span className="font-mono text-sm sm:text-base font-semibold text-slate-500 dark:text-slate-400 ml-1">
               （{HOMEWORK_PPT_REFS[currentQ.id]}）
             </span>
           )}
-          <span>{currentQ.question}</span>
         </h2>
 
         {/* 3. Solution Section (展开题解卡片) */}
