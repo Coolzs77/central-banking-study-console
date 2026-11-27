@@ -3848,3 +3848,86 @@ sequenceDiagram
   - `verify_suite.mjs`：`54 PASSED, 0 FAILED`
   - `npm run build`：`✓ built in 5.50s`（0 错误）
   - Selenium 无头 Chrome 实测：`E2E_BOOK_PASS`（菜单无遮挡、`A+` 字号持久化、羊皮纸 3D 颗粒、`.book-turn-next` 翻页动效均通过，0 `SEVERE` 控制台错误）
+
+
+---
+
+## 第 34 轮 [2026-11-27 21:59]：全正文联动字号缩放、圆角悬浮导航与界面去冗余精简
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- 针对用户实机截图反馈的 5 项界面问题进行系统性修复与验证：
+  1. **字号只改题干不改正文且默认偏小**：此前 `A- / A / A+` 仅作用于题干 `--book-stem-size`，`MarkdownViewer` 引用了未定义的 `--md-body-size` 等变量且默认字号偏小；需让整个书页内题干、小标题、要点正文、选项与参考答案同步按比例缩放，并将默认字号提高至 `17px`（可调范围 `14px–24px`）。
+  2. **吸顶操作栏直角老年化**：`ClayQuestionNav` 的直角长条与圆角纸张氛围不协调，改为 `rounded-2xl` 纸张半透明融合悬浮胶囊工具栏，并在跳转按钮中精简为 `当前 / 总数 ▾`。
+  3. **移除书页右上角红色书签丝带 (`.book-ribbon`)**：彻底删除突兀的红色斜切书签按钮。
+  4. **消除重复控件与冗余题号计数**：移除 `LeftSidebar` 内重复的左侧折叠按钮（仅保留 `Header` 顶栏唯一折叠入口）；去掉背诵题 `第 X 题 ·`、作业/专项页内重复的 `第 X / N 题`、专项顶部 Tab 的 `({tab.count}题)` 以及专项卡片底部与顶栏重复的 `收藏`/`掌握` 按钮；放宽专项卡片宽度（`max-w-3xl` → `max-w-4xl`）。
+  5. **优化翻页动画**：将晃眼的 3D `rotateY` 改为轻柔顺滑的水平位移加淡入（`translateX(±14px) -> 0` + `opacity: 0.55 -> 1`，`220ms cubic-bezier(0.22, 1, 0.36, 1)`）。
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- **字号基准与等比继承体系**：
+  - [appearance.ts](file:///e:/workspace/central-banking-study-console/src/data/appearance.ts)：调整 `FONT_SIZE_MIN = 14`、`FONT_SIZE_MAX = 24`、`FONT_SIZE_DEFAULT = 17`；同步修复 [App.tsx](file:///e:/workspace/central-banking-study-console/src/App.tsx) 中 `useState` 与 `handleChangeFontSize` 硬编码 `16` / `13..22` 的问题，改为直接引用常量；更新 [Header.tsx](file:///e:/workspace/central-banking-study-console/src/components/Header.tsx) 的 `fontSize` 默认参数为 `FONT_SIZE_DEFAULT`。
+  - [index.css](file:///e:/workspace/central-banking-study-console/src/index.css)：在 `.book-page, .paper-card` 根容器统一设置 `font-size: var(--reader-font-size, 17px); line-height: var(--reader-line-height, 1.8);`，删除 `.book-ribbon` 样式块，并将 `bookTurnNext` / `bookTurnPrev` 改为轻柔水平滑入。
+  - [MarkdownViewer.tsx](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)：将 4 级排版全部切换为相对父容器的 `em` 单位（溯源行 `0.92em`、绿标小标题 `1.06em`、导语 `1.02em`、要点正文 `1em`），同时保留 `text-slate-500 dark:text-slate-400` 满足四级色彩断言。
+- **界面去冗余与圆角悬浮栏**：
+  - [ClayQuestionNav.tsx](file:///e:/workspace/central-banking-study-console/src/components/common/ClayQuestionNav.tsx)：容器改为 `rounded-2xl px-3.5 py-2.5 bg-[var(--paper-surface,#fbf8f1)]/92 dark:bg-[#191815]/92 backdrop-blur-md shadow-sm`，子按钮改为 `rounded-xl`，页码指示精简为 `{currentIndex + 1} / {totalFiltered} ▾`。
+  - [LeftSidebar.tsx](file:///e:/workspace/central-banking-study-console/src/components/LeftSidebar.tsx)：移除折叠态与展开态内重复的 `PanelLeftOpen`/`PanelLeftClose` 按钮及未使用图标引入。
+  - [RecitationCanvas.tsx](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx) & [HomeworkCanvas.tsx](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)：移除 `.book-ribbon`、`第 {id} 题 ·` 与 `第 X / N 题`，题干改用 `text-[1.24em]`，PPT 页码参考改用 `text-[0.78em]`。
+  - [PracticeCanvas.tsx](file:///e:/workspace/central-banking-study-console/src/components/PracticeCanvas.tsx)：去除 Tab 括号题数、移除 6 个题型页的 `.book-ribbon`、页内 `第 X / N 题` 与底部重复 `收藏`/`掌握` 按钮（保留章节提示），容器放宽至 `max-w-4xl`，题干、选项、解析、参考答案容器分别切换为 `1.18em` / `0.96em` / `0.94em` / `1em`。
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：修改 `Header` 字号滑块与 `appearance.ts` 默认值后，初版 E2E 脚本检测 `--reader-font-size` 仍为 `16px`，且 `tests/verifyPracticeUI.tsx` 与 `verify_suite.mjs` 各出现断言失败。
+- **根本原因 (RCA)**：
+  1. `App.tsx` 的 `fontSize` 初始化与 `Math.min/max` 夹紧逻辑仍硬编码 `16` 与 `13..22`，未导入 `FONT_SIZE_DEFAULT`/`MIN`/`MAX`，导致首次挂载覆盖了 `17px` 新默认值。
+  2. `verify_suite.mjs` 第 89 行严格匹配 `text-slate-500 dark:text-slate-400`，`MarkdownViewer.tsx` 误调为 `text-slate-600` 触发失败；`tests/verifyPracticeUI.tsx` 仍断言旧版 `第 1 / 40 题 ▾` 文案及已删去的 `title="点击撕开胶带"` 属性。
+- **具体解法**：统一在 `App.tsx` 与 `Header.tsx` 导入 `appearance.ts` 常量；在 `MarkdownViewer.tsx` 恢复 `text-slate-500`；同步更新 `tests/verifyPracticeUI.tsx` 对 `1 / 40 ▾` 与胶带 `repeating-linear-gradient` 的断言，并在 Selenium 脚本中补充真实像素级 `getComputedStyle` 校验。
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    HeaderBtn["Header A- / A / A+ (14~24px)"] -->|"更新 state & localStorage"| MainVar["main#main-content<br/>--reader-font-size: 17px~24px"]
+    MainVar -->|"CSS 继承"| BookPage[".book-page / .paper-card<br/>font-size: var(--reader-font-size)"]
+    BookPage -->|"1.24em / 1.18em"| Stem["题干标题"]
+    BookPage -->|"1.06em"| SubHead["MarkdownViewer 小标题"]
+    BookPage -->|"1em / 0.96em"| Body["要点正文 / 选项 / 解析"]
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **单一字号真相源**：用户调节 `A- / A / A+` 后，`App.tsx` 通过 `FONT_SIZE_MIN/MAX/DEFAULT` 夹紧数值并写入 `#main-content` 的行内 CSS 变量 `--reader-font-size`。
+2. **全层级 `em` 级联缩放**：`.book-page` 与 `.paper-card` 消费 `--reader-font-size`，内部题干、绿标小标题、`MarkdownViewer` 正文、选择题选项与参考解析全部采用相对 `em` 单位，避免固定 `px`/`rem` 割裂，保证任何字号下视觉比例协调。
+
+```mermaid
+flowchart TD
+    Action["点击 上一题 / 下一题"] --> Hook["useBookPageTurn 检测索引方向"]
+    Hook -->|"index 增加"| NextAnim["book-turn-next<br/>translateX(14px) -> 0 & opacity 0.55 -> 1"]
+    Hook -->|"index 减少"| PrevAnim["book-turn-prev<br/>translateX(-14px) -> 0 & opacity 0.55 -> 1"]
+    NextAnim --> End["220ms cubic-bezier(0.22,1,0.36,1) 稳定落位"]
+    PrevAnim --> End
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **温和翻页反馈**：抛弃高幅度的 `rotateY` 透视旋转，改为 220ms 的轻度水平滑入与透明度过渡，保留切题方向感的同时避免页面晃动与文字模糊。
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 无头 Chrome 实测默认字号下 `MarkdownViewer` 正文渲染计算字号由原本偏小的 `13.5px–14.5px` 提升至 `18.02px`，连点两次 `A+`（`17px -> 19px`）后正文同步放大至 `20.14px`。
+- 全站 `.book-ribbon` 数量归零，左栏折叠按钮精简为顶栏唯一 1 枚，专项练习卡片宽度由 `max-w-3xl` 放宽至 `max-w-4xl`。
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **自动化校验命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console
+  npx tsx scripts/audit_exam_accuracy.ts
+  npx tsx tests/verifyData.ts
+  npx tsx tests/verifyHomeworkHierarchy.ts
+  npx tsx tests/verifyPracticeUI.tsx
+  node verify_suite.mjs
+  npm run build
+  python C:\Users\86166\.gemini\antigravity\brain\750285ff-e722-49e4-b776-a5cdb15413ca\scratch\e2e_book_volume.py
+  ```
+- **实测输出**：
+  - `audit_exam_accuracy.ts`: `ALL EXAM QUESTIONS ARE 100% GROUNDED IN 162 PPT RECITATION QUESTIONS!` (`0 Errors`)
+  - `verifyData.ts`: `46 PASSED, 0 FAILED`
+  - `verifyHomeworkHierarchy.ts`: `21 PASSED, 0 FAILED`
+  - `verifyPracticeUI.tsx`: `36 PASSED, 0 FAILED`
+  - `verify_suite.mjs`: `54 PASSED, 0 FAILED`
+  - `npm run build`: `✓ built in 5.08s`（`dist/` 产物就绪）
+  - 无头 Chrome E2E：`E2E_BOOK_PASS: body_px 18.02px -> 20.14px, 0 ribbons, 1 left-collapse btn, rounded-2xl nav, tabs=['名词解释', '填空题', '单选题', '判断改错题', '简答题', '论述题', '题号', '大纲', '名词'], 0 SEVERE errors.`

@@ -749,55 +749,17 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
   const bookTurnClass = useBookPageTurn(activeBookKey, activeBookIdx);
 
   const renderCardFooterActions = (
-    isMemorized: boolean,
-    onToggleMemorized: () => void,
-    isStarred: boolean,
-    onToggleStar: () => void,
+    _isMemorized: boolean,
+    _onToggleMemorized: () => void,
+    _isStarred: boolean,
+    _onToggleStar: () => void,
     chapterId: number,
     chapterTitleOverride?: string
   ) => (
-    <div className="flex flex-wrap items-center justify-between gap-2 pt-4 mt-2 border-t border-dashed border-stone-300/70 dark:border-stone-700/70">
+    <div className="flex items-center justify-between gap-2 pt-4 mt-2 border-t border-dashed border-stone-300/70 dark:border-stone-700/70">
       <span className="text-xs text-stone-600 dark:text-stone-400">
         {chapterTitleOverride || getChapterTitle(chapterId)}
       </span>
-
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleStar();
-          }}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition cursor-pointer ${
-            isStarred
-              ? 'bg-amber-500 text-white border-amber-500'
-              : 'bg-transparent text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-400'
-          }`}
-        >
-          <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-white text-white' : 'text-stone-400'}`} />
-          <span>收藏</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleMemorized();
-          }}
-          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-bold border transition cursor-pointer ${
-            isMemorized
-              ? 'bg-emerald-600 text-white border-emerald-600'
-              : 'bg-transparent text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400'
-          }`}
-        >
-          {isMemorized ? (
-            <CheckCircle2 className="w-3.5 h-3.5" />
-          ) : (
-            <Circle className="w-3.5 h-3.5 text-stone-400" />
-          )}
-          <span>掌握</span>
-        </button>
-      </div>
     </div>
   );
 
@@ -823,7 +785,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     : 'border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
                 }`}
               >
-                {tab.label} (<span className="tabular-nums">{tab.count}</span>题)
+                {tab.label}
               </button>
             ))}
           </div>
@@ -931,26 +893,12 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="book-stage w-full max-w-3xl my-auto">
+            <div className="book-stage w-full max-w-4xl my-auto">
               <article
                 onClick={() => setIsFlipped((prev) => !prev)}
                 className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between cursor-pointer select-none group`}
               >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleTermStarred(currentTerm.id);
-                  }}
-                  aria-label={termStarred.includes(currentTerm.id) ? '取消收藏' : '收藏本题'}
-                  aria-pressed={termStarred.includes(currentTerm.id)}
-                  data-starred={termStarred.includes(currentTerm.id)}
-                  className={`book-ribbon ${termStarred.includes(currentTerm.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
-                >
-                  <Bookmark className={`w-4 h-4 ${termStarred.includes(currentTerm.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
-                </button>
-
-                <div className="book-marginalia flex items-center justify-between pr-10 text-xs text-stone-600 dark:text-stone-400">
+                <div className="book-marginalia flex items-center justify-between text-xs text-stone-600 dark:text-stone-400">
                   <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                     名词解释 #{currentTerm.id}
                   </span>
@@ -960,15 +908,15 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                 <div className="my-8 text-center">
                   {!isFlipped ? (
                     <div className="space-y-4">
-                      <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                      <h2 className="text-[1.85em] font-extrabold text-slate-900 dark:text-white tracking-tight group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
                         {currentTerm.term}
                         {TERM_PPT_REFS[currentTerm.id] && (
-                          <span className="font-mono text-base sm:text-lg font-semibold text-stone-600 dark:text-stone-400 ml-1.5 align-middle">
+                          <span className="font-mono text-[0.55em] font-semibold text-stone-600 dark:text-stone-400 ml-1.5 align-middle">
                             （{TERM_PPT_REFS[currentTerm.id]}）
                           </span>
                         )}
                       </h2>
-                      <p className="text-sm text-stone-500 dark:text-stone-400 font-medium">
+                      <p className="text-[0.88em] text-stone-500 dark:text-stone-400 font-medium">
                         查看定义
                       </p>
                     </div>
@@ -976,10 +924,10 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                     <div className="text-left space-y-4">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-sky-600"></span>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                        <h3 className="text-[1.22em] font-bold text-slate-900 dark:text-white">
                           {currentTerm.term}
                           {TERM_PPT_REFS[currentTerm.id] && (
-                            <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
+                            <span className="font-mono text-[0.72em] font-semibold text-stone-600 dark:text-stone-400 ml-1">
                               （{TERM_PPT_REFS[currentTerm.id]}）
                             </span>
                           )}
@@ -988,7 +936,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       <hr className="book-divider" />
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        className="text-base leading-relaxed text-slate-800 dark:text-slate-200 select-text cursor-auto"
+                        className="text-[1em] leading-relaxed text-slate-800 dark:text-slate-200 select-text cursor-auto"
                       >
                         <MarkdownViewer content={currentTerm.definition} maskKeywords={isMasking} />
                       </div>
@@ -1046,21 +994,10 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="book-stage w-full max-w-3xl my-auto">
+            <div className="book-stage w-full max-w-4xl my-auto">
               <article className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6`}>
-                <button
-                  type="button"
-                  onClick={() => onToggleChoiceStarred(currentChoice.id)}
-                  aria-label={choiceStarred.includes(currentChoice.id) ? '取消收藏' : '收藏本题'}
-                  aria-pressed={choiceStarred.includes(currentChoice.id)}
-                  data-starred={choiceStarred.includes(currentChoice.id)}
-                  className={`book-ribbon ${choiceStarred.includes(currentChoice.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
-                >
-                  <Bookmark className={`w-4 h-4 ${choiceStarred.includes(currentChoice.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
-                </button>
-
                 {/* Top Marginalia */}
-                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 text-xs text-stone-600 dark:text-stone-400">
                   <div className="flex items-center gap-3">
                     <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       单选专项 #{currentChoice.id}
@@ -1071,18 +1008,15 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       </span>
                     )}
                   </div>
-                  <span className="font-mono font-medium tabular-nums">
-                    第 {choiceIdx + 1} / {filteredChoices.length} 题
-                  </span>
                 </div>
 
                 {/* Question Stem & Options */}
                 <div className="space-y-5">
-                  <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
+                  <h3 className="text-[1.18em] font-bold text-slate-900 dark:text-white leading-relaxed">
                     <span className="font-mono mr-1.5">{choiceIdx + 1}.</span>
                     <span>{currentChoice.stem}</span>
                     {CHOICE_PPT_REFS[currentChoice.id] && (
-                      <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
+                      <span className="font-mono text-[0.74em] font-semibold text-stone-600 dark:text-stone-400 ml-1">
                         （{CHOICE_PPT_REFS[currentChoice.id]}）
                       </span>
                     )}
@@ -1118,9 +1052,9 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                             setSelectedOption(key);
                             setShowChoiceExplanation(true);
                           }}
-                          className={`w-full px-4 py-3 rounded-lg border text-left flex items-start gap-3 transition cursor-pointer text-sm ${optClass}`}
+                          className={`w-full px-4 py-3 rounded-lg border text-left flex items-start gap-3 transition cursor-pointer text-[0.96em] ${optClass}`}
                         >
-                          <span className="font-mono font-bold text-xs pt-0.5 shrink-0">
+                          <span className="font-mono font-bold text-[0.85em] pt-0.5 shrink-0">
                             {key}.
                           </span>
                           <span className="flex-1">{text}</span>
@@ -1132,11 +1066,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                   {showChoiceExplanation && (
                     <>
                       <hr className="book-divider" />
-                      <div className="space-y-2 text-xs">
-                        <div className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">
+                      <div className="space-y-2 text-[0.94em]">
+                        <div className="font-bold text-emerald-700 dark:text-emerald-400 text-[1em]">
                           正确答案：【{currentChoice.correctKey}】
                         </div>
-                        <div className="text-stone-700 dark:text-stone-300 leading-relaxed text-xs sm:text-sm">
+                        <div className="text-stone-700 dark:text-stone-300 leading-relaxed">
                           {currentChoice.rationale}
                         </div>
                       </div>
@@ -1190,21 +1124,10 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="book-stage w-full max-w-3xl my-auto">
+            <div className="book-stage w-full max-w-4xl my-auto">
               <article className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6`}>
-                <button
-                  type="button"
-                  onClick={() => onToggleTfStarred(currentTF.id)}
-                  aria-label={tfStarred.includes(currentTF.id) ? '取消收藏' : '收藏本题'}
-                  aria-pressed={tfStarred.includes(currentTF.id)}
-                  data-starred={tfStarred.includes(currentTF.id)}
-                  className={`book-ribbon ${tfStarred.includes(currentTF.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
-                >
-                  <Bookmark className={`w-4 h-4 ${tfStarred.includes(currentTF.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
-                </button>
-
                 {/* Top Marginalia */}
-                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 text-xs text-stone-600 dark:text-stone-400">
                   <div className="flex items-center gap-3">
                     <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       判断改错 #{currentTF.id}
@@ -1215,18 +1138,15 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       </span>
                     )}
                   </div>
-                  <span className="font-mono font-medium tabular-nums">
-                    第 {tfIdx + 1} / {filteredTrueFalse.length} 题
-                  </span>
                 </div>
 
                 {/* Statement & Answer Buttons */}
                 <div className="space-y-6">
-                  <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
+                  <h3 className="text-[1.18em] font-bold text-slate-900 dark:text-white leading-relaxed">
                     <span className="font-mono mr-1.5">{tfIdx + 1}.</span>
                     <span>{currentTF.statement}</span>
                     {TF_PPT_REFS[currentTF.id] && (
-                      <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
+                      <span className="font-mono text-[0.74em] font-semibold text-stone-600 dark:text-stone-400 ml-1">
                         （{TF_PPT_REFS[currentTF.id]}）
                       </span>
                     )}
@@ -1334,27 +1254,13 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="book-stage w-full max-w-3xl my-auto">
+            <div className="book-stage w-full max-w-4xl my-auto">
               <article
                 onClick={() => setShowFillAnswer((prev) => !prev)}
                 className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6 cursor-pointer select-none`}
               >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleFillStarred(currentFill.id);
-                  }}
-                  aria-label={fillStarred.includes(currentFill.id) ? '取消收藏' : '收藏本题'}
-                  aria-pressed={fillStarred.includes(currentFill.id)}
-                  data-starred={fillStarred.includes(currentFill.id)}
-                  className={`book-ribbon ${fillStarred.includes(currentFill.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
-                >
-                  <Bookmark className={`w-4 h-4 ${fillStarred.includes(currentFill.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
-                </button>
-
                 {/* Top Marginalia */}
-                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 text-xs text-stone-600 dark:text-stone-400">
                   <div className="flex items-center gap-3">
                     <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       填空专项 #{currentFill.id}
@@ -1365,18 +1271,15 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       </span>
                     )}
                   </div>
-                  <span className="font-mono font-medium tabular-nums">
-                    第 {fillIdx + 1} / {filteredFillIns.length} 题
-                  </span>
                 </div>
 
                 {/* Stem & Answer */}
                 <div className="space-y-6 my-4">
-                  <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
+                  <h3 className="text-[1.18em] font-bold text-slate-900 dark:text-white leading-relaxed">
                     <span className="font-mono mr-1.5">{fillIdx + 1}.</span>
                     <span>{currentFill.stem}</span>
                     {FILL_PPT_REFS[currentFill.id] && (
-                      <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
+                      <span className="font-mono text-[0.74em] font-semibold text-stone-600 dark:text-stone-400 ml-1">
                         （{FILL_PPT_REFS[currentFill.id]}）
                       </span>
                     )}
@@ -1463,21 +1366,10 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="book-stage w-full max-w-3xl my-auto">
+            <div className="book-stage w-full max-w-4xl my-auto">
               <article className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6`}>
-                <button
-                  type="button"
-                  onClick={() => onToggleShortStarred(currentShort.id)}
-                  aria-label={shortStarred.includes(currentShort.id) ? '取消收藏' : '收藏本题'}
-                  aria-pressed={shortStarred.includes(currentShort.id)}
-                  data-starred={shortStarred.includes(currentShort.id)}
-                  className={`book-ribbon ${shortStarred.includes(currentShort.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
-                >
-                  <Bookmark className={`w-4 h-4 ${shortStarred.includes(currentShort.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
-                </button>
-
                 {/* Top Marginalia */}
-                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 text-xs text-stone-600 dark:text-stone-400">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       简答题 #{currentShort.id}
@@ -1487,18 +1379,15 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       {currentShort.totalPoints ?? currentShort.points ?? 6} 分
                     </span>
                   </div>
-                  <span className="font-mono font-medium tabular-nums">
-                    第 {shortIdx + 1} / {filteredShortAnswers.length} 题
-                  </span>
                 </div>
 
                 {/* Question & Expandable Sample Answer / Rubric */}
                 <div className="space-y-5">
-                  <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
+                  <h3 className="text-[1.18em] font-bold text-slate-900 dark:text-white leading-relaxed">
                     <span className="font-mono mr-1.5">{shortIdx + 1}.</span>
                     <span>{currentShort.question}</span>
                     {SHORT_PPT_REFS[currentShort.id] && (
-                      <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
+                      <span className="font-mono text-[0.74em] font-semibold text-stone-600 dark:text-stone-400 ml-1">
                         （{SHORT_PPT_REFS[currentShort.id]}）
                       </span>
                     )}
@@ -1521,7 +1410,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                         <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
                           参考答案
                         </div>
-                        <div className="text-sm leading-relaxed text-slate-800 dark:text-slate-200">
+                        <div className="text-[1em] leading-relaxed text-slate-800 dark:text-slate-200">
                           <MarkdownViewer content={currentShort.sampleAnswer || currentShort.standardAnswer || ''} />
                         </div>
                       </div>
@@ -1602,21 +1491,10 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="book-stage w-full max-w-3xl my-auto">
+            <div className="book-stage w-full max-w-4xl my-auto">
               <article className={`book-page ${bookTurnClass} w-full min-h-[320px] p-6 sm:p-9 flex flex-col justify-between gap-6`}>
-                <button
-                  type="button"
-                  onClick={() => onToggleEssayStarred(currentEssay.id)}
-                  aria-label={essayStarred.includes(currentEssay.id) ? '取消收藏' : '收藏本题'}
-                  aria-pressed={essayStarred.includes(currentEssay.id)}
-                  data-starred={essayStarred.includes(currentEssay.id)}
-                  className={`book-ribbon ${essayStarred.includes(currentEssay.id) ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
-                >
-                  <Bookmark className={`w-4 h-4 ${essayStarred.includes(currentEssay.id) ? 'fill-amber-500 text-amber-500' : ''}`} />
-                </button>
-
                 {/* Top Marginalia */}
-                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 pr-10 text-xs text-stone-600 dark:text-stone-400">
+                <div className="book-marginalia flex flex-wrap items-center justify-between gap-2 text-xs text-stone-600 dark:text-stone-400">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
                       论述题 #{currentEssay.id}
@@ -1628,9 +1506,6 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                       {currentEssay.totalPoints ?? currentEssay.points ?? 20} 分
                     </span>
                   </div>
-                  <span className="font-mono font-medium tabular-nums">
-                    第 {essayIdx + 1} / {filteredEssays.length} 题
-                  </span>
                 </div>
 
                 {/* Question & Expandable Sample Answer / Rubric */}
@@ -1641,11 +1516,11 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                         专题：{currentEssay.title}
                       </div>
                     )}
-                    <h3 className="text-[length:var(--book-stem-size,1.15rem)] font-bold text-slate-900 dark:text-white leading-relaxed">
+                    <h3 className="text-[1.18em] font-bold text-slate-900 dark:text-white leading-relaxed">
                       <span className="font-mono mr-1.5">{essayIdx + 1}.</span>
                       <span>{currentEssay.question}</span>
                       {ESSAY_PPT_REFS[currentEssay.id] && (
-                        <span className="font-mono text-sm font-semibold text-stone-600 dark:text-stone-400 ml-1">
+                        <span className="font-mono text-[0.74em] font-semibold text-stone-600 dark:text-stone-400 ml-1">
                           （{ESSAY_PPT_REFS[currentEssay.id]}）
                         </span>
                       )}
@@ -1669,7 +1544,7 @@ export const PracticeCanvas: React.FC<PracticeCanvasProps> = ({
                         <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
                           参考答案框架
                         </div>
-                        <div className="text-sm leading-relaxed text-slate-800 dark:text-slate-200">
+                        <div className="text-[1em] leading-relaxed text-slate-800 dark:text-slate-200">
                           <MarkdownViewer content={currentEssay.sampleAnswer || currentEssay.standardOutline || ''} />
                         </div>
                       </div>

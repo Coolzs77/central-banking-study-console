@@ -19,6 +19,7 @@ import {
 import {
   PAPER_THEMES,
   FONT_THEMES,
+  FONT_SIZE_DEFAULT,
   PaperThemeId,
   FontThemeId,
 } from '../data/appearance';
@@ -56,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({
   onChangePaperTheme,
   fontTheme = 'system',
   onChangeFontTheme,
-  fontSize = 16,
+  fontSize = FONT_SIZE_DEFAULT,
   onChangeFontSize,
 }) => {
   // Theme state

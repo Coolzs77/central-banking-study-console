@@ -388,6 +388,8 @@
 .book-page,
 .paper-card {
   position: relative;
+  font-size: var(--reader-font-size, 17px);
+  line-height: var(--reader-line-height, 1.8);
   background-color: var(--paper-surface) !important;
   background-image:
     linear-gradient(90deg, var(--paper-spine) 0px, transparent 28px),
@@ -471,50 +473,35 @@
   color: var(--paper-muted);
 }
 
-.book-ribbon {
-  position: absolute;
-  top: -1px;
-  right: 1.5rem;
-  width: 1.35rem;
-  height: 2.1rem;
-  background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
-  box-shadow: 0 3px 6px rgba(127, 29, 29, 0.25);
-  pointer-events: none;
-  z-index: 3;
-}
-
-/* 翻页动效 */
+/* 翻页过渡（平滑水平微移淡入，无歪斜抖动） */
 @keyframes bookTurnNext {
   0% {
-    opacity: 0.65;
-    transform: perspective(1600px) rotateY(-4deg) translateX(14px);
+    opacity: 0.55;
+    transform: translateX(14px);
   }
   100% {
     opacity: 1;
-    transform: perspective(1600px) rotateY(0deg) translateX(0);
+    transform: translateX(0);
   }
 }
 
 @keyframes bookTurnPrev {
   0% {
-    opacity: 0.65;
-    transform: perspective(1600px) rotateY(4deg) translateX(-14px);
+    opacity: 0.55;
+    transform: translateX(-14px);
   }
   100% {
     opacity: 1;
-    transform: perspective(1600px) rotateY(0deg) translateX(0);
+    transform: translateX(0);
   }
 }
 
 .book-turn-next {
-  transform-origin: left center;
-  animation: bookTurnNext 280ms var(--ease-out) both;
+  animation: bookTurnNext 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .book-turn-prev {
-  transform-origin: right center;
-  animation: bookTurnPrev 280ms var(--ease-out) both;
+  animation: bookTurnPrev 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

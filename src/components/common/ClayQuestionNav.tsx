@@ -57,12 +57,12 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Sticky Book Header Navigation Bar */}
-      <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 px-1 py-2.5 bg-[#fbf8f1]/95 dark:bg-[#191815]/95 backdrop-blur-sm border-b border-stone-200/90 dark:border-stone-800 transition-colors">
+      {/* Sticky Rounded Paper Navigation Bar */}
+      <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-[var(--paper-surface,#fbf8f1)]/92 dark:bg-[#191815]/92 backdrop-blur-md border border-[var(--paper-border,rgba(162,142,112,0.35))] shadow-sm transition-colors">
         {/* Left: Prev / Jump Dropdown / Next */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {modeBadge && (
-            <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/80">
+            <span className="hidden sm:inline-flex px-2.5 py-1 rounded-xl text-xs font-bold bg-sky-50/90 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800/80">
               {modeBadge}
             </span>
           )}
@@ -70,7 +70,7 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
           <button
             onClick={onPrev}
             disabled={currentIndex <= 0}
-            className="px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-bold bg-transparent text-stone-700 dark:text-stone-300 hover:bg-stone-200/60 dark:hover:bg-stone-800/70 border border-stone-300/80 dark:border-stone-700 disabled:opacity-30 transition-colors flex items-center gap-1 cursor-pointer"
+            className="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-white/60 dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 hover:bg-white dark:hover:bg-stone-800 border border-stone-300/70 dark:border-stone-700 disabled:opacity-30 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>上一题</span>
@@ -79,31 +79,31 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
           <button
             onClick={() => setJumpDrawerOpen(!jumpDrawerOpen)}
             aria-expanded={jumpDrawerOpen}
-            className="px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold bg-transparent text-stone-700 dark:text-stone-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/60 border border-stone-300/80 dark:border-stone-700 flex items-center gap-1 transition-colors cursor-pointer tabular-nums"
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/60 dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-white dark:hover:bg-stone-800 border border-stone-300/70 dark:border-stone-700 flex items-center gap-1 transition-colors cursor-pointer tabular-nums"
           >
-            <span>第 {currentIndex + 1} / {totalFiltered} 题 ▾</span>
+            <span>{currentIndex + 1} / {totalFiltered} ▾</span>
           </button>
 
           <button
             onClick={onNext}
             disabled={currentIndex >= totalFiltered - 1}
-            className="px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-bold bg-transparent text-stone-700 dark:text-stone-300 hover:bg-stone-200/60 dark:hover:bg-stone-800/70 border border-stone-300/80 dark:border-stone-700 disabled:opacity-30 transition-colors flex items-center gap-1 cursor-pointer"
+            className="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-white/60 dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 hover:bg-white dark:hover:bg-stone-800 border border-stone-300/70 dark:border-stone-700 disabled:opacity-30 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <span>下一题</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Right: Reveal Solution / Memorized Toggle / Star Toggle / Copy - Fixed text, state by color! */}
+        {/* Right: Reveal Solution / Memorized Toggle / Star Toggle / Copy */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Solution / Mask Toggle Button */}
           {onToggleRevealed && (
             <button
               onClick={onToggleRevealed}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
                 revealed
                   ? 'bg-emerald-600 text-white border-emerald-700'
-                  : 'bg-transparent text-stone-700 dark:text-stone-300 hover:bg-stone-200/60 dark:hover:bg-stone-800/70 border-stone-300/80 dark:border-stone-700'
+                  : 'bg-white/60 dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 hover:bg-white dark:hover:bg-stone-800 border-stone-300/70 dark:border-stone-700'
               }`}
             >
               <HelpCircle className="w-3.5 h-3.5" />
@@ -111,39 +111,39 @@ export const ClayQuestionNav: React.FC<ClayQuestionNavProps> = ({
             </button>
           )}
 
-          {/* Memorized / Completed Button (✓) - Fixed label, state by color! */}
+          {/* Memorized / Completed Button (✓) */}
           <button
             onClick={onToggleMemorized}
-            className={`px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer ${
+            className={`px-2.5 py-1.5 rounded-xl border transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer ${
               isMemorized
                 ? 'bg-emerald-600 text-white border-emerald-700'
-                : 'bg-transparent text-stone-600 dark:text-stone-400 hover:text-emerald-600 hover:bg-stone-200/60 dark:hover:bg-stone-800/70 border-stone-300/80 dark:border-stone-700'
+                : 'bg-white/60 dark:bg-stone-800/60 text-stone-600 dark:text-stone-300 hover:text-emerald-600 hover:bg-white dark:hover:bg-stone-800 border-stone-300/70 dark:border-stone-700'
             }`}
           >
             <Check className={`w-3.5 h-3.5 ${isMemorized ? 'stroke-[3]' : ''}`} />
             <span>{actionLabel || '背会'}</span>
           </button>
 
-          {/* Star Button - Fixed label, state by color! */}
+          {/* Star Button */}
           <button
             onClick={onToggleStar}
-            className={`px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer ${
+            className={`px-2.5 py-1.5 rounded-xl border transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer ${
               isStarred
                 ? 'bg-amber-500 text-white border-amber-600'
-                : 'bg-transparent text-stone-600 dark:text-stone-400 hover:text-amber-600 hover:bg-stone-200/60 dark:hover:bg-stone-800/70 border-stone-300/80 dark:border-stone-700'
+                : 'bg-white/60 dark:bg-stone-800/60 text-stone-600 dark:text-stone-300 hover:text-amber-600 hover:bg-white dark:hover:bg-stone-800 border-stone-300/70 dark:border-stone-700'
             }`}
           >
             <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-white text-white' : ''}`} />
             <span>收藏</span>
           </button>
 
-          {/* Copy Button - Fixed label! */}
+          {/* Copy Button */}
           <button
             onClick={onCopy}
-            className={`px-2.5 py-1.5 rounded-md border transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer ${
+            className={`px-2.5 py-1.5 rounded-xl border transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer ${
               isCopied
                 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border-emerald-300 dark:border-emerald-700'
-                : 'bg-transparent text-stone-600 dark:text-stone-400 hover:text-blue-600 hover:bg-stone-200/60 dark:hover:bg-stone-800/70 border-stone-300/80 dark:border-stone-700'
+                : 'bg-white/60 dark:bg-stone-800/60 text-stone-600 dark:text-stone-300 hover:text-sky-600 hover:bg-white dark:hover:bg-stone-800 border-stone-300/70 dark:border-stone-700'
             }`}
           >
             <Check className={`w-3.5 h-3.5 ${isCopied ? 'text-emerald-600' : 'hidden'}`} />

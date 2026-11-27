@@ -4,8 +4,6 @@ import {
   Edit3,
   Award,
   Layers,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from 'lucide-react';
 import { ChapterMeta } from '../data/types';
 
@@ -94,21 +92,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   if (isCollapsed) {
     return (
       <aside
-        className={`w-16 flex-shrink-0 flex flex-col items-center h-[calc(100vh-4rem)] sticky top-16 border-r border-stone-300/70 dark:border-stone-800 bg-[#f6f1e7]/95 dark:bg-[#161411]/95 backdrop-blur-md py-4 px-2 gap-4 transition-colors duration-200 ${className}`}
+        className={`w-16 flex-shrink-0 flex flex-col items-center h-[calc(100vh-4rem)] sticky top-16 border-r border-stone-300/70 dark:border-stone-800 bg-[#f6f1e7]/95 dark:bg-[#161411]/95 backdrop-blur-md py-4 px-2 gap-3 transition-colors duration-200 ${className}`}
       >
-        {onToggleCollapse && (
-          <button
-            onClick={onToggleCollapse}
-            aria-label="展开左侧导航栏"
-            title="展开左侧栏"
-            className="w-10 h-10 rounded-md flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-blue-600 hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors cursor-pointer"
-          >
-            <PanelLeftOpen className="w-5 h-5" />
-          </button>
-        )}
-
-        <div className="w-8 h-px bg-stone-300/70 dark:bg-stone-800" />
-
         <div className="flex flex-col gap-2">
           {modes.map((mode) => {
             const Icon = mode.icon;
@@ -143,19 +128,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-amber-700 dark:text-amber-400" />
           <span className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400">
-            导航
+            目录
           </span>
         </div>
-        {onToggleCollapse && (
-          <button
-            onClick={onToggleCollapse}
-            aria-label="折叠左侧导航栏"
-            title="折叠左侧栏"
-            className="hidden md:inline-flex p-1.5 rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors cursor-pointer"
-          >
-            <PanelLeftClose className="w-4 h-4" />
-          </button>
-        )}
       </div>
 
       {/* 4 Core Modes */}

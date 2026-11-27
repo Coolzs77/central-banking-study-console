@@ -318,7 +318,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
           return (
             <div
               key={lineIdx}
-              className="text-[length:var(--md-source-size,13.5px)] text-slate-500 dark:text-slate-400 leading-relaxed mb-2"
+              className="text-[0.92em] text-slate-500 dark:text-slate-400 leading-relaxed mb-2.5"
             >
               <span>{sourceDisplay}</span>
               {badgeNum && (
@@ -353,14 +353,14 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
 
             return (
               <div key={lineIdx} className="mt-3.5 mb-1 pt-0.5 first:mt-0 first:pt-0 space-y-1">
-                <h4 className="font-extrabold text-[length:var(--md-heading-size,15.5px)] text-emerald-600 dark:text-emerald-400 tracking-wide">
+                <h4 className="font-extrabold text-[1.06em] text-emerald-600 dark:text-emerald-400 tracking-wide">
                   {rawHeader}
                 </h4>
                 <div className="space-y-1">
                   {clauses.map((clause, cIdx) => (
                     <div
                       key={cIdx}
-                      className="flex items-start gap-2 text-[length:var(--md-body-size,14px)] leading-relaxed pl-4 py-0.5 text-slate-700 dark:text-slate-300"
+                      className="flex items-start gap-2 text-[1em] leading-relaxed pl-4 py-0.5 text-slate-800 dark:text-slate-200"
                     >
                       <span className="text-slate-400 mt-1 select-none text-xs font-mono shrink-0">
                         •
@@ -392,7 +392,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             .trim();
           return (
             <div key={lineIdx} className="mt-4 mb-1 pt-1 first:mt-0 first:pt-0">
-              <h4 className="font-extrabold text-[length:var(--md-heading-size,15.5px)] text-emerald-600 dark:text-emerald-400 tracking-wide">
+              <h4 className="font-extrabold text-[1.06em] text-emerald-600 dark:text-emerald-400 tracking-wide">
                 {subTitle}
               </h4>
             </div>
@@ -404,7 +404,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
           return (
             <div
               key={lineIdx}
-              className="text-[length:var(--md-lead-size,14.5px)] font-medium text-slate-800 dark:text-slate-200 leading-relaxed mb-2"
+              className="text-[1.02em] font-medium text-slate-800 dark:text-slate-200 leading-relaxed mb-2.5"
             >
               {renderInlineFormatted(cleanText)}
             </div>
@@ -415,8 +415,8 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         return (
           <div
             key={lineIdx}
-            className={`flex items-start gap-2 text-[length:var(--md-body-size,14px)] leading-relaxed ${
-              isLevel2 ? 'pl-4 py-0.5 text-slate-600 dark:text-slate-400' : 'pl-1 py-0.5 text-slate-700 dark:text-slate-300'
+            className={`flex items-start gap-2 text-[1em] leading-relaxed ${
+              isLevel2 ? 'pl-4 py-0.5 text-slate-700 dark:text-slate-300' : 'pl-1 py-0.5 text-slate-800 dark:text-slate-200'
             }`}
           >
             <span className="text-slate-400 mt-1 select-none text-xs font-mono shrink-0">

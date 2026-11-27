@@ -16,9 +16,9 @@ export type FontThemeId =
   | 'serif-mix'
   | 'mono-clean';
 
-export const FONT_SIZE_MIN = 13;
-export const FONT_SIZE_MAX = 22;
-export const FONT_SIZE_DEFAULT = 16;
+export const FONT_SIZE_MIN = 14;
+export const FONT_SIZE_MAX = 24;
+export const FONT_SIZE_DEFAULT = 17;
 export const FONT_SIZE_STEP = 1;
 
 export const PAPER_THEMES: {

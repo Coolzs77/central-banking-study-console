@@ -6,7 +6,13 @@ import { RecitationCanvas } from './components/RecitationCanvas';
 import { HomeworkCanvas } from './components/HomeworkCanvas';
 import { useStudyState } from './hooks/useStudyState';
 import { syncService } from './services/syncService';
-import { PaperThemeId, FontThemeId } from './data/appearance';
+import {
+  PaperThemeId,
+  FontThemeId,
+  FONT_SIZE_DEFAULT,
+  FONT_SIZE_MIN,
+  FONT_SIZE_MAX,
+} from './data/appearance';
 
 const MockExamCanvas = lazy(() =>
   import('./components/MockExamCanvas').then((m) => ({ default: m.MockExamCanvas }))
@@ -157,11 +163,11 @@ export function App() {
   const [fontSize, setFontSize] = useState<number>(() => {
     try {
       const raw = Number(localStorage.getItem('cb_font_size'));
-      if (Number.isFinite(raw) && raw >= 13 && raw <= 22) return raw;
+      if (Number.isFinite(raw) && raw >= FONT_SIZE_MIN && raw <= FONT_SIZE_MAX) return raw;
     } catch {
       // Ignore storage errors
     }
-    return 16;
+    return FONT_SIZE_DEFAULT;
   });
 
   const handleChangePaperTheme = useCallback((next: PaperThemeId) => {
@@ -183,7 +189,7 @@ export function App() {
   }, []);
 
   const handleChangeFontSize = useCallback((next: number) => {
-    const clamped = Math.min(22, Math.max(13, Math.round(next)));
+    const clamped = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, Math.round(next)));
     setFontSize(clamped);
     try {
       localStorage.setItem('cb_font_size', String(clamped));

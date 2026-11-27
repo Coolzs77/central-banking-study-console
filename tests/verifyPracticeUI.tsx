@@ -54,7 +54,7 @@ const navHtml = renderToStaticMarkup(
   />
 );
 assert(navHtml.includes('单选题'), 'ClayQuestionNav renders modeBadge "单选题"');
-assert(navHtml.includes('第 1 / 40 题 ▾'), 'ClayQuestionNav renders jump button');
+assert(navHtml.includes('1 / 40 ▾'), 'ClayQuestionNav renders jump button');
 assert(navHtml.includes('掌握') && navHtml.includes('收藏') && navHtml.includes('复制'), 'ClayQuestionNav renders 掌握/收藏/复制 buttons');
 
 // 2. Render PracticeCanvas for ALL 6 tabs
@@ -141,7 +141,7 @@ assert(mdNormalHtml.includes('text-slate-500') && !mdNormalHtml.includes('text-r
 const mdMaskedHtml = renderToStaticMarkup(
   <MarkdownViewer content={sampleMd} keywords={['货币乘数']} maskKeywords={true} />
 );
-assert(mdMaskedHtml.includes('点击撕开胶带'), 'MarkdownViewer Tier 3 masked: washi tape covers keyword');
+assert(mdMaskedHtml.includes('repeating-linear-gradient') && mdMaskedHtml.includes('role="button"'), 'MarkdownViewer Tier 3 masked: washi tape covers keyword');
 assert(mdMaskedHtml.includes('text-indigo-700') && mdMaskedHtml.includes('融资效果相同'), 'MarkdownViewer Tier 2 masked: indigo lead phrase stays unmasked');
 
 console.log('\n====================================================');

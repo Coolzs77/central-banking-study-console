@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   HelpCircle,
-  Bookmark,
 } from 'lucide-react';
 import { HomeworkQuestion, ChapterMeta } from '../data/types';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
@@ -222,34 +221,19 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
       {/* 2. Main Book Page */}
       <div className="book-stage">
         <article className={`book-page ${turnClass} p-6 sm:p-9 lg:px-11 lg:py-9`}>
-          <button
-            type="button"
-            onClick={() => onToggleStar(currentQ.id)}
-            aria-label={isStarred ? '取消收藏' : '收藏本题'}
-            aria-pressed={isStarred}
-            data-starred={isStarred}
-            className={`book-ribbon ${isStarred ? 'is-starred text-amber-500' : 'text-stone-400 hover:text-amber-500'}`}
-          >
-            <Bookmark className={`w-4 h-4 ${isStarred ? 'fill-amber-500 text-amber-500' : ''}`} />
-          </button>
-
           {/* Top Marginalia */}
-          <div className="book-marginalia flex flex-wrap items-center justify-between gap-2.5 pr-10 pb-3 text-xs text-stone-600 dark:text-stone-400">
-            <span className="font-mono font-bold text-stone-800 dark:text-stone-200">
-              第 {currentQ.chapterId} 章 · {currentQ.chapterTitle || '中央银行学'}
+          <div className="book-marginalia flex flex-wrap items-center justify-between gap-2.5 pb-3 text-[0.82em] text-stone-600 dark:text-stone-400">
+            <span className="font-bold text-stone-800 dark:text-stone-200">
+              {currentQ.chapterTitle || '中央银行学'}
             </span>
-
-            <div className="font-mono font-medium text-stone-600 dark:text-stone-400 tabular-nums">
-              第 {safeIndex + 1} / {questions.length} 题
-            </div>
           </div>
 
           {/* Question Title with 1. style (Black font) + trailing PPT page ref */}
-          <h2 className="py-4 text-[length:var(--book-stem-size,1.15rem)] font-bold leading-relaxed text-slate-900 dark:text-white">
+          <h2 className="py-4 text-[1.24em] font-bold leading-relaxed text-slate-900 dark:text-white">
             <span className="font-mono font-bold mr-1.5 text-slate-900 dark:text-white">{currentQ.id}.</span>
             <span>{currentQ.question}</span>
             {HOMEWORK_PPT_REFS[currentQ.id] && (
-              <span className="font-mono text-sm sm:text-base font-semibold text-stone-600 dark:text-stone-400 ml-1">
+              <span className="font-mono text-[0.78em] font-semibold text-stone-600 dark:text-stone-400 ml-1">
                 （{HOMEWORK_PPT_REFS[currentQ.id]}）
               </span>
             )}
