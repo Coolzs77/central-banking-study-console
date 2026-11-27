@@ -56,9 +56,9 @@ assert(q7.answer.includes('稳定货币，稳定经济'), 'Question 7 contains P
 assert(q7.answer.includes('调节信用，调节经济'), 'Question 7 contains PPT point: 调节信用，调节经济');
 assert(q7.answer.includes('集中清算，加速资金周转'), 'Question 7 contains PPT point: 集中清算，加速资金周转');
 assert(q7.answer.includes('推进国际金融的合作和交流'), 'Question 7 contains PPT point: 推进国际金融的合作和交流');
-assert(q7.answer.includes('推进器') || q7.answer.includes('推动机'), 'Question 7 contains 推动机/推进器 role explanation');
-assert(q7.answer.includes('守护者'), 'Question 7 contains 金融体系安全的守护者');
-assert(q7.answer.includes('桥梁纽带') || q7.answer.includes('桥梁与纽带'), 'Question 7 contains 桥梁纽带');
+assert(q7.answer.includes('发行的银行'), 'Question 7 contains 发行的银行 role explanation');
+assert(q7.answer.includes('国民经济的枢纽'), 'Question 7 contains 国民经济的枢纽');
+assert(q7.answer.includes('重要纽带'), 'Question 7 contains 重要纽带');
 
 // 4. Parser verification on MarkdownViewer regexes
 const cleanQ7Lines = q7.answer.split('\n').map(l => l.trim()).filter(Boolean);

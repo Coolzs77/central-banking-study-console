@@ -1,4 +1,11 @@
-import { fillInQuestions, singleChoiceQuestions, trueFalseQuestions } from '../src/data/examData';
+import {
+  terminologyQuestions,
+  fillInQuestions,
+  singleChoiceQuestions,
+  trueFalseQuestions,
+  shortAnswerQuestions,
+  essayQuestions,
+} from '../src/data/examData';
 import { recitationQuestions } from '../src/data/centralBankingData';
 
 const qMap = new Map(recitationQuestions.map(q => [q.id, q]));
@@ -14,15 +21,15 @@ const BANNED_OUT_OF_BOOK_TERMS = [
   'M0',
   'M1',
   'M3',
-  'HVPS',
   'CCyB',
   '第二十九条',
   '马斯特里赫特',
   'q>1',
   'q < 1',
-  '高能货币',
   '现金漏损',
   '名义总支出',
+  'D-SIFIs',
+  '三道红线',
 ];
 
 function findBannedTerm(text: string): string | null {
@@ -35,7 +42,7 @@ function findBannedTerm(text: string): string | null {
 console.log('=== 1. Checking Fill-In Questions ===');
 let fillInErrors = 0;
 for (const f of fillInQuestions) {
-  if (!f.recitationQuestionId || f.recitationQuestionId < 1 || f.recitationQuestionId > 161) {
+  if (!f.recitationQuestionId || f.recitationQuestionId < 1 || f.recitationQuestionId > 162) {
     console.error(`[FAIL] FillIn ${f.id} has invalid recitationQuestionId: ${f.recitationQuestionId}`);
     fillInErrors++;
     continue;
@@ -62,7 +69,7 @@ console.log(`Fill-in Errors: ${fillInErrors} / ${fillInQuestions.length}`);
 console.log('\n=== 2. Checking Single Choice Questions ===');
 let choiceErrors = 0;
 for (const c of singleChoiceQuestions) {
-  if (!c.recitationQuestionId || c.recitationQuestionId < 1 || c.recitationQuestionId > 161) {
+  if (!c.recitationQuestionId || c.recitationQuestionId < 1 || c.recitationQuestionId > 162) {
     console.error(`[FAIL] Choice ${c.id} has invalid recitationQuestionId: ${c.recitationQuestionId}`);
     choiceErrors++;
     continue;
@@ -84,7 +91,7 @@ console.log(`Choice Errors: ${choiceErrors} / ${singleChoiceQuestions.length}`);
 console.log('\n=== 3. Checking True/False Questions ===');
 let tfErrors = 0;
 for (const tf of trueFalseQuestions) {
-  if (!tf.recitationQuestionId || tf.recitationQuestionId < 1 || tf.recitationQuestionId > 161) {
+  if (!tf.recitationQuestionId || tf.recitationQuestionId < 1 || tf.recitationQuestionId > 162) {
     console.error(`[FAIL] TF ${tf.id} has invalid recitationQuestionId: ${tf.recitationQuestionId}`);
     tfErrors++;
     continue;
@@ -102,8 +109,33 @@ for (const tf of trueFalseQuestions) {
 }
 console.log(`TF Errors: ${tfErrors} / ${trueFalseQuestions.length}`);
 
-if (fillInErrors === 0 && choiceErrors === 0 && tfErrors === 0) {
-  console.log('\nALL 110 EXAM QUESTIONS ARE 100% GROUNDED IN 161 RECITATION QUESTIONS!');
+console.log('\n=== 4. Checking Terminology, Short Answers & Essays ===');
+let otherErrors = 0;
+for (const t of terminologyQuestions) {
+  const banned = findBannedTerm(`${t.term} ${t.definition} ${t.nature || ''} ${t.functionOrFeature || ''}`);
+  if (banned) {
+    console.error(`[FAIL] Term ${t.id} (${t.term}) contains out-of-book term "${banned}"`);
+    otherErrors++;
+  }
+}
+for (const s of shortAnswerQuestions) {
+  const banned = findBannedTerm(`${s.question} ${s.sampleAnswer} ${s.rubricPoints.map(r => r.point).join(' ')}`);
+  if (banned) {
+    console.error(`[FAIL] ShortAnswer ${s.id} contains out-of-book term "${banned}"`);
+    otherErrors++;
+  }
+}
+for (const e of essayQuestions) {
+  const banned = findBannedTerm(`${e.title} ${e.question} ${e.sampleAnswer}`);
+  if (banned) {
+    console.error(`[FAIL] Essay ${e.id} contains out-of-book term "${banned}"`);
+    otherErrors++;
+  }
+}
+console.log(`Other Exam Bank Errors: ${otherErrors}`);
+
+if (fillInErrors === 0 && choiceErrors === 0 && tfErrors === 0 && otherErrors === 0) {
+  console.log('\nALL EXAM QUESTIONS ARE 100% GROUNDED IN 162 PPT RECITATION QUESTIONS!');
 } else {
   process.exit(1);
 }

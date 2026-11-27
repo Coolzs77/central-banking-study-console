@@ -36,39 +36,39 @@ function assert(condition: boolean, testName: string, details?: string) {
 }
 
 // -----------------------------------------------------------------
-// 1. Recitation Manual Assertions (161 Qs, 516 Pts across 11 Chapters)
+// 1. Recitation Manual Assertions (162 Qs, 532 Pts across 11 Chapters)
 // -----------------------------------------------------------------
 console.log('--- 1. Recitation Data Verification ---');
 
 assert(
-  recitationQuestions.length === 161,
-  'Recitation question count is exactly 161',
-  `Expected 161, got ${recitationQuestions.length}`
+  recitationQuestions.length === 162,
+  'Recitation question count is exactly 162',
+  `Expected 162, got ${recitationQuestions.length}`
 );
 
 assert(
-  TOTAL_RECITATION_QUESTIONS === 161,
-  'TOTAL_RECITATION_QUESTIONS constant is 161',
+  TOTAL_RECITATION_QUESTIONS === 162,
+  'TOTAL_RECITATION_QUESTIONS constant is 162',
   `Got ${TOTAL_RECITATION_QUESTIONS}`
 );
 
 const totalRecitationPoints = recitationQuestions.reduce((sum, q) => sum + q.points, 0);
 assert(
-  totalRecitationPoints === 516,
-  'Total recitation points sum strictly equals 516',
-  `Expected 516, got ${totalRecitationPoints}`
+  totalRecitationPoints === 532,
+  'Total recitation points sum strictly equals 532',
+  `Expected 532, got ${totalRecitationPoints}`
 );
 
 assert(
-  TOTAL_RECITATION_POINTS === 516,
-  'TOTAL_RECITATION_POINTS constant is 516',
+  TOTAL_RECITATION_POINTS === 532,
+  'TOTAL_RECITATION_POINTS constant is 532',
   `Got ${TOTAL_RECITATION_POINTS}`
 );
 
 const continuousIds = recitationQuestions.every((q, idx) => q.id === idx + 1);
 assert(
   continuousIds,
-  'Recitation question IDs are strictly continuous from 1 to 161',
+  'Recitation question IDs are strictly continuous from 1 to 162',
   'Found discontinuity in question IDs'
 );
 
@@ -80,16 +80,16 @@ assert(
 
 const sumChapterQuestions = chaptersMeta.reduce((sum, c) => sum + c.totalQuestions, 0);
 assert(
-  sumChapterQuestions === 161,
-  'Sum of chapter totalQuestions equals 161',
-  `Expected 161, got ${sumChapterQuestions}`
+  sumChapterQuestions === 162,
+  'Sum of chapter totalQuestions equals 162',
+  `Expected 162, got ${sumChapterQuestions}`
 );
 
 const sumChapterPoints = chaptersMeta.reduce((sum, c) => sum + c.totalPoints, 0);
 assert(
-  sumChapterPoints === 516,
-  'Sum of chapter totalPoints equals 516',
-  `Expected 516, got ${sumChapterPoints}`
+  sumChapterPoints === 532,
+  'Sum of chapter totalPoints equals 532',
+  `Expected 532, got ${sumChapterPoints}`
 );
 
 const allRecitationFieldsValid = recitationQuestions.every(q => 
@@ -101,7 +101,7 @@ const allRecitationFieldsValid = recitationQuestions.every(q =>
 );
 assert(
   allRecitationFieldsValid,
-  'All 161 recitation questions have complete, valid fields',
+  'All 162 recitation questions have complete, valid fields',
   'Found question with missing or empty content/title/chapter'
 );
 
@@ -111,7 +111,7 @@ const allQuestionsHaveKeywords = recitationQuestions.every(q =>
 );
 assert(
   allQuestionsHaveKeywords,
-  'All 161 recitation questions have at least 4 curated keywords',
+  'All 162 recitation questions have at least 4 curated keywords',
   'Found question with fewer than 4 keywords'
 );
 
@@ -149,8 +149,26 @@ for (const q of recitationQuestions) {
 
 assert(
   emptyBulletCount === 0,
-  'All 516 scoring bullet points across all 161 questions have >= 1 keyword matched (0 empty bullets)',
+  'All 532 scoring bullet points across all 162 questions have >= 1 keyword matched (0 empty bullets)',
   `Found ${emptyBulletCount} empty bullet points without keywords`
+);
+
+// PPT-accuracy regression checks (Ch 1, Ch 7/8/10/11)
+const q5 = recitationQuestions.find(q => q.id === 5)!;
+assert(
+  !!q5 && q5.content.includes('一级中央银行机构') && q5.content.includes('二级中央银行机构') && !q5.content.includes('兼具中央银行与商业银行业务'),
+  'PPT regression: Q5 复合式中央银行 strictly matches PPT definition (一级/二级机构)',
+  'Q5 复合式中央银行 definition does not match PPT'
+);
+
+const q7 = recitationQuestions.find(q => q.id === 7)!;
+assert(
+  !!q7 &&
+  q7.content.includes('英国、美国、马来西亚、菲律宾') &&
+  q7.content.includes('日本、德国、法国、澳大利亚、巴西、韩国') &&
+  q7.content.includes('瑞士、比利时'),
+  'PPT regression: Q7 中央银行权力结构代表国家 strictly matches PPT Ch1 p20',
+  'Q7 power structure countries do not match PPT'
 );
 
 // -----------------------------------------------------------------
@@ -265,11 +283,11 @@ const allFillInsValid = fillInQuestions.every(q =>
   q.stem.includes('_____') &&
   q.answers.length > 0 &&
   q.points === 1 &&
-  q.recitationQuestionId && q.recitationQuestionId >= 1 && q.recitationQuestionId <= 161
+  q.recitationQuestionId && q.recitationQuestionId >= 1 && q.recitationQuestionId <= 162
 );
 assert(
   allFillInsValid,
-  'All 40 fill-in questions contain blank placeholders, valid answers, and valid 161 recitation question mapping',
+  'All 40 fill-in questions contain blank placeholders, valid answers, and valid 162 recitation question mapping',
   'Found fill-in question with missing blank or answers or invalid recitationQuestionId'
 );
 
@@ -284,12 +302,12 @@ const allSingleChoicesValid = singleChoiceQuestions.every(q =>
   ['A', 'B', 'C', 'D'].includes(q.correctKey) &&
   q.rationale && q.rationale.length > 0 &&
   q.points === 1 &&
-  q.recitationQuestionId && q.recitationQuestionId >= 1 && q.recitationQuestionId <= 161 &&
+  q.recitationQuestionId && q.recitationQuestionId >= 1 && q.recitationQuestionId <= 162 &&
   !q.stem.includes('三元悖论') && !q.stem.includes('不可能三角')
 );
 assert(
   allSingleChoicesValid,
-  'All 40 single choice questions feature complete ABCD options, valid key, detailed rationale, 161 mapping, and zero out-of-syllabus terms',
+  'All 40 single choice questions feature complete ABCD options, valid key, detailed rationale, 162 mapping, and zero out-of-syllabus terms',
   'Found single choice question with invalid options or missing rationale or out-of-syllabus terms'
 );
 
@@ -303,7 +321,7 @@ const allTrueFalseValid = trueFalseQuestions.every(q =>
   typeof q.isCorrect === 'boolean' &&
   q.errorCorrection && q.errorCorrection.length > 0 &&
   q.points === 1 &&
-  q.recitationQuestionId && q.recitationQuestionId >= 1 && q.recitationQuestionId <= 161 &&
+  q.recitationQuestionId && q.recitationQuestionId >= 1 && q.recitationQuestionId <= 162 &&
   !tfStemHasOutlier(q)
 );
 
@@ -313,7 +331,7 @@ function tfStemHasOutlier(q: any) {
 
 assert(
   allTrueFalseValid,
-  'All 30 True/False questions specify boolean value, error correction statement, valid 161 mapping, and zero out-of-syllabus terms',
+  'All 30 True/False questions specify boolean value, error correction statement, valid 162 mapping, and zero out-of-syllabus terms',
   'Found True/False question with missing boolean or correction or out-of-syllabus terms'
 );
 

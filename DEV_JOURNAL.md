@@ -2671,3 +2671,107 @@ flowchart TD
   - `verify_suite.mjs`：`50 PASSED, 0 FAILED`；
   - `npm run build`：`vite build` 顺利打包 1657 个模块生成 `dist/` 产物，无报错；
   - Selenium 无头浏览器实测：左侧导航栏折叠/展开/刷新保留正常；全书速记、平时作业本及专项练习 4 个子模式点击 `第 X / Y 题 ▾` 抽屉均正常打开与跳转；掌握/收藏刷新页面持久保留；零浏览器 `SEVERE` 控制台报错。
+
+
+---
+
+## 第 19 轮 [2026-11-27 12:48]：全书 11 章课件 PPT 逐页比对重建、Markdown 手册与网页题库 100% 严格对齐
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：
+  1. 以课程第 1~11 章原始课件 PPT 为唯一权威基准，全面排查并清除此前背诵手册、课后思考题答案与网页端题库中混入的非课件内容、错误定义及 AI 自行扩充的国家/日期/概念（例如第一章第 5 题“复合式中央银行”被误写为“兼具中央银行与商业银行业务”、第 7 题权力结构代表国家不准确、第 7/8/10/11 章出现超纲概念等）；
+  2. 将全部 11 章的背诵题目、课后思考题、核心关键词、名词解释与模拟考试客观/主观题库重建为与课件 PPT 100% 一致的双轨交付物（Obsidian Markdown 手册 + Web 复习控制台数据集）；
+  3. 同步更新全量自动化校验脚本与回归断言，重新打包并部署至 GitHub Pages 公网访问。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- **课件基准结构化重建**：
+  - 依据第 1~11 章课件 PPT 逐页提取并校对形成 4 份结构化 JSON 基准数据源（[`scripts/ppt_rebuild/ch1_3.json`](file:///e:/workspace/central-banking-study-console/scripts/ppt_rebuild/ch1_3.json)、[`ch4_6.json`](file:///e:/workspace/central-banking-study-console/scripts/ppt_rebuild/ch4_6.json)、[`ch7_9.json`](file:///e:/workspace/central-banking-study-console/scripts/ppt_rebuild/ch7_9.json)、[`ch10_11.json`](file:///e:/workspace/central-banking-study-console/scripts/ppt_rebuild/ch10_11.json)），共覆盖 11 章、41 节、162 道背诵题（532 个采分点）及 54 道课后思考题。
+- **Web 端数据集与 UI 联动改动**：
+  - [`src/data/centralBankingData.ts`](file:///e:/workspace/central-banking-study-console/src/data/centralBankingData.ts)：按第 1~11 章顺序重建全部 162 道背诵题，更新 `TOTAL_RECITATION_QUESTIONS = 162`、`TOTAL_RECITATION_POINTS = 532` 及各章节 `chaptersMeta` 统计；
+  - [`src/data/keywords.ts`](file:///e:/workspace/central-banking-study-console/src/data/keywords.ts)：基于 `ch*.json` 关键词与课后题加粗词典全量重建 `QUESTION_KEYWORDS`（162 题，每题 `>= 4` 个关键词，覆盖全部 532 个采分要点）及 915 个去重词典词条 `CENTRAL_BANKING_KEYWORDS`；
+  - [`src/data/homeworkData.ts`](file:///e:/workspace/central-banking-study-console/src/data/homeworkData.ts)：全量重建 54 道课后思考题，严格保持各章分布 `[6, 6, 3, 6, 5, 5, 5, 4, 2, 5, 7]`；
+  - [`src/data/terminology.ts`](file:///e:/workspace/central-banking-study-console/src/data/terminology.ts)：重构第 4、5、6、7、8、10、11 章共 28 个核心名词解释（移除“巨斧”“巴杰特法则”“HVPS”等非课件表述，替换为《实时全额支付系统（RTGS）》《支付系统风险》《法定存款准备金政策》《金融危机》《金融稳定》等课件原文界定）；
+  - [`src/data/examData.ts`](file:///e:/workspace/central-banking-study-console/src/data/examData.ts)：逐题重写 40 道填空题、40 道单选题、30 道判断改错题、20 道简答题与 6 道论述题，确保所有题干、选项、解析、评分细则及 `recitationQuestionId`/`chapterId` 映射 100% 溯源至 162 题与 54 题 PPT 重建数据集；
+  - [`src/components/RightSidebar.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx)：将硬编码的 `全书背诵题 (161题)` 改为动态 `{recitationQuestions.length}`；
+  - [`tests/verifyData.ts`](file:///e:/workspace/central-banking-study-console/tests/verifyData.ts)、[`tests/verifyHomeworkHierarchy.ts`](file:///e:/workspace/central-banking-study-console/tests/verifyHomeworkHierarchy.ts)、[`scripts/audit_exam_accuracy.ts`](file:///e:/workspace/central-banking-study-console/scripts/audit_exam_accuracy.ts)：更新 162 题 / 532 采分点基准断言，新增 Q5 复合式中央银行与 Q7 权力结构代表国家 PPT 回归检查，并将黑名单扫描扩展至名词解释、简答题与论述题。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+
+#### 问题 1：第二章新增第 22 题引发客观题映射全面错位与非课件表述残留
+- **问题现象**：重建后第 2 章由 8 题增至 9 题（新增第 22 题《中国人民银行的独立性》），导致原题库中大量 `recitationQuestionId >= 22` 的填空、单选与判断改错题出现 `chapterId` 错位；同时原题库包含“皮尔条例”“巨斧”“巴杰特”“三道红线”“D-SIFIs”“通货膨胀目标制”等未在课件 PPT 中出现的内容。
+- **根本原因 (RCA)**：旧版题库基于早期 161 题手动编排并掺杂了通用教材补充描述，在题目数量变化与课件严格对齐后，必须重新建立题干、答案与 1..162 题号的强一致性映射。
+- **具体解法**：对照 `centralBankingData.ts` 162 题原文逐题重写 `terminology.ts` 与 `examData.ts`，并通过 `audit_exam_accuracy.ts` 对 110 道客观题、28 道名词、20 道简答与 6 道论述执行全量题号、章节及超纲词黑名单校验。
+
+#### 问题 2：`verifyHomeworkHierarchy.ts` 第 7 题旧文案断言与课件原文不一致
+- **问题现象**：运行 `npx tsx tests/verifyHomeworkHierarchy.ts` 时，第 7 题（《如何看待中央银行在现代经济中的作用？》）有 3 项断言失败（旧测试硬编码检查“推进器/推动机”“守护者”“桥梁纽带”）。
+- **根本原因 (RCA)**：课件第二章 PPT 原文对该题四大作用的表述分别为“发行的银行”“国民经济的枢纽、货币的供给者和信用活动的调节者”“全国资金清算中心”“重要纽带”，旧版测试断言沿用了此前润色扩写后的比喻词汇。
+- **具体解法**：将 [`tests/verifyHomeworkHierarchy.ts`](file:///e:/workspace/central-banking-study-console/tests/verifyHomeworkHierarchy.ts) 第 7 题回归断言修正为严格校验课件原文关键词（`发行的银行`、`国民经济的枢纽`、`重要纽带`），全部 21 项断言通过。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+#### 图 1：课件 PPT 基准双轨同步重建流水线
+```mermaid
+flowchart LR
+    PPT["第 1~11 章课件 PPT 权威原件"] --> JSON["scripts/ppt_rebuild/ch*.json<br/>(162 背诵题 / 532 点 / 54 课后题)"]
+    JSON --> MD["Obsidian Markdown 手册与镜像<br/>(背诵手册 / 核心考点 / 层级大纲 / 课后答案)"]
+    JSON --> WebCore["Web 核心数据集<br/>centralBankingData.ts + homeworkData.ts + keywords.ts"]
+    WebCore --> Exam["题库严格对齐重建<br/>terminology.ts (28) + examData.ts (136)"]
+    Exam --> Gates["5 重自动化测试 + Vite 生产构建"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **单一事实源**：所有手工撰写或 AI 辅助扩写的历史内容统一退回至第 1~11 章课件 PPT 原件，由 `ch*.json` 作为唯一上游数据源。
+- **双轨同步**：Markdown 笔记体系与 Web 控制台数据集均从同一份 `ch*.json` 派生，保证纸质/笔记背诵与网页刷题、模拟考试在章节、题号、采分点及关键词上完全一致。
+
+#### 图 2：162 题题库与采分点关键词双门禁校验流程
+```mermaid
+flowchart TD
+    Data["centralBankingData.ts (162题, 532点)"] --> VerifyData["tests/verifyData.ts"]
+    KW["keywords.ts (162题映射, 915词典词)"] --> VerifyData
+    Exam["examData.ts + terminology.ts"] --> Audit["scripts/audit_exam_accuracy.ts"]
+
+    VerifyData --> V1{"162题/532点连续性<br/>且每条采分点>=1关键词?"}
+    V1 -- 是 --> V2{"Q5复合式央行/Q7权力结构<br/>PPT回归断言通过?"}
+    Audit --> A1{"110客观题题号与章节<br/>100%匹配1..162?"}
+    A1 -- 是 --> A2{"全题库(含名词/简答/论述)<br/>零超纲黑名单词?"}
+
+    V2 -- 是 --> Pass["全部门禁通过 → npm run build & deploy"]
+    A2 -- 是 --> Pass
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **结构与语义双门禁**：`verifyData.ts` 保障 162 道背诵题、532 个采分点、54 道课后题的计数、连续性与“零空采分点”关键词覆盖；`audit_exam_accuracy.ts` 则将校验延伸至全部客观题、名词解释、简答题与论述题，阻断任何非课件概念回流。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+1. **数据精准度全面回归课件**：清除第 1 章机构类型/权力结构、第 4 章准备金/发行业务、第 7~11 章货币政策与宏观审慎领域的非课件概念与年份错误，确保背诵与刷题内容严格贴合课程考核范围；
+2. **动态题量展示**：`RightSidebar.tsx` 顶部背诵题总数改为读取 `recitationQuestions.length`（162 题），消除硬编码数字维护风险；
+3. **关键词 100% 覆盖**：162 道背诵题全部具备不少于 4 个核心关键词，532 条采分细则实现 0 遗漏遮挡。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console
+  npx tsx tests/verifyData.ts
+  npx tsx tests/verifyHomeworkHierarchy.ts
+  npx tsx scripts/audit_exam_accuracy.ts
+  npx tsx tests/verifyPracticeUI.tsx
+  node verify_suite.mjs
+  npm run build
+  ```
+- **实际执行结果**：
+  - `tests/verifyData.ts`：`42 PASSED, 0 FAILED`（162 题、532 采分点、0 空采分点、Q5/Q7 PPT 回归通过）；
+  - `tests/verifyHomeworkHierarchy.ts`：`21 PASSED, 0 FAILED`；
+  - `scripts/audit_exam_accuracy.ts`：Fill-in `0/40` 错误、Choice `0/40` 错误、TF `0/30` 错误、Other `0` 错误；
+  - `tests/verifyPracticeUI.tsx`：`22 PASSED, 0 FAILED`；
+  - `verify_suite.mjs`：`50 PASSED, 0 FAILED`；
+  - `npm run build`：`vite build` 打包 1657 个模块，耗时 `27.97s`，0 错误。

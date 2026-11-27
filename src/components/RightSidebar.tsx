@@ -171,7 +171,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               <div className="p-3.5 border-b border-slate-200/80 dark:border-slate-800 space-y-3 shrink-0 bg-slate-50/40 dark:bg-slate-900/40">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                    全书背诵题 (161题)
+                    全书背诵题 ({recitationQuestions.length}题)
                   </span>
                   <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200/60 dark:border-blue-800">
                     已背 {memorizedList.length} / {recitationQuestions.length} ({Math.round((memorizedList.length / (recitationQuestions.length || 1)) * 100)}%)
@@ -223,7 +223,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 </div>
               </div>
 
-              {/* 161 Question Matrix - 6 Columns, Clean comfortable sizing */}
+              {/* Question Matrix - 6 Columns, Clean comfortable sizing */}
               <div className="flex-1 overflow-y-auto p-3.5">
                 <div className="grid grid-cols-6 gap-2">
                   {recitationQuestions.map((q) => {
