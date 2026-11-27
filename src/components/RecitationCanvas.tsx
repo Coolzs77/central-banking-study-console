@@ -4,7 +4,7 @@ import {
   Zap,
   BookOpen,
 } from 'lucide-react';
-import { RecitationQuestion } from '../data/types';
+import { RecitationQuestion, ChapterMeta } from '../data/types';
 import { ClayQuestionNav } from './common/ClayQuestionNav';
 import { MarkdownViewer } from './common/MarkdownViewer';
 
@@ -25,6 +25,9 @@ interface RecitationCanvasProps {
   totalCount?: number;
   memorizedCount?: number;
   starredCount?: number;
+  chapters?: ChapterMeta[];
+  selectedChapterId?: number | null;
+  onSelectChapter?: (chId: number | null) => void;
 }
 
 export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
@@ -42,6 +45,9 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
   totalCount,
   memorizedCount,
   starredCount,
+  chapters = [],
+  selectedChapterId = null,
+  onSelectChapter,
 }) => {
   const [isMasking, setIsMasking] = useState<boolean>(true);
   const [copied, setCopied] = useState<boolean>(false);
@@ -94,44 +100,70 @@ export const RecitationCanvas: React.FC<RecitationCanvasProps> = ({
   const effectiveUnmemorized = Math.max(0, effectiveTotal - effectiveMemorized);
   const effectiveStarred = starredCount ?? starredList.length;
 
-  const filterPills = onSelectFilter ? (
-    <div
-      role="group"
-      aria-label="背诵题筛选"
-      className="flex flex-wrap items-center gap-1.5 px-1"
-    >
-      {(
-        [
-          { key: 'all', label: '全部', count: effectiveTotal },
-          { key: 'unmemorized', label: '未背', count: effectiveUnmemorized },
-          { key: 'memorized', label: '已背', count: effectiveMemorized },
-          { key: 'starred', label: '收藏', count: effectiveStarred },
-        ] as const
-      ).map((item) => {
-        const isActive = activeFilter === item.key;
-        return (
-          <button
-            key={item.key}
-            type="button"
-            onClick={() => onSelectFilter(item.key)}
-            aria-pressed={isActive}
-            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
-              isActive
-                ? 'bg-sky-600 text-white border-sky-700 shadow-sm'
-                : 'bg-white/90 dark:bg-[#151b26] text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700 hover:text-sky-600 dark:hover:text-sky-400'
-            }`}
-          >
-            <span>{item.label}</span>
-            <span
-              className={`tabular-nums text-[11px] ${
-                isActive ? 'text-sky-100' : 'text-slate-400 dark:text-slate-500'
-              }`}
-            >
-              {item.count}
-            </span>
-          </button>
-        );
-      })}
+  const filterPills = (onSelectFilter || onSelectChapter) ? (
+    <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+      {onSelectFilter && (
+        <div
+          role="group"
+          aria-label="背诵题筛选"
+          className="flex flex-wrap items-center gap-1.5"
+        >
+          {(
+            [
+              { key: 'all', label: '全部', count: effectiveTotal },
+              { key: 'unmemorized', label: '未背', count: effectiveUnmemorized },
+              { key: 'memorized', label: '已背', count: effectiveMemorized },
+              { key: 'starred', label: '收藏', count: effectiveStarred },
+            ] as const
+          ).map((item) => {
+            const isActive = activeFilter === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => onSelectFilter(item.key)}
+                aria-pressed={isActive}
+                className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+                  isActive
+                    ? 'bg-sky-600 text-white border-sky-700 shadow-sm'
+                    : 'bg-white/90 dark:bg-[#151b26] text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700 hover:text-sky-600 dark:hover:text-sky-400'
+                }`}
+              >
+                <span>{item.label}</span>
+                <span
+                  className={`tabular-nums text-[11px] ${
+                    isActive ? 'text-sky-100' : 'text-slate-400 dark:text-slate-500'
+                  }`}
+                >
+                  {item.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {onSelectChapter && chapters.length > 0 && (
+        <select
+          aria-label="选择章节"
+          value={selectedChapterId ?? ''}
+          onChange={(e) => {
+            const val = e.target.value;
+            onSelectChapter(val ? Number(val) : null);
+          }}
+          className="ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-white dark:bg-[#151b26] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 cursor-pointer max-w-[220px] truncate"
+        >
+          <option value="">全部章节</option>
+          {chapters.map((ch) => {
+            const cleanTitle = ch.title.replace(/^第[一二三四五六七八九十0-9]+章\s*/, '');
+            return (
+              <option key={ch.id} value={ch.id}>
+                第{ch.id}章 {cleanTitle}
+              </option>
+            );
+          })}
+        </select>
+      )}
     </div>
   ) : null;
 

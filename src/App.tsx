@@ -536,6 +536,9 @@ export function App() {
               totalCount={recitationTotalCount}
               memorizedCount={recitationMemorizedCount}
               starredCount={recitationStarredCount}
+              chapters={chaptersMeta}
+              selectedChapterId={selectedChapterId}
+              onSelectChapter={handleSelectChapter}
             />
           )}
 
@@ -557,6 +560,9 @@ export function App() {
               totalCount={homeworkTotalCount}
               completedCount={homeworkCompletedCount}
               starredCount={homeworkStarredCount}
+              chapters={chaptersMeta}
+              selectedChapterId={selectedChapterId}
+              onSelectChapter={handleSelectChapter}
             />
           )}
 

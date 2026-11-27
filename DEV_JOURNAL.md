@@ -3483,3 +3483,68 @@ flowchart TD
   - `verify_suite.mjs`：`54 PASSED, 0 FAILED`
   - `npm run build`：`✓ built in 3.49s`（0 错误）
   - Selenium 无头 Chrome 实测：`E2E_PASS`（0 `SEVERE` 控制台错误）
+
+---
+
+## 第 29 轮 [2026-11-27 17:51]：双侧栏折叠状态下在主画布顶部新增章节选择器
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：当左右两侧边栏均折叠收起进入专注模式时，用户无法直接切换章节，希望在顶部筛选行直接增加章节选择下拉框。
+- **目标**：在 `全书速记` 与 `平时作业本` 的顶部筛选栏右侧增加紧凑的章节选择器，并与左侧栏 `selectedChapterId` 双向同步。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- 修改 [`src/components/RecitationCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)、[`src/components/HomeworkCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx) 与 [`src/App.tsx`](file:///e:/workspace/central-banking-study-console/src/App.tsx)：
+  - 透传 `chapters={chaptersMeta}`、`selectedChapterId` 与 `onSelectChapter`；
+  - 在顶部筛选胶囊行右侧（`ml-auto`）渲染圆角胶囊 `<select aria-label="选择章节">`，提供「全部章节」及第 1–11 章选项，适配亮/暗双色主题（`bg-white dark:bg-[#151b26]`）与 `focus-visible` 焦点环。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：折叠左侧栏后，切换章节必须重新展开左侧栏，操作路径多一步。
+- **根本原因 (RCA)**：章节筛选入口仅存在于 `LeftSidebar.tsx` 内部。
+- **具体解法**：将 `selectedChapterId` 与 `onSelectChapter` 同步暴露至主画布顶部筛选行，保持单一状态源联动。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    TopSelect["主画布顶部章节选择器 (<select>)"] -->|"onSelectChapter(chId)"| AppState["App.tsx selectedChapterId"]
+    LeftNav["LeftSidebar 11章大纲"] -->|"onSelectChapter(chId)"| AppState
+    AppState -->|"同步过滤"| Canvas["RecitationCanvas / HomeworkCanvas"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **单一数据源双向联动**：顶部选择器与左侧栏共享 `App.tsx` 中的 `selectedChapterId` 和 `handleSelectChapter`，无论从哪一处切章都会自动归零题号并同步选中态。
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant Top as 顶部章节选择器
+    participant App as App 状态
+    User->>Top: 折叠双侧栏后在顶部选择“第5章”
+    Top->>App: handleSelectChapter(5)
+    App-->>Top: 更新筛选后的第 5 章题集并回到第 1 题
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **专注模式闭环**：双侧栏收起时，用户仍可在顶部一条栏内完成切章、切状态（全部/未背/已背/收藏）与翻题全部操作。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 胶囊样式与左侧「全部 / 未背 / 已背 / 收藏」筛选按钮高度、圆角完全对齐，不额外占用垂直高度。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npm run build; node verify_suite.mjs
+  ```
+- **实际输出**：
+  - `npm run build`：打包成功（0 错误）
+  - `node verify_suite.mjs`：`54 PASSED, 0 FAILED`
