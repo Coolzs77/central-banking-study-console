@@ -3186,3 +3186,142 @@ sequenceDiagram
 - **实际输出**：
   - `npm run build`：打包成功（0 错误）
   - `node verify_suite.mjs`：`53 PASSED, 0 FAILED`
+
+---
+
+## 第 25 轮 [2026-11-27 16:52]：用自定义站内弹窗替换期末交卷浏览器原生确认框
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：点击期末模考“交卷并评分”时，页面弹出浏览器原生的 `window.confirm` 弹窗（`coolzs77.github.io 显示...`），样式割裂且无法适配暗黑模式，要求替换为站内自定义弹窗。
+- **目标**：移除期末模考交卷流程中的 `window.confirm`，改为符合全站粘土拟态风格、支持暗黑模式与无障碍语义的自定义确认弹窗。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- 修改 [`src/components/MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx)：
+  - 新增 `submitConfirmOpen` 状态控制交卷确认弹窗显隐；
+  - 将原 `handleSubmitExam` 中的 `window.confirm(...)` 替换为打开站内确认弹窗，点击「确认交卷」触发 `confirmSubmitExam()` 完成交卷与评分；
+  - 弹窗使用 `role="dialog"`、`aria-modal="true"`、`aria-labelledby="submit-exam-modal-title"` 与 `overscroll-contain`，支持暗黑模式、点击遮罩层关闭及按 `Escape` 键关闭。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：交卷时触发浏览器原生 `confirm()` 对话框，阻塞线程且与网站主题风格不一致。
+- **根本原因 (RCA)**：`MockExamCanvas.tsx` 早先直接调用了浏览器内置 `window.confirm(...)`。
+- **具体解法**：以 React 状态驱动的自定义模态框替代同步阻塞的 `window.confirm`，保留确认防误触功能的同时统一视觉与暗黑适配。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Btn["点击“交卷并评分”"] --> Open["setSubmitConfirmOpen(true)"]
+    Open --> Dialog["站内自定义确认弹窗 (暗黑适配 / Escape 可关)"]
+    Dialog -->|"继续作答 / Escape / 点遮罩"| Cancel["关闭弹窗，继续答题"]
+    Dialog -->|"确认交卷"| Confirm["confirmSubmitExam() -> 停止计时并进入评分解析"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **非阻塞交互**：使用受控 React Modal 替代阻塞式 `window.confirm`，不中断浏览器渲染帧，且能完整响应亮/暗主题与 `Escape` 快捷取消。
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant Exam as MockExamCanvas
+    participant Modal as 站内确认弹窗
+    User->>Exam: 点击“交卷并评分”
+    Exam->>Modal: 展示自定义确认框 (role="dialog")
+    alt 取消
+        User->>Modal: 点击“继续作答” / 按 Escape
+        Modal-->>Exam: 关闭弹窗，保持 testing 状态
+    else 确认
+        User->>Modal: 点击“确认交卷”
+        Modal-->>Exam: 执行 confirmSubmitExam()，切换至 submitted
+    end
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **状态安全**：只有显式点击「确认交卷」才会停止计时器并切换 `examStatus` 为 `submitted`，并触发 `onFinishExam` 记录模考成绩。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 视觉与站内 `SyncModal` 保持统一的圆角卡片、模糊遮罩与亮/暗双色配色；
+- 支持键盘 `Escape` 快速返回继续作答。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npm run build; node verify_suite.mjs
+  ```
+- **实际输出**：
+  - `npm run build`：打包成功（0 错误）
+  - `node verify_suite.mjs`：`53 PASSED, 0 FAILED`
+
+---
+
+## 第 26 轮 [2026-11-27 16:53]：修复期末模考交白卷默认得 35 分的评分缺陷
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- **原始诉求**：用户在期末模考中直接交白卷，系统却给出 35 分（名词解释 15 分 + 论述题 20 分），评分默认逻辑不合理。
+- **目标**：将名词解释、简答题与论述题的初始默认自评分全部清零（0 分），确保交白卷严格得 0 分，仅在交卷后由用户对照参考答案与采分点自行打分才计入总分。
+
+---
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- 修改 [`src/components/MockExamCanvas.tsx`](file:///e:/workspace/central-banking-study-console/src/components/MockExamCanvas.tsx)：
+  - 第 110 行与第 181 行：将 `subjectiveScores.essayScores` 的初始默认值与 `generateNewPaper()` 重置值从 `{ theory: 4, mechanism: 8, practice: 6, conclusion: 2 }`（满分 20 分）改为 `{ theory: 0, mechanism: 0, practice: 0, conclusion: 0 }`（0 分）；
+  - 第 267-268 行：将 `scoreResults` 中名词解释未评分兜底值从 `3.0` 改为 `0`；
+  - 第 554 行：将名词解释自评 `<select>` 默认展示值从 `?? 3.0` 改为 `?? 0`。
+
+---
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：未作答任何题目直接交卷，总分显示 35 分（名词解释 5×3=15 分 + 论述题 4+8+6+2=20 分）。
+- **根本原因 (RCA)**：早期实现将主观题自评默认值直接设为满分（名词解释兜底 `3.0`、论述题四项默认 `4/8/6/2`），导致不作答也会自动计入 35 分。
+- **具体解法**：所有主观题初始及未评分状态统一归零，交卷后由用户按自身作答情况选择实际得分。
+
+---
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Submit["交卷进入评分模式"] --> Obj["客观题 (单选/判断/填空)<br/>严格按作答匹配计分 (未填=0)"]
+    Submit --> Subj["主观题 (名词/简答/论述)<br/>初始全部默认为 0 分"]
+    Subj --> SelfScore["用户对照参考答案逐题勾选/打分"]
+    Obj & SelfScore --> Total["实时汇总总分 (白卷严格=0分)"]
+```
+
+**【图 1 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **零分起点原则**：无论是自动判分的客观题还是自评打分的主观题，未作答/未打分时均以 `0` 分起步，彻底杜绝虚高分数。
+
+```mermaid
+stateDiagram-v2
+    [*] --> ZeroDefault: 生成试卷 (termScores={}, essayScores=0/0/0/0)
+    ZeroDefault --> BlankSubmit: 直接交白卷 -> 总分 0 分
+    ZeroDefault --> SelfGrading: 交卷后对照采分点手动打分
+    SelfGrading --> UpdatedTotal: 实时累加至总分
+```
+
+**【图 2 机制解析 (Diagram Walkthrough & Analysis)】**：
+- **自评状态分离**：`generateNewPaper()` 与初始状态同步清零 `essayScores` 与 `termScores`，保证每套新试卷均从 0 分起评。
+
+---
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 修复交白卷虚高 35 分问题，模考成绩更贴合真实复习水平。
+
+---
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console; npm run build; node verify_suite.mjs
+  ```
+- **实际输出**：
+  - `npm run build`：打包成功（0 错误）
+  - `node verify_suite.mjs`：`53 PASSED, 0 FAILED`

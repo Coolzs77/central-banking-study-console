@@ -84,6 +84,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
 
   // Active paper
   const [paper, setPaper] = useState<ExamPaper | null>(initialDraft?.paper || null);
+  const [submitConfirmOpen, setSubmitConfirmOpen] = useState<boolean>(false);
 
   // User Answers
   const [answers, setAnswers] = useState<ExamUserAnswers>(
@@ -106,7 +107,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
     initialDraft?.subjectiveScores || {
       termScores: {},
       shortAnswerScores: {},
-      essayScores: { theory: 4, mechanism: 8, practice: 6, conclusion: 2 },
+      essayScores: { theory: 0, mechanism: 0, practice: 0, conclusion: 0 },
     }
   );
 
@@ -177,10 +178,20 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
     setSubjectiveScores({
       termScores: {},
       shortAnswerScores: {},
-      essayScores: { theory: 4, mechanism: 8, practice: 6, conclusion: 2 },
+      essayScores: { theory: 0, mechanism: 0, practice: 0, conclusion: 0 },
     });
     setExamStatus('testing');
   };
+
+  // Close submit confirmation modal on Escape
+  useEffect(() => {
+    if (!submitConfirmOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSubmitConfirmOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [submitConfirmOpen]);
 
   // Warn before leaving page while an exam is in progress
   useEffect(() => {
@@ -250,11 +261,11 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
       }
     });
 
-    // Terminology scores (self-scored: 0-3 pts)
+    // Terminology scores (self-scored: 0-3 pts; default 0 until user scores)
     let termScore = 0;
     paper.terms.forEach((q) => {
       const s = subjectiveScores.termScores[q.id];
-      termScore += (s !== undefined ? s : 3.0);
+      termScore += s !== undefined ? s : 0;
     });
 
     // Short answer scores (self-scored)
@@ -289,16 +300,19 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
   }, [paper, answers, subjectiveScores]);
 
   const handleSubmitExam = () => {
-    if (window.confirm('确定要提交试卷吗？交卷后将进入评分与解析查看模式。')) {
-      setTimerRunning(false);
-      setExamStatus('submitted');
-      if (onFinishExam && scoreResults) {
-        onFinishExam({
-          date: new Date().toISOString(),
-          durationSecondsUsed: 120 * 60 - timeLeft,
-          scores: scoreResults,
-        });
-      }
+    setSubmitConfirmOpen(true);
+  };
+
+  const confirmSubmitExam = () => {
+    setSubmitConfirmOpen(false);
+    setTimerRunning(false);
+    setExamStatus('submitted');
+    if (onFinishExam && scoreResults) {
+      onFinishExam({
+        date: new Date().toISOString(),
+        durationSecondsUsed: 120 * 60 - timeLeft,
+        scores: scoreResults,
+      });
     }
   };
 
@@ -537,7 +551,7 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
                   <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800 flex items-center gap-3 text-xs">
                     <span className="font-medium text-slate-700 dark:text-slate-300">对照核对评分：</span>
                     <select
-                      value={subjectiveScores.termScores[q.id] ?? 3.0}
+                      value={subjectiveScores.termScores[q.id] ?? 0}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
                         setSubjectiveScores((prev) => ({
@@ -1072,6 +1086,54 @@ export const MockExamCanvas: React.FC<MockExamCanvasProps> = ({
       </div>
     </div>
   </div>
+
+  {/* Custom Submit Confirmation Modal (replaces native browser confirm) */}
+  {submitConfirmOpen && (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm overscroll-contain"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setSubmitConfirmOpen(false);
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="submit-exam-modal-title"
+        className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#151b26] border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Send className="w-5 h-5" aria-hidden="true" />
+          </div>
+          <div>
+            <h3 id="submit-exam-modal-title" className="text-base font-bold text-slate-900 dark:text-white">
+              确定要提交试卷吗？
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              交卷后将停止计时，并进入评分与解析查看模式。
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            onClick={() => setSubmitConfirmOpen(false)}
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+          >
+            继续作答
+          </button>
+          <button
+            type="button"
+            onClick={confirmSubmitExam}
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md clay-button-shadow clay-squash cursor-pointer"
+          >
+            确认交卷
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
 </div>
   );
 };
