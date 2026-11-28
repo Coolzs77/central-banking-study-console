@@ -4088,3 +4088,48 @@ stateDiagram-v2
 ### 6. 验证结果与可复现方法 (Verification & Reproduction)
 - `npx tsx tests/verifyHomeworkHierarchy.ts`（`21/21`）、`npx tsx tests/verifyPracticeUI.tsx`（`36/36`）、`node verify_suite.mjs`（`54/54`）、`npm run build` 全通过；
 - 无头 Chrome 实测输出 `E2E_PAPER_SPACE_PASS`（实测 `Header`、`LeftSidebar`、`RightSidebar` 计算背景色随 `ivory -> sage -> parchment` 真实同步变化，控制台 `0` `SEVERE` 错误）。
+
+
+---
+
+## 第 38 轮 [2026-11-28 14:36]：修复全页桌面层 `.paper-canvas` 100% 正片叠底发暗发灰问题
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- 用户在实机截图中发现书页外围（顶栏下方、筛选胶囊背后与书页四周）出现了发深发暗的粗糙水泥感噪点，询问成因并要求清理修复。
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- [index.css](file:///e:/workspace/central-banking-study-console/src/index.css)：
+  - 移除 `.paper-canvas` 直接挂载的 `background-image: var(--paper-tooth); background-blend-mode: multiply;`；
+  - 改为柔和清透的桌面底色与顶部微弱柔光渐变（`radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.25), transparent 72%)`，暗黑模式下置 `none`），同时完整保留 `.book-page::before` 内部受控透明度的 SVG 纸张纹理与 `::after` 装帧小元素。
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：书页四周的桌面底色与筛选标签（未做/已做/收藏）背后出现深灰粗糙噪点，导致文字对比度下降。
+- **根本原因 (RCA)**：`.book-page::before` 使用独立伪元素叠加 `--paper-tooth` 并受 `opacity: 0.22–0.35` 控制；而上轮将 `background-image: var(--paper-tooth); background-blend-mode: multiply;` 直接写到 `.paper-canvas` 根元素自身时，CSS `background-image` 无法单独设置 `opacity`，导致 50% 灰噪点以 **100% 不透明度** 与桌面底色做正片叠底，使桌面整体变暗、颗粒变粗。
+- **具体解法**：桌面层改回纯净柔和渐变底色，纸张凹凸纹理仅留在 `.book-page::before` 受控透明度层呈现。
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Old[".paper-canvas (100% multiply 噪点)"] -->|"50%灰直接正片叠底"| DarkDesk["外围发暗发灰、筛选字迹变淡"]
+    Fix[".paper-canvas (纯净桌面 + 柔光渐变)"] -->|"亮度恢复"| CleanDesk["外围清爽护眼、对比度提升"]
+    Fix -->|"内部 .book-page::before (opacity 0.22~0.35)"| BookTexture["书页内部保持清晰 SVG 纸纹"]
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **桌面与书页职责分离**：外围桌面提供安静干净的视觉留白衬托筛选胶囊与导航栏，真实纸张凹凸颗粒集中体现在 `.book-page` 实体书页之上。
+
+```mermaid
+flowchart TD
+    Root["App 根容器 (.paper-canvas)"] -->|"background-color: var(--paper-desktop)"| Tone["保持 7 套纸张同色系桌面底色"]
+    Root -->|"radial-gradient 顶部微光"| Depth["柔和桌面层次"]
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **7 套全页联动保持不变**：`--paper-desktop` 与 `--paper-chrome` 仍随 7 套纸张主题同步切换，只是去掉了外围过重的 100% 灰噪正片叠底。
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 筛选标签（未做 / 已做 / 收藏）与顶栏胶囊背后恢复干净清透，与中心实体书页形成自然的前后层次。
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- `node verify_suite.mjs`（`54 PASSED, 0 FAILED`）、`npm run build`（`✓ built in 5.82s`）及 `e2e_paper_and_space.py`（`E2E_PAPER_SPACE_PASS`）全通过，实机截图目视确认外围深色噪点完全消除。
