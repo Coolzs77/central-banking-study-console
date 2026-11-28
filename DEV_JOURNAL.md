@@ -3977,3 +3977,66 @@ flowchart LR
 
 ### 6. 验证结果与可复现方法 (Verification & Reproduction)
 - 执行 `npx tsx tests/verifyHomeworkHierarchy.ts`、`node verify_suite.mjs`、`npm run build`、`npm run deploy` 验证通过并完成线上发布。
+
+
+---
+
+## 第 36 轮 [2026-11-28 14:21]：7 套物理纸张 SVG 纹理与小元素实装、空格快捷键仅遮挡绿色小标题
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- 用户先在对话框审阅确认了 7 套纸张 SVG 纹理、装帧线条与精致小元素的中间校准版，要求同步写入项目代码；
+- 同时提出功能调整：按下 `Space`（空格）快捷键控制答案/遮挡时，**不要让正文内容消失，只需要遮挡绿色的字体**（即要点总结小标题）。
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- **7 套纸张纹理、装帧与 SVG 小元素实装**：
+  - [index.css](file:///e:/workspace/central-banking-study-console/src/index.css)：将 `.book-page` 设为 `overflow: hidden`，`.book-page::before` 承载 7 套专属 `--paper-tooth` 纹理（`surfaceScale: 1.55–2.0`、`opacity: 0.22–0.35`、`mix-blend-mode: multiply` 亮色 / `soft-light` 暗色），`.book-page::after` 承载 `--paper-ornament-*` 装帧与小元素（道林三孔+「精读考卷」朱红印章、羊皮纸双框卷草角花+天平圆章、豆沙绿色索引带+嫩芽+叶脉水印、牛皮虚线缝线+三角贴角+`ARCHIVE` 邮戳、康奈尔红蓝分栏+回形针+坐标折线水印、横线稿纸活页三孔+钢笔尖、极简白纸裁切角标+折角书签+央行立柱水印）。
+  - [appearance.ts](file:///e:/workspace/central-banking-study-console/src/data/appearance.ts)：同步更新 `PAPER_THEMES` 中的 `swatch` 色值。
+- **空格仅遮挡绿色小标题、保留正文**：
+  - [MarkdownViewer.tsx](file:///e:/workspace/central-banking-study-console/src/components/common/MarkdownViewer.tsx)：新增 `maskHeadings?: boolean` 与 `revealedHeadingSet` 状态及 `renderSubheading` 辅助函数，在 `maskHeadings` 开启时用翠绿斜纹贴纸遮罩盖住绿色 `<h4>` 小标题（支持单独点击揭开），保持下方正文与导语完整可见。
+  - [HomeworkCanvas.tsx](file:///e:/workspace/central-banking-study-console/src/components/HomeworkCanvas.tsx)：移除会隐藏整块解析的 `showAnswer` 条件折叠，使解析正文始终可见；`Space` 与顶栏「答案」按钮改为切换 `maskHeadings`（只遮挡绿色小标题），右上角眼睛图标按钮继续独立控制 `maskKeywords`。
+  - [RecitationCanvas.tsx](file:///e:/workspace/central-banking-study-console/src/components/RecitationCanvas.tsx)：`Space` 与「遮挡」按钮改为传入 `maskHeadings={isMasking}`，仅遮挡绿色小标题而不隐藏正文。
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：早期两版预览分别存在「`soft-light` 下几乎无纹理」「黑点噪点偏深」及「降低后又太淡」的问题；`MarkdownViewer.tsx` 编辑时曾残留一行闭合大括号导致 `esbuild` 报错。
+- **根本原因 (RCA)**：
+  1. `soft-light` 在浅色纸面像素差极小，改用 `multiply` 后将 `surfaceScale` 校准到 `1.55–2.0`、`opacity 0.22–0.35` 即达到清晰又干净的平衡点；
+  2. `HomeworkCanvas.tsx` 原先将 `Space` 绑定到 `setShowAnswer(prev => !prev)`，直接把整段答案条件卸载。
+- **具体解法**：清理 `MarkdownViewer.tsx` 多余闭合行，并用独立状态 `maskHeadings` 精确控制绿色 `<h4>` 遮罩。
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Page[".book-page (overflow: hidden)"] --> Before["::before 物理纹理层<br/>SVG feTurbulence + feDiffuseLighting<br/>multiply (0.22~0.35)"]
+    Page --> After["::after 装帧与小元素层<br/>SVG 角花 / 装订孔 / 印章 / 回形针 / 水印"]
+    Page --> Content["正文内容层 (z-index: 2)"]
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **双伪元素分层渲染**：`::before` 专注物理纸张凹凸与纤维混合，`::after` 专注装帧线条与低透明度 SVG 小元素，互不干涉且无需改动任何画布 JSX 结构。
+
+```mermaid
+flowchart TD
+    Space["按下 Space / 点击顶栏 答案·遮挡"] --> Toggle["切换 maskHeadings"]
+    Toggle -->|"true"| GreenH4["仅绿色 h4 小标题盖上翠绿贴纸遮罩"]
+    Toggle -->|"false"| ShowH4["全部绿色小标题正常显示"]
+    GreenH4 --> BodyStay["导语 / 要点正文 / 关键词全程保持可见"]
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **正文常驻不闪烁**：彻底解除 `showAnswer` 对正文区域的条件卸载，按空格时仅对 Tier 1 绿色小标题生效，同时支持鼠标点击单个遮罩独立揭开。
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 7 套纸张背景均有独立可辨的颗粒与小元素，且暗黑模式下自动切换为 `soft-light` 低透明度避免刺眼。
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- **验证命令**：
+  ```powershell
+  cd e:\workspace\central-banking-study-console
+  npx tsx tests/verifyHomeworkHierarchy.ts
+  npx tsx tests/verifyPracticeUI.tsx
+  node verify_suite.mjs
+  npm run build
+  python C:\Users\86166\.gemini\antigravity\brain\750285ff-e722-49e4-b776-a5cdb15413ca\scratch\e2e_paper_and_space.py
+  ```
+- **实测结果**：`21/21`、`36/36`、`54/54` 全通过，`vite build` 成功，无头 Chrome E2E 输出 `E2E_PAPER_SPACE_PASS`（7 套纸张切换 + 空格仅遮挡绿色小标题验证通过，控制台 `0` `SEVERE` 报错）。

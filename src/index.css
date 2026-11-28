@@ -196,18 +196,27 @@
   --paper-muted: #a8a29e;
 }
 
-/* 1. 道林考卷纸 */
+/* 1. 道林考卷纸 (冷压棉絮纹 + 双排排版线 + 左侧三孔装订 + 右上角朱红微印章) */
 .paper-canvas[data-paper="ivory"] {
   --paper-desktop: #e7dfd0;
-  --paper-surface: #fbf8f1;
-  --paper-inner: #f4eee1;
-  --paper-border: rgba(176, 158, 128, 0.38);
+  --paper-surface: #f9f5eb;
+  --paper-inner: #f3ede0;
+  --paper-border: rgba(176, 158, 128, 0.42);
   --paper-stack-1: #f3ede0;
   --paper-stack-2: #eae2d1;
   --paper-stack-3: #e0d6c2;
-  --paper-spine: rgba(92, 74, 48, 0.065);
-  --paper-tooth: var(--paper-tooth-fine);
-  --paper-tooth-opacity: 0.24;
+  --paper-spine: rgba(92, 74, 48, 0.075);
+  --paper-tooth:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='iv'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23fffdf7' surfaceScale='2.0' result='l'%3E%3CfeDistantLight azimuth='45' elevation='53'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23iv)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M12 18q6-3 11 1M78 14q-4 5 2 9M42 56q7 2 10-3M95 72q-5-4-9 2M20 96q6 4 11-1M66 102q5-4 9 1' fill='none' stroke='%239c8866' stroke-width='0.6' stroke-opacity='0.21' stroke-linecap='round'/%3E%3C/svg%3E");
+  --paper-tooth-opacity: 0.35;
+  --paper-ornament-bg:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='36'%3E%3Cg transform='translate(6,8) rotate(-6)' opacity='0.3'%3E%3Crect x='0' y='0' width='66' height='22' rx='3' fill='none' stroke='%23b91c1c' stroke-width='1.3'/%3E%3Crect x='2.5' y='2.5' width='61' height='17' rx='2' fill='none' stroke='%23b91c1c' stroke-width='0.6'/%3E%3Ctext x='33' y='14.5' text-anchor='middle' font-size='9.5' font-weight='700' fill='%23b91c1c' letter-spacing='1.5'%3E%E7%B2%BE%E8%AF%BB%E8%80%83%E5%8D%B7%3C/text%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='180'%3E%3Ccircle cx='11' cy='30' r='4.2' fill='%23dfd5c1' stroke='%23b5a384' stroke-width='1' opacity='0.82'/%3E%3Ccircle cx='11' cy='90' r='4.2' fill='%23dfd5c1' stroke='%23b5a384' stroke-width='1' opacity='0.82'/%3E%3Ccircle cx='11' cy='150' r='4.2' fill='%23dfd5c1' stroke='%23b5a384' stroke-width='1' opacity='0.82'/%3E%3Cline x1='21' y1='10' x2='21' y2='170' stroke='%23826c4c' stroke-opacity='0.24' stroke-dasharray='4 4'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, transparent 16px, rgba(130, 108, 76, 0.22) 16px, rgba(130, 108, 76, 0.22) 17px, transparent 17px, transparent 19px, rgba(130, 108, 76, 0.13) 19px, rgba(130, 108, 76, 0.13) 20px, transparent 20px);
+  --paper-ornament-pos: right 22px top 12px, left 4px center, 0 0;
+  --paper-ornament-size: 80px 36px, 22px 76%, 100% 100%;
+  --paper-ornament-repeat: no-repeat, no-repeat, no-repeat;
 }
 .dark .paper-canvas[data-paper="ivory"] {
   --paper-desktop: #0f0d0a;
@@ -218,21 +227,40 @@
   --paper-stack-2: #11100d;
   --paper-stack-3: #0d0c0a;
   --paper-tooth-opacity: 0.14;
+  --paper-ornament-bg:
+    linear-gradient(to bottom, transparent 16px, rgba(168, 152, 128, 0.16) 16px, rgba(168, 152, 128, 0.16) 17px, transparent 17px);
+  --paper-ornament-pos: 0 0;
+  --paper-ornament-size: 100% 100%;
 }
 
-/* 2. 古典羊皮纸 (粗纤维 3D 纸纹 + 做旧琥珀暗角) */
+/* 2. 古典羊皮纸 (琥珀云斑 + 粗皮纹凹凸 + 古典双框卷草角花 + 天平圆章水印) */
 .paper-canvas[data-paper="parchment"] {
   --paper-desktop: #e4d4b5;
-  --paper-surface: #f4ead2;
-  --paper-inner: #ecdfc0;
-  --paper-border: rgba(154, 114, 58, 0.42);
+  --paper-surface: #f2e5c6;
+  --paper-inner: #eadbc0;
+  --paper-border: rgba(154, 114, 58, 0.44);
   --paper-stack-1: #eadcc0;
   --paper-stack-2: #dfd0ae;
   --paper-stack-3: #d4c29c;
   --paper-spine: rgba(112, 76, 28, 0.09);
-  --paper-vignette: inset 0 0 48px rgba(139, 98, 42, 0.16), inset 0 1px 0 rgba(255, 250, 235, 0.72);
-  --paper-tooth: var(--paper-tooth-coarse);
-  --paper-tooth-opacity: 0.32;
+  --paper-vignette: inset 0 0 64px rgba(120, 78, 28, 0.22), inset 0 1px 0 rgba(255, 250, 235, 0.72);
+  --paper-tooth:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cfilter id='pc-cloud'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.56  0 0 0 0 0.38  0 0 0 0 0.16  0 0 0 0.2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pc-cloud)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='pc-grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.42' numOctaves='5' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23fff8e6' surfaceScale='1.95' result='l'%3E%3CfeDistantLight azimuth='45' elevation='51'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pc-grain)'/%3E%3C/svg%3E");
+  --paper-tooth-opacity: 0.35;
+  --paper-ornament-inset: 10px;
+  --paper-ornament-border: 1px solid rgba(139, 98, 42, 0.26);
+  --paper-ornament-shadow: inset 0 0 0 3px transparent, inset 0 0 0 4px rgba(139, 98, 42, 0.12);
+  --paper-ornament-bg:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M2 16V4a2 2 0 0 1 2-2h12M6 12V6h6M4 20c0-3 2-5 5-5' fill='none' stroke='%238b622a' stroke-opacity='0.45' stroke-width='1.1' stroke-linecap='round'/%3E%3Ccircle cx='6' cy='6' r='1.3' fill='%238b622a' fill-opacity='0.45'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg transform='scale(-1,1) translate(-28,0)'%3E%3Cpath d='M2 16V4a2 2 0 0 1 2-2h12M6 12V6h6M4 20c0-3 2-5 5-5' fill='none' stroke='%238b622a' stroke-opacity='0.45' stroke-width='1.1' stroke-linecap='round'/%3E%3Ccircle cx='6' cy='6' r='1.3' fill='%238b622a' fill-opacity='0.45'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg transform='scale(1,-1) translate(0,-28)'%3E%3Cpath d='M2 16V4a2 2 0 0 1 2-2h12M6 12V6h6M4 20c0-3 2-5 5-5' fill='none' stroke='%238b622a' stroke-opacity='0.45' stroke-width='1.1' stroke-linecap='round'/%3E%3Ccircle cx='6' cy='6' r='1.3' fill='%238b622a' fill-opacity='0.45'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg transform='scale(-1,-1) translate(-28,-28)'%3E%3Cpath d='M2 16V4a2 2 0 0 1 2-2h12M6 12V6h6M4 20c0-3 2-5 5-5' fill='none' stroke='%238b622a' stroke-opacity='0.45' stroke-width='1.1' stroke-linecap='round'/%3E%3Ccircle cx='6' cy='6' r='1.3' fill='%238b622a' fill-opacity='0.45'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='20' viewBox='0 0 80 20'%3E%3Cg transform='translate(40,10)' fill='none' stroke='%238b622a' stroke-width='1.1' opacity='0.42'%3E%3Cpath d='M-32 0c8-5 16-5 24 0M32 0c-8-5-16-5-24 0' stroke-linecap='round'/%3E%3Cpath d='M0-5l4 5-4 5-4-5z' fill='%238b622a' fill-opacity='0.35'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cg transform='translate(42,42)' fill='none' stroke='%237c5321' opacity='0.15'%3E%3Ccircle cx='0' cy='0' r='34' stroke-width='1.2' stroke-dasharray='3 2'/%3E%3Ccircle cx='0' cy='0' r='28' stroke-width='0.8'/%3E%3Cpath d='M0-18v34M-16-10h32M-16-10l-5 11h10zM16-10l-5 11h10zM-10 16h20' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
+  --paper-ornament-pos: 6px 6px, calc(100% - 6px) 6px, 6px calc(100% - 6px), calc(100% - 6px) calc(100% - 6px), center 4px, right 16px bottom 14px;
+  --paper-ornament-size: 28px 28px, 28px 28px, 28px 28px, 28px 28px, 80px 20px, 84px 84px;
+  --paper-ornament-repeat: no-repeat;
 }
 .dark .paper-canvas[data-paper="parchment"] {
   --paper-desktop: #13100b;
@@ -244,21 +272,30 @@
   --paper-stack-3: #0f0c08;
   --paper-spine: rgba(0, 0, 0, 0.34);
   --paper-vignette: inset 0 0 42px rgba(92, 64, 24, 0.24);
-  --paper-tooth-opacity: 0.18;
+  --paper-tooth-opacity: 0.17;
 }
 
-/* 3. 护眼豆沙绿纸 */
+/* 3. 护眼豆沙绿纸 (植物短纤 + 左侧绿色索引带 + 小嫩芽 + 右下角叶脉水印) */
 .paper-canvas[data-paper="sage"] {
   --paper-desktop: #dfeae2;
-  --paper-surface: #f1f7f2;
-  --paper-inner: #e7f0e9;
-  --paper-border: rgba(114, 148, 124, 0.36);
+  --paper-surface: #edf5ee;
+  --paper-inner: #e4efe6;
+  --paper-border: rgba(114, 148, 124, 0.38);
   --paper-stack-1: #e9f2eb;
   --paper-stack-2: #dee9e0;
   --paper-stack-3: #d2e0d5;
   --paper-spine: rgba(54, 88, 66, 0.06);
-  --paper-tooth: var(--paper-tooth-fine);
-  --paper-tooth-opacity: 0.22;
+  --paper-tooth:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='sg'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23f7fcf8' surfaceScale='1.9' result='l'%3E%3CfeDistantLight azimuth='45' elevation='54'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23sg)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110'%3E%3Cpath d='M14 22l7 2M68 18l-5 4M36 64l6-3M86 82l-6-2M22 92l5 3' fill='none' stroke='%235b7c65' stroke-width='0.6' stroke-opacity='0.19' stroke-linecap='round'/%3E%3C/svg%3E");
+  --paper-tooth-opacity: 0.34;
+  --paper-ornament-bg:
+    linear-gradient(to right, rgba(74, 124, 89, 0.28) 0, rgba(74, 124, 89, 0.28) 4px, transparent 4px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='28' viewBox='0 0 32 28'%3E%3Cg transform='translate(4,2)' fill='none' stroke='%234a7c59' opacity='0.44'%3E%3Cpath d='M12 18C12 9 18 4 24 4c0 8-5 14-12 14z' fill='%2386efac' fill-opacity='0.3' stroke-width='1.2'/%3E%3Cpath d='M12 18C12 11 7 7 2 7c0 6 4 11 10 11z' fill='%2386efac' fill-opacity='0.22' stroke-width='1.1'/%3E%3Cpath d='M12 18v5' stroke-width='1.2' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 110 110'%3E%3Cg fill='none' stroke='%234a7c59' stroke-width='1.4' stroke-linecap='round' opacity='0.15'%3E%3Cpath d='M88 96C66 78 58 50 72 16c18 22 24 52 16 80z'/%3E%3Cpath d='M72 16c-6 28-4 54 16 80M70 50c-12-5-18-13-20-24M74 68c13-6 20-15 22-26'/%3E%3C/g%3E%3C/svg%3E");
+  --paper-ornament-pos: 0 0, right 36px top 12px, right 14px bottom 10px;
+  --paper-ornament-size: 100% 100%, 32px 28px, 110px 110px;
+  --paper-ornament-repeat: no-repeat;
 }
 .dark .paper-canvas[data-paper="sage"] {
   --paper-desktop: #0d1310;
@@ -271,19 +308,31 @@
   --paper-tooth-opacity: 0.14;
 }
 
-/* 4. 温润牛皮纸 */
+/* 4. 温润牛皮纸 (纵向木浆纤维 + 麻点 + 虚线缝线框 + 牛皮三角贴角 + 复古邮戳) */
 .paper-canvas[data-paper="kraft"] {
   --paper-desktop: #dfd0b3;
-  --paper-surface: #efe3cd;
-  --paper-inner: #e7d8bc;
-  --paper-border: rgba(145, 112, 72, 0.42);
+  --paper-surface: #eadac0;
+  --paper-inner: #e3d1b3;
+  --paper-border: rgba(145, 112, 72, 0.44);
   --paper-stack-1: #e6d8be;
   --paper-stack-2: #dccbb0;
   --paper-stack-3: #d0bda0;
   --paper-spine: rgba(102, 72, 36, 0.085);
-  --paper-vignette: inset 0 0 30px rgba(110, 80, 42, 0.11);
-  --paper-tooth: var(--paper-tooth-coarse);
-  --paper-tooth-opacity: 0.3;
+  --paper-vignette: inset 0 0 42px rgba(105, 72, 34, 0.16);
+  --paper-tooth:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='kf-fib'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.03 0.28' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.45  0 0 0 0 0.31  0 0 0 0 0.15  0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23kf-fib)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='kf-g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='5' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23f7ebd4' surfaceScale='1.95' result='l'%3E%3CfeDistantLight azimuth='45' elevation='52'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23kf-g)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Ccircle cx='18' cy='24' r='0.8' fill='%23634522' fill-opacity='0.18'/%3E%3Ccircle cx='88' cy='46' r='0.7' fill='%23634522' fill-opacity='0.16'/%3E%3Ccircle cx='44' cy='98' r='0.85' fill='%23634522' fill-opacity='0.16'/%3E%3Ccircle cx='118' cy='112' r='0.75' fill='%23634522' fill-opacity='0.17'/%3E%3C/svg%3E");
+  --paper-tooth-opacity: 0.35;
+  --paper-ornament-inset: 9px;
+  --paper-ornament-border: 1.5px dashed rgba(108, 72, 34, 0.28);
+  --paper-ornament-bg:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpolygon points='0,0 26,0 26,26' fill='%23b48a54' opacity='0.22'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpolygon points='0,30 26,30 0,4' fill='%23b48a54' opacity='0.22'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cg transform='translate(42,42) rotate(-12)' fill='none' stroke='%236c4822' opacity='0.21'%3E%3Ccircle cx='0' cy='0' r='30' stroke-width='1.3'/%3E%3Ccircle cx='0' cy='0' r='23' stroke-width='0.8' stroke-dasharray='2 2'/%3E%3Cpath d='M-36 -6q10-4 20 0t20 0M-36 6q10-4 20 0t20 0' stroke-width='0.9'/%3E%3Ctext x='0' y='3' text-anchor='middle' font-size='8' font-weight='700' fill='%236c4822' stroke='none' letter-spacing='1'%3EARCHIVE%3C/text%3E%3C/g%3E%3C/svg%3E");
+  --paper-ornament-pos: right 0 top 0, left 0 bottom 0, right 16px bottom 14px;
+  --paper-ornament-size: 30px 30px, 30px 30px, 84px 84px;
+  --paper-ornament-repeat: no-repeat;
 }
 .dark .paper-canvas[data-paper="kraft"] {
   --paper-desktop: #120f0c;
@@ -293,24 +342,33 @@
   --paper-stack-1: #171310;
   --paper-stack-2: #120f0c;
   --paper-stack-3: #0e0b09;
-  --paper-tooth-opacity: 0.17;
+  --paper-tooth-opacity: 0.16;
 }
 
-/* 5. 康奈尔方格纸 */
+/* 5. 康奈尔方格纸 (细纸纹 + 24px/96px 粗细方格 + 天头红蓝分栏 + 回形针 + 坐标折线水印) */
 .paper-canvas[data-paper="grid"] {
   --paper-desktop: #eaedf2;
-  --paper-surface: #fcfaf5;
-  --paper-inner: #f5f3ec;
-  --paper-border: rgba(148, 163, 184, 0.38);
+  --paper-surface: #fbf9f3;
+  --paper-inner: #f4f1ea;
+  --paper-border: rgba(148, 163, 184, 0.4);
   --paper-stack-1: #f4f2eb;
   --paper-stack-2: #ebe8df;
   --paper-stack-3: #e0ddd2;
   --paper-spine: rgba(71, 85, 105, 0.06);
-  --paper-pattern: linear-gradient(to right, rgba(100, 116, 139, 0.085) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(100, 116, 139, 0.085) 1px, transparent 1px);
-  --paper-pattern-size: 24px 24px;
-  --paper-tooth: var(--paper-tooth-fine);
-  --paper-tooth-opacity: 0.18;
+  --paper-pattern:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cpath d='M24 0v96M48 0v96M72 0v96M0 24h96M0 48h96M0 72h96' stroke='%2364748b' stroke-width='0.6' stroke-opacity='0.14'/%3E%3Cpath d='M96 0v96M0 96h96' stroke='%23475569' stroke-width='0.9' stroke-opacity='0.22'/%3E%3C/svg%3E");
+  --paper-pattern-size: 96px 96px;
+  --paper-tooth:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='gd-t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23ffffff' surfaceScale='1.75' result='l'%3E%3CfeDistantLight azimuth='45' elevation='54'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23gd-t)'/%3E%3C/svg%3E");
+  --paper-tooth-opacity: 0.28;
+  --paper-ornament-bg:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='42' viewBox='0 0 26 42'%3E%3Cpath d='M7 0v26a6 6 0 0 0 12 0V8a4 4 0 0 0-8 0v18a2 2 0 0 0 4 0V10' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' opacity='0.58'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='48' viewBox='0 0 64 48'%3E%3Cg transform='translate(4,4)' fill='none' stroke='%23475569' stroke-width='1.3' stroke-linecap='round' opacity='0.15'%3E%3Cpath d='M0 38h52M0 38V0'/%3E%3Cpath d='M6 30l12-10 12 6 16-18'/%3E%3Ccircle cx='18' cy='20' r='2' fill='%23475569'/%3E%3Ccircle cx='30' cy='26' r='2' fill='%23475569'/%3E%3Ccircle cx='46' cy='8' r='2' fill='%23475569'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(to bottom, rgba(248, 244, 234, 0.72) 0, rgba(248, 244, 234, 0.72) 26px, rgba(59, 130, 246, 0.26) 26px, rgba(59, 130, 246, 0.26) 27.5px, transparent 27.5px),
+    linear-gradient(to right, transparent 24px, rgba(225, 29, 72, 0.22) 24px, rgba(225, 29, 72, 0.22) 25.5px, transparent 25.5px);
+  --paper-ornament-pos: left 18px top 0, right 18px bottom 14px, 0 0, 0 0;
+  --paper-ornament-size: 26px 42px, 64px 48px, 100% 100%, 100% 100%;
+  --paper-ornament-repeat: no-repeat;
 }
 .dark .paper-canvas[data-paper="grid"] {
   --paper-desktop: #0c1016;
@@ -322,24 +380,35 @@
   --paper-stack-3: #090c11;
   --paper-pattern: linear-gradient(to right, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+  --paper-pattern-size: 24px 24px;
   --paper-tooth-opacity: 0.12;
+  --paper-ornament-bg: none;
 }
 
-/* 6. 横线稿纸 (含左侧淡红装订竖线) */
+/* 6. 横线稿纸 (细纸纹 + 28px 蓝横线 + 左侧双红装订竖线 + 三孔活页 + 钢笔尖小图标) */
 .paper-canvas[data-paper="lined"] {
   --paper-desktop: #ece7dc;
-  --paper-surface: #fdfbf6;
-  --paper-inner: #f6f2e8;
-  --paper-border: rgba(164, 152, 132, 0.38);
+  --paper-surface: #fcfaf3;
+  --paper-inner: #f5f1e7;
+  --paper-border: rgba(164, 152, 132, 0.4);
   --paper-stack-1: #f5f1e6;
   --paper-stack-2: #ece6d8;
   --paper-stack-3: #e1dac9;
   --paper-spine: rgba(100, 84, 64, 0.06);
-  --paper-pattern: linear-gradient(to right, transparent 42px, rgba(225, 29, 72, 0.13) 42px, rgba(225, 29, 72, 0.13) 43px, transparent 43px, transparent 46px, rgba(225, 29, 72, 0.09) 46px, rgba(225, 29, 72, 0.09) 47px, transparent 47px),
-    repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, rgba(59, 130, 246, 0.09) 27px, rgba(59, 130, 246, 0.09) 28px);
-  --paper-pattern-size: 100% 28px;
-  --paper-tooth: var(--paper-tooth-fine);
-  --paper-tooth-opacity: 0.18;
+  --paper-pattern:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='28'%3E%3Cline x1='0' y1='27.5' x2='100' y2='27.5' stroke='%232563eb' stroke-width='0.8' stroke-opacity='0.17'/%3E%3C/svg%3E");
+  --paper-pattern-size: 100px 28px;
+  --paper-tooth:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='ln-t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23ffffff' surfaceScale='1.75' result='l'%3E%3CfeDistantLight azimuth='45' elevation='54'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23ln-t)'/%3E%3C/svg%3E");
+  --paper-tooth-opacity: 0.28;
+  --paper-ornament-bg:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='24' viewBox='0 0 28 24'%3E%3Cg fill='none' stroke='%23475569' stroke-width='1.2' opacity='0.44'%3E%3Cpath d='M8 18l6-12 6 12-6 3z'/%3E%3Cpath d='M14 6v8'/%3E%3Ccircle cx='14' cy='14.5' r='1' fill='%23475569'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='180'%3E%3Ccircle cx='10' cy='28' r='4.5' fill='%23e7e1d3' stroke='%23b9af9b' stroke-width='1' opacity='0.88'/%3E%3Ccircle cx='10' cy='90' r='4.5' fill='%23e7e1d3' stroke='%23b9af9b' stroke-width='1' opacity='0.88'/%3E%3Ccircle cx='10' cy='152' r='4.5' fill='%23e7e1d3' stroke='%23b9af9b' stroke-width='1' opacity='0.88'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, #fcfaf3 0, #fcfaf3 26px, rgba(37, 99, 235, 0.24) 26px, rgba(37, 99, 235, 0.24) 27.5px, transparent 27.5px),
+    linear-gradient(to right, transparent 36px, rgba(225, 29, 72, 0.24) 36px, rgba(225, 29, 72, 0.24) 37px, transparent 37px, transparent 40px, rgba(225, 29, 72, 0.14) 40px, rgba(225, 29, 72, 0.14) 41px, transparent 41px);
+  --paper-ornament-pos: right 26px top 4px, left 4px center, 0 0, 0 0;
+  --paper-ornament-size: 28px 24px, 20px 76%, 100% 100%, 100% 100%;
+  --paper-ornament-repeat: no-repeat;
 }
 .dark .paper-canvas[data-paper="lined"] {
   --paper-desktop: #0f0e0d;
@@ -351,21 +420,34 @@
   --paper-stack-3: #0b0a09;
   --paper-pattern: linear-gradient(to right, transparent 42px, rgba(244, 63, 94, 0.16) 42px, rgba(244, 63, 94, 0.16) 43px, transparent 43px, transparent 46px, rgba(244, 63, 94, 0.1) 46px, rgba(244, 63, 94, 0.1) 47px, transparent 47px),
     repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, rgba(96, 165, 250, 0.08) 27px, rgba(96, 165, 250, 0.08) 28px);
+  --paper-pattern-size: 100% 28px;
   --paper-tooth-opacity: 0.12;
+  --paper-ornament-bg: none;
 }
 
-/* 7. 极简白纸 */
+/* 7. 极简白纸 (微米冷压细纹 + 四角裁切角标 + 顶部极简折角书签 + 央行立柱几何水印) */
 .paper-canvas[data-paper="default"] {
   --paper-desktop: #eef2f7;
-  --paper-surface: #ffffff;
+  --paper-surface: #fcfcfd;
   --paper-inner: #f8fafc;
-  --paper-border: rgba(203, 213, 225, 0.8);
+  --paper-border: rgba(203, 213, 225, 0.85);
   --paper-stack-1: #f8fafc;
   --paper-stack-2: #f1f5f9;
   --paper-stack-3: #e2e8f0;
   --paper-spine: rgba(15, 23, 42, 0.035);
-  --paper-tooth: var(--paper-tooth-fine);
-  --paper-tooth-opacity: 0.1;
+  --paper-tooth:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='df-t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23ffffff' surfaceScale='1.55' result='l'%3E%3CfeDistantLight azimuth='45' elevation='56'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23df-t)'/%3E%3C/svg%3E");
+  --paper-tooth-opacity: 0.22;
+  --paper-ornament-bg:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M0 12h12V0' fill='none' stroke='%2394a3b8' stroke-opacity='0.52' stroke-width='1'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M18 12H6V0' fill='none' stroke='%2394a3b8' stroke-opacity='0.52' stroke-width='1'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M0 6h12v12' fill='none' stroke='%2394a3b8' stroke-opacity='0.52' stroke-width='1'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M18 6H6v12' fill='none' stroke='%2394a3b8' stroke-opacity='0.52' stroke-width='1'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='18'%3E%3Cpath d='M0 0h22v18l-11-6-11 6z' fill='%2364748b' opacity='0.28'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='68' height='60' viewBox='0 0 68 60'%3E%3Cg transform='translate(2,2)' fill='none' stroke='%2364748b' stroke-width='1.3' opacity='0.14'%3E%3Cpath d='M4 22L32 6l28 16z'/%3E%3Cpath d='M10 22v26M24 22v26M40 22v26M54 22v26M4 48h56M0 54h64'/%3E%3C/g%3E%3C/svg%3E");
+  --paper-ornament-pos: 10px 10px, calc(100% - 10px) 10px, 10px calc(100% - 10px), calc(100% - 10px) calc(100% - 10px), center 0, right 20px bottom 14px;
+  --paper-ornament-size: 18px 18px, 18px 18px, 18px 18px, 18px 18px, 22px 18px, 68px 60px;
+  --paper-ornament-repeat: no-repeat;
 }
 .dark .paper-canvas[data-paper="default"] {
   --paper-desktop: #0b0f17;
@@ -388,6 +470,7 @@
 .book-page,
 .paper-card {
   position: relative;
+  overflow: hidden;
   font-size: var(--reader-font-size, 17px);
   line-height: var(--reader-line-height, 1.8);
   background-color: var(--paper-surface) !important;
@@ -426,16 +509,34 @@
     0 22px 42px -10px rgba(0, 0, 0, 0.52) !important;
 }
 
-.book-page::before,
-.paper-card::after {
+.book-page::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background-image: var(--paper-tooth), var(--paper-fiber-mesh);
-  opacity: var(--paper-tooth-opacity);
+  background-image: var(--paper-tooth);
+  opacity: var(--paper-tooth-opacity, 0.35);
+  mix-blend-mode: multiply;
+  z-index: 1;
+}
+
+.dark .book-page::before {
   mix-blend-mode: soft-light;
+}
+
+.book-page::after {
+  content: "";
+  position: absolute;
+  inset: var(--paper-ornament-inset, 0px);
+  border-radius: inherit;
+  pointer-events: none;
+  border: var(--paper-ornament-border, none);
+  box-shadow: var(--paper-ornament-shadow, none);
+  background-image: var(--paper-ornament-bg, none);
+  background-position: var(--paper-ornament-pos, 0 0);
+  background-size: var(--paper-ornament-size, auto);
+  background-repeat: var(--paper-ornament-repeat, no-repeat);
   z-index: 1;
 }
 

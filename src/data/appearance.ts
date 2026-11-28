@@ -31,35 +31,35 @@ export const PAPER_THEMES: {
   {
     id: 'ivory',
     name: '道林考卷',
-    swatch: '#fbf8f1',
+    swatch: '#f9f5eb',
     darkSwatch: '#191815',
     previewPattern: 'linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(176,158,128,0.12) 100%)',
   },
   {
     id: 'parchment',
     name: '古典羊皮纸',
-    swatch: '#f4ead2',
+    swatch: '#f2e5c6',
     darkSwatch: '#1c1813',
     previewPattern: 'radial-gradient(circle at 50% 45%, transparent 45%, rgba(139,98,42,0.22) 100%)',
   },
   {
     id: 'sage',
     name: '豆沙护眼',
-    swatch: '#f1f7f2',
+    swatch: '#edf5ee',
     darkSwatch: '#141b17',
     previewPattern: 'linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(114,148,124,0.14) 100%)',
   },
   {
     id: 'kraft',
     name: '温润牛皮',
-    swatch: '#efe3cd',
+    swatch: '#eadac0',
     darkSwatch: '#1b1713',
     previewPattern: 'radial-gradient(circle at 50% 50%, transparent 40%, rgba(110,80,42,0.2) 100%)',
   },
   {
     id: 'grid',
     name: '康奈尔方格',
-    swatch: '#fcfaf5',
+    swatch: '#fbf9f3',
     darkSwatch: '#141820',
     previewPattern:
       'linear-gradient(to right, rgba(100,116,139,0.22) 1px, transparent 1px), linear-gradient(to bottom, rgba(100,116,139,0.22) 1px, transparent 1px)',
@@ -67,7 +67,7 @@ export const PAPER_THEMES: {
   {
     id: 'lined',
     name: '横线稿纸',
-    swatch: '#fdfbf6',
+    swatch: '#fcfaf3',
     darkSwatch: '#171614',
     previewPattern:
       'linear-gradient(to right, transparent 6px, rgba(225,29,72,0.32) 6px, rgba(225,29,72,0.32) 7px, transparent 7px), repeating-linear-gradient(to bottom, transparent 0px, transparent 5px, rgba(59,130,246,0.22) 5px, rgba(59,130,246,0.22) 6px)',
@@ -75,7 +75,7 @@ export const PAPER_THEMES: {
   {
     id: 'default',
     name: '极简白纸',
-    swatch: '#ffffff',
+    swatch: '#fcfcfd',
     darkSwatch: '#151b26',
     previewPattern: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(148,163,184,0.1) 100%)',
   },

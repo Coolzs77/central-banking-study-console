@@ -51,7 +51,7 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
   selectedChapterId = null,
   onSelectChapter,
 }) => {
-  const [showAnswer, setShowAnswer] = useState<boolean>(true);
+  const [maskHeadings, setMaskHeadings] = useState<boolean>(false);
   const [isMasking, setIsMasking] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
@@ -74,7 +74,7 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
 
       if (e.code === 'Space') {
         e.preventDefault();
-        setShowAnswer((prev) => !prev);
+        setMaskHeadings((prev) => !prev);
       } else if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
         e.preventDefault();
         onPrev();
@@ -209,8 +209,8 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
         actionLabel="已做"
         isStarred={isStarred}
         onToggleStar={() => onToggleStar(currentQ.id)}
-        revealed={showAnswer}
-        onToggleRevealed={() => setShowAnswer((p) => !p)}
+        revealed={!maskHeadings}
+        onToggleRevealed={() => setMaskHeadings((p) => !p)}
         toggleLabel="答案"
         onCopy={handleCopyCurrent}
         isCopied={copied}
@@ -240,37 +240,38 @@ export const HomeworkCanvas: React.FC<HomeworkCanvasProps> = ({
             )}
           </h2>
 
-          {/* 3. Solution Section (printed directly on page) */}
-          {showAnswer && (
-            <>
-              <hr className="book-divider-double my-3" />
-              <div className="pt-2">
-                <div className="flex items-center justify-between pb-3 mb-3">
-                  <span className="text-xs font-bold text-stone-600 dark:text-stone-400 tracking-wider">
-                    参考解析
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsMasking((prev) => !prev)}
-                    aria-label={isMasking ? '显露关键词' : '挖空遮挡'}
-                    aria-pressed={isMasking}
-                    className={`w-8 h-8 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
-                      isMasking
-                        ? 'bg-rose-500 text-white border-rose-600'
-                        : 'bg-transparent text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:text-rose-500 hover:border-rose-400'
-                    }`}
-                  >
-                    {isMasking ? (
-                      <EyeOff className="w-4 h-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-4 h-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-                <MarkdownViewer content={currentQ.answer} keywords={currentQ.keywords} maskKeywords={isMasking} />
-              </div>
-            </>
-          )}
+          {/* 3. Solution Section (printed directly on page, body stays visible) */}
+          <hr className="book-divider-double my-3" />
+          <div className="pt-2">
+            <div className="flex items-center justify-between pb-3 mb-3">
+              <span className="text-xs font-bold text-stone-600 dark:text-stone-400 tracking-wider">
+                参考解析
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsMasking((prev) => !prev)}
+                aria-label={isMasking ? '显露关键词' : '挖空遮挡'}
+                aria-pressed={isMasking}
+                className={`w-8 h-8 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
+                  isMasking
+                    ? 'bg-rose-500 text-white border-rose-600'
+                    : 'bg-transparent text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:text-rose-500 hover:border-rose-400'
+                }`}
+              >
+                {isMasking ? (
+                  <EyeOff className="w-4 h-4" aria-hidden="true" />
+                ) : (
+                  <Eye className="w-4 h-4" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+            <MarkdownViewer
+              content={currentQ.answer}
+              keywords={currentQ.keywords}
+              maskKeywords={isMasking}
+              maskHeadings={maskHeadings}
+            />
+          </div>
         </article>
       </div>
     </div>

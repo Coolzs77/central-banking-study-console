@@ -5,6 +5,7 @@ interface MarkdownViewerProps {
   content: string;
   keywords?: string[];
   maskKeywords?: boolean;
+  maskHeadings?: boolean;
   onToggleClozeAll?: boolean;
 }
 
@@ -19,9 +20,11 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   content,
   keywords,
   maskKeywords = false,
+  maskHeadings = false,
   onToggleClozeAll = false,
 }) => {
   const [revealedSet, setRevealedSet] = useState<Set<number>>(new Set());
+  const [revealedHeadingSet, setRevealedHeadingSet] = useState<Set<number>>(new Set());
 
   // Memoize active keywords and regex if custom keywords provided
   const activeKeywords = React.useMemo(() => {
@@ -39,12 +42,73 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
     return KEYWORD_REGEX;
   }, [activeKeywords, keywords]);
 
-  // Reset revealed set when maskKeywords turns off
+  // Reset revealed sets when masking turns off or content changes
   React.useEffect(() => {
     if (!maskKeywords) {
       setRevealedSet(new Set());
     }
-  }, [maskKeywords]);
+  }, [maskKeywords, content]);
+
+  React.useEffect(() => {
+    setRevealedHeadingSet(new Set());
+  }, [maskHeadings, content]);
+
+  const toggleHeadingReveal = (lineIdx: number, e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    setRevealedHeadingSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(lineIdx)) {
+        next.delete(lineIdx);
+      } else {
+        next.add(lineIdx);
+      }
+      return next;
+    });
+  };
+
+  const renderSubheading = (headingText: string, lineIdx: number) => {
+    const isHidden = maskHeadings && !revealedHeadingSet.has(lineIdx);
+    if (!isHidden) {
+      return (
+        <h4
+          onClick={maskHeadings ? (e) => toggleHeadingReveal(lineIdx, e) : undefined}
+          className={`font-extrabold text-[1.06em] text-emerald-600 dark:text-emerald-400 tracking-wide ${
+            maskHeadings ? 'cursor-pointer' : ''
+          }`}
+        >
+          {headingText}
+        </h4>
+      );
+    }
+    return (
+      <h4 className="font-extrabold text-[1.06em] text-emerald-600 dark:text-emerald-400 tracking-wide">
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label="点击显露要点标题"
+          aria-pressed={false}
+          onClick={(e) => toggleHeadingReveal(lineIdx, e)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleHeadingReveal(lineIdx, e);
+            }
+          }}
+          className="inline-flex items-center justify-center relative px-2 py-0.5 rounded cursor-pointer select-none transition-transform duration-150 hover:scale-[1.01] align-baseline"
+          style={{
+            background:
+              'repeating-linear-gradient(135deg, rgba(167, 243, 208, 0.85) 0px, rgba(167, 243, 208, 0.85) 6px, rgba(209, 250, 229, 0.9) 6px, rgba(209, 250, 229, 0.9) 12px)',
+            boxShadow: 'inset 0 0 0 1px rgba(16, 185, 129, 0.35)',
+          }}
+        >
+          <span className="opacity-0 select-none pointer-events-none">{headingText}</span>
+          <span className="absolute inset-0 flex items-center justify-center text-xs text-emerald-700/80 font-bold pointer-events-none select-none tracking-widest">
+            ···
+          </span>
+        </span>
+      </h4>
+    );
+  };
 
   let globalClozeIdx = 0;
 
@@ -353,9 +417,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
 
             return (
               <div key={lineIdx} className="mt-3.5 mb-1 pt-0.5 first:mt-0 first:pt-0 space-y-1">
-                <h4 className="font-extrabold text-[1.06em] text-emerald-600 dark:text-emerald-400 tracking-wide">
-                  {rawHeader}
-                </h4>
+                {renderSubheading(rawHeader, lineIdx)}
                 <div className="space-y-1">
                   {clauses.map((clause, cIdx) => (
                     <div
@@ -392,9 +454,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             .trim();
           return (
             <div key={lineIdx} className="mt-4 mb-1 pt-1 first:mt-0 first:pt-0">
-              <h4 className="font-extrabold text-[1.06em] text-emerald-600 dark:text-emerald-400 tracking-wide">
-                {subTitle}
-              </h4>
+              {renderSubheading(subTitle, lineIdx)}
             </div>
           );
         }
