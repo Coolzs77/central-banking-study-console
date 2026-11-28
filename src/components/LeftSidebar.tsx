@@ -92,7 +92,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   if (isCollapsed) {
     return (
       <aside
-        className={`w-16 flex-shrink-0 flex flex-col items-center h-[calc(100vh-4rem)] sticky top-16 border-r border-stone-300/70 dark:border-stone-800 bg-[#f6f1e7]/95 dark:bg-[#161411]/95 backdrop-blur-md py-4 px-2 gap-3 transition-colors duration-200 ${className}`}
+        className={`w-16 flex-shrink-0 flex flex-col items-center h-[calc(100vh-4rem)] sticky top-16 border-r border-[var(--paper-border)] bg-[var(--paper-chrome)] backdrop-blur-md py-4 px-2 gap-3 transition-colors duration-200 ${className}`}
       >
         <div className="flex flex-col gap-2">
           {modes.map((mode) => {
@@ -121,10 +121,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   return (
     <aside
-      className={`w-76 lg:w-80 flex-shrink-0 flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r border-stone-300/70 dark:border-stone-800 bg-[#f6f1e7]/95 dark:bg-[#161411]/95 backdrop-blur-md p-4 overflow-y-auto overscroll-contain gap-5 transition-colors duration-200 ${className}`}
+      className={`w-76 lg:w-80 flex-shrink-0 flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r border-[var(--paper-border)] bg-[var(--paper-chrome)] backdrop-blur-md p-4 overflow-y-auto overscroll-contain gap-5 transition-colors duration-200 ${className}`}
     >
       {/* Top Header */}
-      <div className="flex items-center justify-between px-1 pb-2 border-b border-stone-300/70 dark:border-stone-800">
+      <div className="flex items-center justify-between px-1 pb-2 border-b border-[var(--paper-border)]">
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-amber-700 dark:text-amber-400" />
           <span className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400">

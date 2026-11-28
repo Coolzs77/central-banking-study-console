@@ -4040,3 +4040,51 @@ flowchart TD
   python C:\Users\86166\.gemini\antigravity\brain\750285ff-e722-49e4-b776-a5cdb15413ca\scratch\e2e_paper_and_space.py
   ```
 - **实测结果**：`21/21`、`36/36`、`54/54` 全通过，`vite build` 成功，无头 Chrome E2E 输出 `E2E_PAPER_SPACE_PASS`（7 套纸张切换 + 空格仅遮挡绿色小标题验证通过，控制台 `0` `SEVERE` 报错）。
+
+
+---
+
+## 第 37 轮 [2026-11-28 14:32]：全网页背景联动换肤（根容器、顶栏、左右侧栏一体同步）
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- 用户指出切换纸张背景时只有中间学习区变化，整个网页的顶栏、左侧目录、右侧导航栏与整页桌面底色仍是固定米黄，要求将整页背景全部联动切换。
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- [App.tsx](file:///e:/workspace/central-banking-study-console/src/App.tsx)：将 `data-paper={paperTheme}`、`data-font={fontTheme}` 与 `.paper-canvas` 提升至最外层根 `<div>`，`#main-content` 改为 `bg-transparent`（保留 `data-paper`、`data-font` 与字号 CSS 变量）。
+- [index.css](file:///e:/workspace/central-banking-study-console/src/index.css)：在 `.paper-canvas` 及全部 7 套 `[data-paper="..."]`（含 `.dark` 模式）中新增 `--paper-chrome` 语义化半透明纸浆底色令牌，并让 `.paper-canvas` 整页桌面底色叠加当前纸张的 `--paper-tooth` 纹理。
+- [Header.tsx](file:///e:/workspace/central-banking-study-console/src/components/Header.tsx)、[LeftSidebar.tsx](file:///e:/workspace/central-banking-study-console/src/components/LeftSidebar.tsx)、[RightSidebar.tsx](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx)：将写死的 `#faf6ed` / `#f6f1e7` / `stone-300` 统一替换为 `bg-[var(--paper-chrome)]` 与 `border-[var(--paper-border)]`。
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：切换「豆沙护眼」「古典羊皮纸」「极简白纸」等背景时，顶栏与左右侧栏保持固定米色，产生明显色块割裂。
+- **根本原因 (RCA)**：`data-paper` 属性与 `.paper-canvas` 类此前只挂在中间 `<main>` 节点，外层壳组件无法继承 `--paper-*` 变量且自身硬编码了静态十六进制底色。
+- **具体解法**：作用域提升至根 `<div>` 后通过 `--paper-chrome` 与 `--paper-border` 驱动全部外围结构。
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Root["App 根容器<br/>data-paper={paperTheme}"] -->|"--paper-desktop + --paper-tooth"| BG["整页桌面背景"]
+    Root -->|"--paper-chrome / --paper-border"| Chrome["Header + LeftSidebar + RightSidebar"]
+    Root -->|"--paper-surface + ::before/::after"| Book["中间 .book-page 书页"]
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **整页单一主题源**：`App.tsx` 根容器注入当前纸张变量后，桌面、外围栏与中心书页按「桌面底色 < 外围半透明护眼栏 < 中心实体书页」三层明度阶梯协同变色。
+
+```mermaid
+stateDiagram-v2
+    [*] --> Ivory: "默认 道林考卷 (#e7dfd0 / #f8f3e8)"
+    Ivory --> Sage: "切换 豆沙护眼 (#dfeae2 / #ebf4ed)"
+    Sage --> Parchment: "切换 古典羊皮纸 (#e4d4b5 / #f1e5c9)"
+    Parchment --> Default: "切换 极简白纸 (#eef2f7 / #f8fafc)"
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **亮暗双模式同步**：7 套纸张在 `.dark` 下同样拥有独立的 `--paper-desktop` 与 `--paper-chrome`，切换夜间模式不会丢失整体色调一致感。
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 整页无死角色块割裂，切换任意纸张主题后顶栏、左右侧栏与中间桌面形成统一的视觉氛围。
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- `npx tsx tests/verifyHomeworkHierarchy.ts`（`21/21`）、`npx tsx tests/verifyPracticeUI.tsx`（`36/36`）、`node verify_suite.mjs`（`54/54`）、`npm run build` 全通过；
+- 无头 Chrome 实测输出 `E2E_PAPER_SPACE_PASS`（实测 `Header`、`LeftSidebar`、`RightSidebar` 计算背景色随 `ivory -> sage -> parchment` 真实同步变化，控制台 `0` `SEVERE` 错误）。

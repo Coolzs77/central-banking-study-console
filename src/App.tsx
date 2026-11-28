@@ -526,7 +526,11 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#e7dfd0] dark:bg-[#0f0d0a] text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div
+      data-paper={paperTheme}
+      data-font={fontTheme}
+      className="paper-canvas min-h-screen text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200"
+    >
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-xl focus:text-xs focus:font-bold focus:shadow-lg"
@@ -591,7 +595,7 @@ export function App() {
               '--reader-font-scale': String(fontSize / 16),
             } as React.CSSProperties
           }
-          className="paper-canvas flex-1 min-w-0 h-[calc(100vh-4rem)] overflow-hidden flex flex-col"
+          className="bg-transparent flex-1 min-w-0 h-[calc(100vh-4rem)] overflow-hidden flex flex-col"
         >
           {currentMode === 'recitation' && (
             <RecitationCanvas

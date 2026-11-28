@@ -160,6 +160,7 @@
 
   /* 默认纸张令牌 (道林考卷) */
   --paper-desktop: #e7dfd0;
+  --paper-chrome: rgba(248, 243, 232, 0.92);
   --paper-surface: #fbf8f1;
   --paper-inner: #f4eee1;
   --paper-border: rgba(176, 158, 128, 0.38);
@@ -176,14 +177,15 @@
   --paper-muted: #78716c;
 
   background-color: var(--paper-desktop);
-  background-image: var(--paper-tooth-fine);
-  background-blend-mode: soft-light;
+  background-image: var(--paper-tooth);
+  background-blend-mode: multiply;
   color: var(--paper-ink);
   transition: background-color 0.25s ease;
 }
 
 .dark .paper-canvas {
   --paper-desktop: #0f0d0a;
+  --paper-chrome: rgba(22, 20, 17, 0.92);
   --paper-surface: #191815;
   --paper-inner: #211f1b;
   --paper-border: rgba(120, 110, 92, 0.34);
@@ -194,11 +196,13 @@
   --paper-tooth-opacity: 0.14;
   --paper-ink: #f5f5f4;
   --paper-muted: #a8a29e;
+  background-blend-mode: soft-light;
 }
 
 /* 1. 道林考卷纸 (冷压棉絮纹 + 双排排版线 + 左侧三孔装订 + 右上角朱红微印章) */
 .paper-canvas[data-paper="ivory"] {
   --paper-desktop: #e7dfd0;
+  --paper-chrome: rgba(248, 243, 232, 0.92);
   --paper-surface: #f9f5eb;
   --paper-inner: #f3ede0;
   --paper-border: rgba(176, 158, 128, 0.42);
@@ -220,6 +224,7 @@
 }
 .dark .paper-canvas[data-paper="ivory"] {
   --paper-desktop: #0f0d0a;
+  --paper-chrome: rgba(22, 20, 17, 0.92);
   --paper-surface: #191815;
   --paper-inner: #211f1b;
   --paper-border: rgba(120, 110, 92, 0.34);
@@ -236,6 +241,7 @@
 /* 2. 古典羊皮纸 (琥珀云斑 + 粗皮纹凹凸 + 古典双框卷草角花 + 天平圆章水印) */
 .paper-canvas[data-paper="parchment"] {
   --paper-desktop: #e4d4b5;
+  --paper-chrome: rgba(241, 229, 201, 0.92);
   --paper-surface: #f2e5c6;
   --paper-inner: #eadbc0;
   --paper-border: rgba(154, 114, 58, 0.44);
@@ -264,6 +270,7 @@
 }
 .dark .paper-canvas[data-paper="parchment"] {
   --paper-desktop: #13100b;
+  --paper-chrome: rgba(25, 21, 16, 0.92);
   --paper-surface: #1c1813;
   --paper-inner: #241f18;
   --paper-border: rgba(146, 112, 62, 0.36);
@@ -278,6 +285,7 @@
 /* 3. 护眼豆沙绿纸 (植物短纤 + 左侧绿色索引带 + 小嫩芽 + 右下角叶脉水印) */
 .paper-canvas[data-paper="sage"] {
   --paper-desktop: #dfeae2;
+  --paper-chrome: rgba(235, 244, 237, 0.92);
   --paper-surface: #edf5ee;
   --paper-inner: #e4efe6;
   --paper-border: rgba(114, 148, 124, 0.38);
@@ -299,6 +307,7 @@
 }
 .dark .paper-canvas[data-paper="sage"] {
   --paper-desktop: #0d1310;
+  --paper-chrome: rgba(18, 25, 21, 0.92);
   --paper-surface: #141b17;
   --paper-inner: #1a231e;
   --paper-border: rgba(82, 116, 94, 0.36);
@@ -311,6 +320,7 @@
 /* 4. 温润牛皮纸 (纵向木浆纤维 + 麻点 + 虚线缝线框 + 牛皮三角贴角 + 复古邮戳) */
 .paper-canvas[data-paper="kraft"] {
   --paper-desktop: #dfd0b3;
+  --paper-chrome: rgba(232, 217, 191, 0.92);
   --paper-surface: #eadac0;
   --paper-inner: #e3d1b3;
   --paper-border: rgba(145, 112, 72, 0.44);
@@ -336,6 +346,7 @@
 }
 .dark .paper-canvas[data-paper="kraft"] {
   --paper-desktop: #120f0c;
+  --paper-chrome: rgba(24, 20, 16, 0.92);
   --paper-surface: #1b1713;
   --paper-inner: #231e18;
   --paper-border: rgba(132, 102, 68, 0.36);
@@ -348,6 +359,7 @@
 /* 5. 康奈尔方格纸 (细纸纹 + 24px/96px 粗细方格 + 天头红蓝分栏 + 回形针 + 坐标折线水印) */
 .paper-canvas[data-paper="grid"] {
   --paper-desktop: #eaedf2;
+  --paper-chrome: rgba(245, 244, 239, 0.92);
   --paper-surface: #fbf9f3;
   --paper-inner: #f4f1ea;
   --paper-border: rgba(148, 163, 184, 0.4);
@@ -372,6 +384,7 @@
 }
 .dark .paper-canvas[data-paper="grid"] {
   --paper-desktop: #0c1016;
+  --paper-chrome: rgba(18, 22, 30, 0.92);
   --paper-surface: #141820;
   --paper-inner: #1a202b;
   --paper-border: rgba(71, 85, 105, 0.42);
@@ -388,6 +401,7 @@
 /* 6. 横线稿纸 (细纸纹 + 28px 蓝横线 + 左侧双红装订竖线 + 三孔活页 + 钢笔尖小图标) */
 .paper-canvas[data-paper="lined"] {
   --paper-desktop: #ece7dc;
+  --paper-chrome: rgba(247, 244, 235, 0.92);
   --paper-surface: #fcfaf3;
   --paper-inner: #f5f1e7;
   --paper-border: rgba(164, 152, 132, 0.4);
@@ -412,6 +426,7 @@
 }
 .dark .paper-canvas[data-paper="lined"] {
   --paper-desktop: #0f0e0d;
+  --paper-chrome: rgba(21, 20, 18, 0.92);
   --paper-surface: #171614;
   --paper-inner: #1e1c19;
   --paper-border: rgba(92, 86, 76, 0.38);
@@ -428,6 +443,7 @@
 /* 7. 极简白纸 (微米冷压细纹 + 四角裁切角标 + 顶部极简折角书签 + 央行立柱几何水印) */
 .paper-canvas[data-paper="default"] {
   --paper-desktop: #eef2f7;
+  --paper-chrome: rgba(248, 250, 252, 0.92);
   --paper-surface: #fcfcfd;
   --paper-inner: #f8fafc;
   --paper-border: rgba(203, 213, 225, 0.85);
@@ -451,6 +467,7 @@
 }
 .dark .paper-canvas[data-paper="default"] {
   --paper-desktop: #0b0f17;
+  --paper-chrome: rgba(18, 24, 34, 0.92);
   --paper-surface: #151b26;
   --paper-inner: #18202e;
   --paper-border: rgba(30, 41, 59, 0.85);

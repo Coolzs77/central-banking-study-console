@@ -180,7 +180,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#faf6ed]/90 dark:bg-[#161411]/90 border-b border-stone-300/70 dark:border-stone-800 transition-colors">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[var(--paper-chrome)] border-b border-[var(--paper-border)] transition-colors">
       <div className="w-full px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Left: Mobile Menu Trigger + Brand Title (Strictly clean, zero marketing fluff) */}
         <div className="flex items-center gap-3">
