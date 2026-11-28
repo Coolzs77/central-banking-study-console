@@ -395,7 +395,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   return (
     <aside
       aria-label="辅助导航栏"
-      className={`w-80 shrink-0 h-[calc(100vh-4rem)] sticky top-16 bg-[var(--paper-chrome)] border-l border-[var(--paper-border)] flex flex-col overflow-hidden text-stone-800 dark:text-stone-200 backdrop-blur-md transition-colors duration-200 ${className}`}
+      className={`w-80 shrink-0 h-[calc(100vh-4rem)] sticky top-16 paper-chrome-surface border-l flex flex-col overflow-hidden text-stone-800 dark:text-stone-200 backdrop-blur-md transition-colors duration-200 ${className}`}
     >
       {/* Top Header: 3-Tab Segmented Control + Collapse Button */}
       <div className="px-3 py-2.5 border-b border-[var(--paper-border)] flex items-center gap-2 shrink-0">

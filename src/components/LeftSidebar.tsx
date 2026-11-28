@@ -92,7 +92,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   if (isCollapsed) {
     return (
       <aside
-        className={`w-16 flex-shrink-0 flex flex-col items-center h-[calc(100vh-4rem)] sticky top-16 border-r border-[var(--paper-border)] bg-[var(--paper-chrome)] backdrop-blur-md py-4 px-2 gap-3 transition-colors duration-200 ${className}`}
+        className={`w-16 flex-shrink-0 flex flex-col items-center h-[calc(100vh-4rem)] sticky top-16 border-r paper-chrome-surface backdrop-blur-md py-4 px-2 gap-3 transition-colors duration-200 ${className}`}
       >
         <div className="flex flex-col gap-2">
           {modes.map((mode) => {
@@ -121,7 +121,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   return (
     <aside
-      className={`w-76 lg:w-80 flex-shrink-0 flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r border-[var(--paper-border)] bg-[var(--paper-chrome)] backdrop-blur-md p-4 overflow-y-auto overscroll-contain gap-5 transition-colors duration-200 ${className}`}
+      className={`w-76 lg:w-80 flex-shrink-0 flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r paper-chrome-surface backdrop-blur-md p-4 overflow-y-auto overscroll-contain gap-5 transition-colors duration-200 ${className}`}
     >
       {/* Top Header */}
       <div className="flex items-center justify-between px-1 pb-2 border-b border-[var(--paper-border)]">

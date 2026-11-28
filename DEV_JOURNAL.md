@@ -4133,3 +4133,53 @@ flowchart TD
 
 ### 6. 验证结果与可复现方法 (Verification & Reproduction)
 - `node verify_suite.mjs`（`54 PASSED, 0 FAILED`）、`npm run build`（`✓ built in 5.82s`）及 `e2e_paper_and_space.py`（`E2E_PAPER_SPACE_PASS`）全通过，实机截图目视确认外围深色噪点完全消除。
+
+
+---
+
+## 第 39 轮 [2026-11-28 14:40]：全页三区域独立纹理分化（桌面、顶栏/侧栏、书页各自拥有专属纹理）
+
+### 1. 本轮需求与目标 (User Intent & Goal)
+- 用户要求整个网页的各个区域都有真实可见的纹理，且**7 种风格在各个部分（外围桌面、顶栏/侧栏、中间书页）需要拥有不同的专属纹理**，同时不能发暗发灰。
+
+### 2. 核心技术实现与代码改动 (Implementation & Changes)
+- [index.css](file:///e:/workspace/central-banking-study-console/src/index.css)：
+  - 将整页纹理拆分为 3 个独立变量通道：
+    1. `--paper-tooth`（`.book-page::before`）：中心书页纸张本体颗粒/纤维；
+    2. `--desk-texture`（`.paper-canvas::before` 独立固定背景层，受控透明度 `0.55–0.65`）：7 套各不相同的书桌/垫板纹理（道林细斜亚麻、羊皮纸温润浅木纹、豆沙竹编草席纹、牛皮粗麻织纹、康奈尔工程点阵、横线斜纹稿台、极简斜线几何纹）；
+    3. `--chrome-texture`（`.paper-chrome-surface`）：顶栏与左右侧栏专属微细纹理（横纹纸带、古卷斜纹、柔点纹、虚线牛皮纹、十字格纹、细蓝横纹、极简微点纹）。
+  - 同时修复 `.paper-canvas > *` 覆盖 `Header` 的 `z-40` 层级问题，改为 `.paper-canvas > header { z-index: 40; }` 与 `.paper-canvas > :not(header) { position: relative; z-index: 1; }`。
+- [Header.tsx](file:///e:/workspace/central-banking-study-console/src/components/Header.tsx)、[LeftSidebar.tsx](file:///e:/workspace/central-banking-study-console/src/components/LeftSidebar.tsx)、[RightSidebar.tsx](file:///e:/workspace/central-banking-study-console/src/components/RightSidebar.tsx)：统一应用 `.paper-chrome-surface` 类。
+
+### 3. 遇到问题、根因分析与解决方案 (Issues, RCA & Fixes)
+- **问题现象**：初版添加 `.paper-canvas > * { position: relative; z-index: 1; }` 后，E2E 脚本点击顶栏「纸张与字体设置」菜单选项时被主区滚动容器拦截。
+- **根本原因 (RCA)**：该选择器优先级高于 Tailwind `@layer utilities` 的 `z-40`，把 `<header>` 的层叠上下文降为 `1`，导致后续兄弟节点盖住菜单。
+- **具体解法**：拆分为 `.paper-canvas > header { z-index: 40; }` 与 `:not(header)`，彻底恢复顶栏下拉菜单置顶层级。
+
+### 4. 架构与机制演进图 (Architectural Evolution Diagram)
+
+```mermaid
+flowchart LR
+    Theme["7 套纸张主题 (data-paper)"] --> Desk["外围桌面 (.paper-canvas::before)<br/>亚麻 / 木纹 / 竹编 / 粗麻 / 点阵 / 斜纹"]
+    Theme --> Chrome["顶栏与侧栏 (.paper-chrome-surface)<br/>横纹 / 斜纹 / 柔点 / 虚线 / 十字格"]
+    Theme --> Book["中心书页 (.book-page::before/after)<br/>冷压颗粒 + 装帧与小元素"]
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **三层不同纹理分工**：外围桌面提供垫板/书桌质感，顶栏与侧栏提供轻盈织物/纸带质感，中心书页呈现纸张本身颗粒与装帧细节，互不重叠也不喧宾夺主。
+
+```mermaid
+flowchart TD
+    Canvas[".paper-canvas"] --> Header["> header (z-index: 40)"]
+    Canvas --> Body["> :not(header) (z-index: 1)"]
+    Canvas --> Pseudo["::before 固定桌面纹理 (z-index: 0)"]
+```
+
+**机制解析（Diagram Walkthrough）**：
+1. **安全层叠隔离**：背景纹理永远处于 `z-index: 0`，主体内容处于 `z-index: 1`，顶栏与下拉菜单稳居 `z-index: 40`。
+
+### 5. 优化改进与体验打磨 (Improvements & Enhancements)
+- 全页三区域在 7 套风格下均有独立纹理且亮度通透，筛选标签与菜单文字对比度清晰。
+
+### 6. 验证结果与可复现方法 (Verification & Reproduction)
+- `node verify_suite.mjs`（`54 PASSED, 0 FAILED`）、`npm run build`（`✓ built in 4.21s`）与 `e2e_paper_and_space.py`（`E2E_PAPER_SPACE_PASS`）全通过，实机截图确认全页各区纹理清晰自然。
